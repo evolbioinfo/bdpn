@@ -1,0 +1,121 @@
+\documentclass{standalone}
+\usepackage{amsmath,amsthm,amssymb,graphicx,mathtools,tikz,hyperref,amsthm}
+\usepackage{tikz}
+\usepackage{standalone}
+\usepackage{caption}
+\usetikzlibrary{positioning}
+\tikzset{main node/.style={fill=none,draw=none,minimum size=.5cm,inner sep=0pt}}
+\tikzset{label node/.style={color=black,fill=none,draw=none,minimum size=.2cm,inner sep=0pt}}
+\usepackage[final]{pdfpages}
+
+\definecolor{tip}{rgb}{0.84,0.1,0.11}
+\definecolor{branch}{rgb}{.48, .2, .58}
+\definecolor{node}{rgb}{.17, .48, .71}
+\definecolor{T}{rgb}{.65,.38,.1}
+
+\begin{document}
+
+
+  \begin{tikzpicture}[node distance = 1cm and 1cm, line width=2pt, edge/.style = {-}]  
+    \node (Tree) {
+        \begin{tikzpicture}[line width=2pt, edge/.style = {-}]
+        
+  
+            \node[draw, circle, color=node, scale=.5] (root) {$0$}; 
+            \coordinate[above=.2cm of root] (t_root); 
+
+			
+            \coordinate[right=1cm of root] (root_n3);    
+            \node[draw, circle, color=node, scale=.5] (n3) [below = 1cm of root_n3] {$01$};          
+            \draw[edge, color=node] (root) to (root_n3);
+            \draw[edge, color=branch] (root_n3) to node[right, color=branch, scale=.5] {} (n3);
+            
+            \coordinate[left=.5cm of n3] (n3_t4);    
+            \node[draw, circle, color=tip, scale=.5] (t4) [below = 1cm of n3_t4] {$010$};          
+            \draw[edge, color=node] (n3) to (n3_t4);
+            \draw[edge, color=branch] (n3_t4) to node[right, color=branch, scale=.5] {} (t4);
+            \coordinate[right=.5cm of n3] (n3_t5);    
+            \node[draw, circle, color=tip, scale=.5] (t5) [below = .8cm of n3_t5] {$011$};          
+            \draw[edge, color=node] (n3) to (n3_t5);
+            \draw[edge, color=branch] (n3_t5) to node[right, color=branch, scale=.5] {} (t5);
+            
+            
+			
+            \coordinate[left=1cm of root] (root_n2);    
+            \node[draw, circle, color=node, scale=.5] (n2) [below = .4cm of root_n2] {$00$};          
+            \draw[edge, color=node] (root) to (root_n2);
+            \draw[edge, color=branch] (root_n2) to node[right, color=branch, scale=.5] {} (n2);
+            
+			
+            \coordinate[left=1cm of n2] (n2_n4);    
+            \node[draw, circle, color=node, scale=.45] (n4) [below = 1.2cm of n2_n4] {$000$};          
+            \draw[edge, color=node] (n2) to (n2_n4);
+            \draw[edge, color=branch] (n2_n4) to node[right, color=branch, scale=.5] {} (n4);
+            \coordinate[right=.5cm of n2] (n2_t3);    
+            \node[draw, circle, color=tip, scale=.5] (t3) [below = .1cm of n2_t3] {$001$};          
+            \draw[edge, color=node] (n2) to (n2_t3);
+            \draw[edge, color=branch] (n2_t3) to node[right, color=branch, scale=.5] {} (t3);
+            
+			
+            \coordinate[left=.5cm of n4] (n4_t1);    
+            \node[draw, circle, color=tip, scale=.45] (t1) [below = 1.6cm of n4_t1] {$0000$};          
+            \draw[edge, color=node] (n4) to (n4_t1);
+            \draw[edge, color=branch] (n4_t1) to node[right, color=branch, scale=.5] {} (t1);
+            \coordinate[right=.5cm of n4] (n4_t2);    
+            \node[draw, circle, color=tip, scale=.45] (t2) [below = .8cm of n4_t2] {$0001$};          
+            \draw[edge, color=node] (n4) to (n4_t2);
+            \draw[edge, color=branch] (n4_t2) to node[right, color=branch, scale=.5] {} (t2);
+            
+            
+                
+                \coordinate[left=3.5cm of root] (then);
+    			\coordinate[below=3.85cm of then] (now); 
+    			
+            \draw[edge, color=gray, <-, line width=.5] (now) to node[left, color=gray, scale=.75] {} (then);
+            
+            \coordinate[left=.12cm of then] (c_then); 
+            \coordinate[left=.12cm of now] (c_now); 
+            \coordinate[right=6cm of c_now] (c_now_c);
+            
+            \node[color=gray, scale=.75] () [left = 0cm of c_then] {$t=t_0=0$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_then) to (root_n2);
+            
+            \coordinate[left=1.425cm of n2_n4] (c_n2); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_n2] {$t=t_{00}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_n2) to (n2_n4);
+            
+            \coordinate[left=3.09cm of t3] (c_01); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_01] {$t=t_{001}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_01) to (t3);
+            
+            \coordinate[left=.7cm of n4_t1] (c_n4); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_n4] {$t=t_{000}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_n4) to (n4_t1);            
+            
+            
+            \coordinate[left=4.26cm of n3_t4] (c_n3); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_n3] {$t=t_{01}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_n3) to (n3_t4);
+            
+            
+            \coordinate[left=5.43cm of t5] (c_e); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_e] {$t=t_{011}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_e) to (t5);
+            
+            \coordinate[left=4.02cm of t4] (c_000); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_000] {$t=t_{010}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_000) to (t4);
+            
+            \coordinate[left=1.88cm of t2] (c_00); 
+            \node[color=gray, scale=.75] () [left = 0cm of c_00] {$t=t_{0001}$};
+            \draw[edge, color=gray, dotted, line width=.7] (c_00) to (t2);
+                        
+            \node[color=gray, scale=.75] () [left = 0cm of c_now] {$t=t_{0000}=T$};
+            
+            \draw[edge, color=gray, dotted, line width=.7] (c_now) to node[midway, color=gray, fill=white, scale=.75, opacity=1, text opacity=1] {end of sampling period} (c_now_c);
+                
+        \end{tikzpicture}
+    };
+  \end{tikzpicture}
+  
+ \end{document}
