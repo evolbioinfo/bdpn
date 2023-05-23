@@ -157,7 +157,7 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, rho=None):
     return get_real_params_from_optimised(x0)
 
 
-nwk = '/home/azhukova/projects/bdei/bd/large/trees/tree.1.nwk'
+nwk = '/home/azhukova/projects/bdpn/trees/bd/tree.1.nwk'
 tree = Tree(nwk)
 annotate_tree(tree)
 df = pd.read_csv(nwk.replace('.nwk', '.log'))
