@@ -42,86 +42,19 @@ def get_p(t, la, psi, rho, T, ti):
     return (np.power(c3, 2) * np.exp(c1 * (t - ti))) / np.power(c2 * np.exp(c1 * t) + 1, 2)
 
 
-def get_p_o(t, la, psi, rho, T, ti):
-    c1 = get_c1(la, psi, rho)
-    c2 = get_c2(la, psi, rho, T)
-    c3 = get_c3(la, psi, rho, T, ti)
-    return (c3 * np.exp(1/2 * (la + psi + c1) * (t - ti))) / (c2 * np.exp(c1 * t) + 1)
+def loglikelihood(tree, la, psi, rho, T):
+    n = len(tree)
+    res = n * np.log(psi * rho) + (n - 1) * np.log(2 * la)
+    for n in tree.traverse('preorder'):
+        if not n.is_leaf():
+            ti = getattr(n, 'time')
+            c1, c2 = n.children
+            res += np.log(get_p(ti, la, psi, rho, T, getattr(c1, 'time'))) \
+                   + np.log(get_p(ti, la, psi, rho, T, getattr(c2, 'time')))
+    return res
 
 
-def get_p_nh(t, la, psi, ti):
-    return np.exp((la + psi) * (t - ti))
-
-
-def get_lu(i, la, psi, psi_n, rho, rho_n, T, attribute=True):
-    ti = getattr(i, 'time')
-    tj = ti - i.dist
-    pi_tj = get_p(tj, la, psi, rho, T, ti)
-    if i.is_leaf():
-        return pi_tj * psi * rho * (1 - rho_n)
-    i0, i1 = i.children
-    lu_0 = getattr(i0, 'LU') if attribute else get_lu(i0, la, psi, psi_n, rho, rho_n, T, attribute)
-    lu_1 = getattr(i1, 'LU') if attribute else get_lu(i1, la, psi, psi_n, rho, rho_n, T, attribute)
-    branch_probs = lu_0 * lu_1
-    if i0.is_leaf():
-        branch_probs += get_ln(i0, la, psi, rho, rho_n) * get_lp(i1, i0, la, psi, psi_n, rho, rho_n, T, attribute)
-    if i1.is_leaf():
-        branch_probs += get_lp(i0, i1, la, psi, psi_n, rho, rho_n, T, attribute) * get_ln(i1, la, psi, rho, rho_n)
-    return pi_tj * 2 * la * branch_probs
-
-
-def get_ln(i, la, psi, rho, rho_n):
-    ti = getattr(i, 'time')
-    tj = ti - i.dist
-    if i.is_leaf():
-        return get_p_nh(tj, la, psi, ti) * psi * rho * rho_n
-    raise ValueError('A non-leaf cannot be a notifier')
-
-
-def get_lp(i, r, la, psi, psi_n, rho, rho_n, T, attribute=True):
-    ti = getattr(i, 'time')
-    tj = ti - i.dist
-    tr = getattr(r, 'time')
-    if i.is_leaf():
-        if tr > ti:
-            return 0
-        return get_p_o(tj, la, psi, rho, T, tr) * np.exp(-psi_n * (ti - tr)) * psi_n
-    if not attribute:
-        i0, i1 = i.children
-        branch_probs = get_lp(i0, r, la, psi, psi_n, rho, rho_n, T) * get_lu(i1, la, psi, psi_n, rho, rho_n, T, attribute) \
-                       + get_lu(i0, la, psi, psi_n, rho, rho_n, T, attribute) * get_lp(i1, r, la, psi, psi_n, rho, rho_n, T)
-        return get_p_o(tj, la, psi, rho, T, ti) * la * branch_probs
-    a2c = getattr(i, 'C')
-    return sum(c * get_lp(a, r, la, psi, psi_n, rho, rho_n, T, attribute) for (a, c) in a2c.items())
-
-
-def get_c(i, a, la, psi, psi_n, rho, rho_n, T, attribute=True):
-    ti = getattr(i, 'time')
-    tj = ti - i.dist
-    if i == a:
-        return 1
-    i_a, i_not_a = i.children
-    if a not in i_a.iter_leaves():
-        i_a, i_not_a = i_not_a, i_a
-    c = getattr(i_a, 'C')[a] if attribute else get_c(i_a, a, la, psi, psi_n, rho, rho_n, T)
-    return get_p_o(tj, la, psi, rho, T, ti) * la * get_lu(i_not_a, la, psi, psi_n, rho, rho_n, T, attribute) * c
-
-
-def loglikelihood(tree, la, psi, psi_n, rho, rho_n, T):
-    for n in tree.traverse('postorder'):
-        if n.is_leaf():
-            n.add_feature('LU', get_lu(n, la, psi, psi_n, rho, rho_n, T, False))
-            n.add_feature('C', {n: 1})
-            continue
-        a2c = {a: get_c(n, a, la, psi, psi_n, rho, rho_n, T, True) for a in n}
-        n.add_feature('C', a2c)
-        n.add_feature('LU', get_lu(n, la, psi, psi_n, rho, rho_n, T, True))
-    return np.log(getattr(tree, 'LU'))
-
-    # return get_lu(tree, la, psi, psi_n, rho, rho_n, T)
-
-
-def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None, rho_n=None):
+def optimize_likelihood_params(tree, T, la=None, psi=None, rho=None):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -146,14 +79,13 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None,
     print('Considering ', max_rate, ' as max rate and ', min_rate, ' as min rate')
     avg_rate = (min_rate + max_rate) / 2
 
-    bounds.extend([[min_rate, max_rate]] * (int(la is None) + int(psi is None) + int(psi_n is None)))
+    bounds.extend([[min_rate, max_rate]] * (int(la is None) + int(psi is None)))
     bounds.extend([[1e-3, 1 - 1e-3]] * int(rho is None))
-    bounds.extend([[1e-3, 1 - 1e-3]] * int(rho_n is None))
     bounds = np.array(bounds, np.float64)
 
     def get_real_params_from_optimised(ps):
         ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
-        result = np.zeros(5)
+        result = np.zeros(3)
         i = 0
         if la is None:
             result[0] = ps[i]
@@ -165,21 +97,11 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None,
             i += 1
         else:
             result[1] = psi
-        if psi_n is None:
+        if rho is None:
             result[2] = ps[i]
             i += 1
         else:
-            result[2] = psi_n
-        if rho is None:
-            result[3] = ps[i]
-            i += 1
-        else:
-            result[3] = rho
-        if rho_n is None:
-            result[4] = ps[i]
-            i += 1
-        else:
-            result[4] = rho_n
+            result[2] = rho
         return result
 
     def get_optimised_params_from_real(ps):
@@ -188,12 +110,8 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None,
             result.append(ps[0])
         if psi is None:
             result.append(ps[1])
-        if psi_n is None:
-            result.append(ps[2])
         if rho is None:
-            result.append(ps[3])
-        if rho_n is None:
-            result.append(ps[4])
+            result.append(ps[2])
         return np.array(result)
 
 
@@ -202,10 +120,10 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None,
             return np.nan
         ps = get_real_params_from_optimised(ps)
         res = loglikelihood(tree, *ps, T)
-        print("{}\t-->\t{:g}".format(ps, res))
+        # print(ps, "\t-->\t", res)
         return -res
 
-    x0 = get_optimised_params_from_real([avg_rate, avg_rate, avg_rate, 0.5, 0.5])
+    x0 = get_optimised_params_from_real([avg_rate, avg_rate, 0.5])
     best_log_lh = -get_v(x0)
 
     def R0(vs):
@@ -239,19 +157,16 @@ def optimize_likelihood_params(tree, T, la=None, psi=None, psi_n=None, rho=None,
     return get_real_params_from_optimised(x0)
 
 
-nwk = '/home/azhukova/projects/bdpn/trees/bdpn/tree.0.nwk'
+nwk = '/home/azhukova/projects/bdpn/trees/bd/tree.1.nwk'
 tree = Tree(nwk)
 annotate_tree(tree)
 df = pd.read_csv(nwk.replace('.nwk', '.log'))
 rho = df.loc[0, 'sampling probability']
-rho_n = df.loc[0, 'notification probability']
 R0 = df.loc[0, 'R0']
 it = df.loc[0, 'infectious time']
-rt = df.loc[0, 'removal time after notification']
 psi = 1 / it
-psi_n = 1 / rt
 la = R0 * psi
 T = max(getattr(_, 'time') for _ in tree)
-vs = optimize_likelihood_params(tree, T, la=None, psi=None, rho=rho, psi_n=None, rho_n=None)
-print('Real params: {}'.format([la, psi, psi_n, rho, rho_n]))
+vs = optimize_likelihood_params(tree, T, la=None, psi=None, rho=rho)
+print('Real params: {}'.format([la, psi, rho]))
 print('Found params: {}'.format(vs))
