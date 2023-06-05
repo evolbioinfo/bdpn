@@ -140,7 +140,7 @@ We will use an \textbf{oriented probability} $P^{(i,o)}_{s,si}(t)$ for the cases
 \begin{equation}
 \scriptsize
 \begin{cases}
-\dot{p}_{s,si}^{(i,o)}(t) = & \Big(\sum\limits_{k=1}^{m} \mu_{sk} + \sum\limits_{k=1}^{m} \lambda_{sk} + \psi_s\Big) p_{s,si}^{(i)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
+\dot{p}_{s,si}^{(i,o)}(t) = & \Big(\sum\limits_{k=1}^{m} \mu_{sk} + \sum\limits_{k=1}^{m} \lambda_{sk} + \psi_s\Big) p_{s,si}^{(i,o)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
     & - \sum\limits_{k=1}^{m} \mu_{sk} p_{k,si}^{(i,o)}(t)\;  \textit{\color{gray} $\leftarrow$ change of the state, folowed by evolution from the new state }\\
     & - \sum\limits_{k=1}^{m} \lambda_{sk} p_{s,si}^{(i,o)}(t)U_{k}(t)\;  \textit{\color{gray} $\leftarrow$ transmission, where the recipient subtree stayed unsampled}\\
 p_{s,si}^{(i,o)}(t_i) = & 
@@ -303,7 +303,7 @@ For a tip $i$ whose branch starts at time $t_j$ and finishes at time $t_i$, thes
 \begin{array}{ll}
 l^{(u)}(i) &= p^{(i)}(t_j)\psi\rho (1-\rho_{n})\\
 l^{(n)}(i) &= p^{(i,nh)}(t_j)\psi\rho \rho_{n}\\
-l^{(p)}(i, r) &= p^{(r,o)}(t_j)e^{-\psi_n (t_i - t_j)}\psi_{n}\\
+l^{(p)}(i, r) &= p^{(r,o)}(t_j)e^{-\psi_n (t_i - t_r)}\psi_{n}\\
 \end{array}
 \end{equation}
 
@@ -378,7 +378,7 @@ For a tip $i$ whose branch starts at time $t_j$ in state $s \in \{E, I\}$ and fi
 \begin{array}{ll}
 l^{(u)}_{s}(i) &= p_s^{(i)}(t_j)\psi\rho (1-\rho_{n})\\
 l^{(n)}_{s}(i) &= p_s^{(i,nh)}(t_j)\psi\rho \rho_{n}\\
-l^{(p)}_{s}(i, r) &= p_s^{(r,o)}(t_j)e^{-\psi_n (t_i - t_j)}\psi_{n}\\
+l^{(p)}_{s}(i, r) &= p_s^{(r,o)}(t_j)e^{-\psi_n (t_i - t_r)}\psi_{n}\\
 \end{array}
 \end{equation}
 

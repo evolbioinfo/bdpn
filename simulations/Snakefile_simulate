@@ -1,0 +1,34 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_simulate --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+
+localrules: all
+
+folder = os.path.abspath(config.get("folder", '.'))
+sim_folder = os.path.join(folder, 'trees')
+IS=range(10)
+
+rule all:
+    input:
+        expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'), i=IS)
+
+
+rule simulate_bdpn:
+    '''
+    Simulate a BDPN tree.
+    '''
+    output:
+        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk')
+    params:
+        mem = 2000,
+        name = 'simulate_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.2"
+    shell:
+        """
+        python3 py/tree_generator.py --min_tips 5000 --max_tips 10000 --nwk {output.nwk} --log {output.log}
+        """

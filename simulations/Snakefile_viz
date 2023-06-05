@@ -1,0 +1,88 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_viz --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+
+
+localrules: all
+
+os.makedirs('logs', exist_ok=True)
+
+folder = os.path.abspath(config.get("folder", '.'))
+sim_folder = os.path.join(folder, 'trees')
+REPETITIONS = list(range(10))
+
+rule all:
+    input:
+        os.path.join(sim_folder, 'BDPN', 'errors.svg'),
+
+
+rule likelihood_stats:
+    '''
+    Calculate likelihood values for estimated parameters.
+    '''
+    input:
+        tab = os.path.join(sim_folder, '{dataset}', 'estimates.tab'),
+        nwk = expand(os.path.join(sim_folder, '{{dataset}}', 'trees', 'tree.{i}.nwk'), i=REPETITIONS),
+    output:
+        tab = os.path.join(sim_folder, '{dataset}', 'loglikelihoods.tab'),
+        stats = os.path.join(sim_folder, '{dataset}', 'likelihood_stats.txt'),
+    params:
+        mem = 2000,
+        name = 'likelihoods',
+        qos = 'fast',
+        nwk = os.path.join(sim_folder, '{dataset}', 'trees', 'tree.{}.nwk')
+    threads: 1
+    singularity: "docker://evolbioinfo/bdei:v0.4"
+    shell:
+        """
+        python3 py/likelihood_comparison.py --estimates {input.tab} \
+        --tree_pattern {params.nwk} --likelihoods {output.tab} --log {output.stats}
+        """
+
+rule combine_estimates:
+    '''
+    Combine estimates.
+    '''
+    input:
+        log = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'), i=REPETITIONS),
+        est_p = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est'), i=REPETITIONS),
+        est_psi = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est'), i=REPETITIONS),
+    output:
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+    params:
+        mem = 2000,
+        name = 'estimates',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/summary_table.py --real {input.log} \
+        --estimated_p {input.est_p} \
+        --estimated_psi {input.est_psi} \
+        --tab {output.tab}
+        """
+
+
+
+rule plot_errors:
+    '''
+    Plots the errors.
+    '''
+    input:
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+    output:
+        pdf = os.path.join(sim_folder, 'BDPN', 'errors.svg'),
+        tab = os.path.join(sim_folder, 'BDPN', 'errors.tab'),
+    params:
+        mem = 2000,
+        name = 'errors',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf}
+        """
