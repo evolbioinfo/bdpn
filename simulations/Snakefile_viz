@@ -11,7 +11,8 @@ os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
 sim_folder = os.path.join(folder, 'trees')
-REPETITIONS = list(range(10))
+n = int(config.get("n", 10))
+REPETITIONS = list(range(n))
 
 rule all:
     input:
@@ -49,6 +50,7 @@ rule combine_estimates:
         log = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'), i=REPETITIONS),
         est_p = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est'), i=REPETITIONS),
         est_psi = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est'), i=REPETITIONS),
+        est_la = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est'), i=REPETITIONS),
     output:
         tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
     params:
@@ -62,6 +64,7 @@ rule combine_estimates:
         python3 py/summary_table.py --real {input.log} \
         --estimated_p {input.est_p} \
         --estimated_psi {input.est_psi} \
+        --estimated_la {input.est_la} \
         --tab {output.tab}
         """
 

@@ -18,8 +18,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Generates random BDPN tree.")
-    parser.add_argument('--log', default='/home/azhukova/projects/bdpn/simulations/trees/BDPN/tree.0.log', type=str, help="Nwk")
-    parser.add_argument('--nwk', default='/home/azhukova/projects/bdpn/simulations/trees/BDPN/tree.0.nwk', type=str, help="Log")
+    parser.add_argument('--log', default='/home/azhukova/projects/bdpn/simulations/trees/BDPN/tree.101.log', type=str, help="Nwk")
+    parser.add_argument('--nwk', default='/home/azhukova/projects/bdpn/simulations/trees/BDPN/tree.101.nwk', type=str, help="Log")
     parser.add_argument('--min_tips', default=5000, type=int, help="Min number of tips")
     parser.add_argument('--max_tips', default=10000, type=int, help="Max number of tips")
     params = parser.parse_args()
@@ -29,12 +29,12 @@ if __name__ == "__main__":
     la = psi * R0
     psi_ratio = random_float(10, 100)
     psi_n = psi * psi_ratio
-    rho = random_float(0.01, 1)
-    rho_n = random_float(0.1, 1)
+    rho = random_float(0.01, 0.9)
+    rho_n = random_float(0.1, 0.9)
 
     print(la, psi, psi_n, rho, rho_n)
 
-    model = PNModel(model=BirthDeathModel(p=rho, la=la, psi=psi), pn=rho_n, removal_rate=rho_n)
+    model = PNModel(model=BirthDeathModel(p=rho, la=la, psi=psi), pn=rho_n, removal_rate=psi_n)
 
     forest, (total_tips, u, T), _ = generate(model, params.min_tips, params.max_tips)
 

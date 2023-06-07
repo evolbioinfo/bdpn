@@ -7,7 +7,6 @@ MIN_VALUE = np.log(np.finfo(np.float64).eps)
 MAX_VALUE = np.log(np.finfo(np.float64).max)
 
 
-
 def rescale_log(loglikelihood_array):
     """
     Rescales the likelihood array if it gets too small/large, by multiplying it by a factor of e.
@@ -19,19 +18,21 @@ def rescale_log(loglikelihood_array):
     min_limit = MIN_VALUE
 
     non_zero_loglh_array = loglikelihood_array[loglikelihood_array > -np.inf]
+    if len(non_zero_loglh_array) == 0:
+        raise ValueError('Underflow')
     min_lh_value = np.min(non_zero_loglh_array)
     max_lh_value = np.max(non_zero_loglh_array)
 
     factors = 0
-    if max_lh_value > max_limit:
-        factors = max_limit - max_lh_value - 1
-    elif min_lh_value < min_limit:
-        factors = min(min_limit - min_lh_value + 1, max_limit - max_lh_value - 1)
+    if max_lh_value > max_limit - 2:
+        factors = max_limit - max_lh_value - 2
+    elif min_lh_value < min_limit + 2:
+        factors = min(min_limit - min_lh_value + 2, max_limit - max_lh_value - 2)
     loglikelihood_array += factors
     return factors
 
 
-def optimize_likelihood_params(tree, input_parameters, loglikelihood, get_bounds_start):
+def optimize_likelihood_params(tree, input_parameters, loglikelihood, bounds, start_parameters):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -44,9 +45,12 @@ def optimize_likelihood_params(tree, input_parameters, loglikelihood, get_bounds
     :param u: number of hidden trees, where no tip got sampled
     :return: the values of optimized parameters and the corresponding loglikelihood: (MU, LA, PSI, RHO, best_log_lh)
     """
-    annotate_tree(tree)
+    if not hasattr(tree, TIME):
+        annotate_tree(tree)
     T = max(getattr(_, TIME) for _ in tree)
-    bounds, start_parameters = get_bounds_start(tree, *input_parameters)
+    # bounds, start_parameters = get_bounds_start(tree, *input_parameters)
+    # print('Bounds are {}'.format(bounds))
+    # print('Starting parameter values are {}'.format(start_parameters))
 
     def get_real_params_from_optimised(ps):
         ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
@@ -94,7 +98,7 @@ def optimize_likelihood_params(tree, input_parameters, loglikelihood, get_bounds
                 x0 = np.array(fres.x)
                 best_log_lh = -fres.fun
                 break
-        print('Attempt {} of trying to optimise the parameters: {}.'.format(i, -fres.fun))
+        # print('Attempt {} of trying to optimise the parameters: {}.'.format(i, -fres.fun))
     return get_real_params_from_optimised(x0)
 
 
@@ -105,6 +109,10 @@ def get_rough_rate_etimates(tree):
             l.append(n.dist)
     max_rate = 10 / np.mean(l)
     min_rate = 1 / np.max(l)
-    print('Considering ', max_rate, ' as max rate and ', min_rate, ' as min rate')
+    # print('Considering ', max_rate, ' as max rate and ', min_rate, ' as min rate')
     avg_rate = (min_rate + max_rate) / 2
     return avg_rate, max_rate, min_rate
+
+
+def AIC(k, loglk):
+    return 2 * k - 2 * loglk

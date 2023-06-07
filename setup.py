@@ -19,7 +19,7 @@ setup(
     author_email='anna.zhukova@pasteur.fr',
     url='https://github.com/evolbioinfo/bdpn',
     keywords=['phylogenetics', 'multitype birth-death model', 'partner notification'],
-    install_requires=['six', 'ete3', 'numpy', 'scipy'],
+    install_requires=['six', 'ete3', 'numpy', 'scipy', 'wquantiles'],
     entry_points={
             'console_scripts': [
                 'bdpn_infer = bdpn.bdpn:main',

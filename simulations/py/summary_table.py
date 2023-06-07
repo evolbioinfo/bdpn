@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize errors.")
     parser.add_argument('--estimated_p', nargs='+', type=str, help="estimated parameters")
     parser.add_argument('--estimated_psi', nargs='+', type=str, help="estimated parameters")
+    parser.add_argument('--estimated_la', nargs='+', type=str, help="estimated parameters")
     parser.add_argument('--real', nargs='+', type=str, help="real parameters")
     parser.add_argument('--tab', type=str, help="estimate table")
     params = parser.parse_args()
@@ -38,7 +39,7 @@ if __name__ == "__main__":
                 'lambda', 'psi', 'psi_p', 'p', 'pn', 'sampled_tips', 'type']] \
             = [R0, it, rt, R0 / it, 1 / it, 1 / rt, p, pn, tips, 'real']
 
-    for (est_list, fixed) in ((params.estimated_psi, 'psi'), (params.estimated_p, 'p')):
+    for (est_list, fixed) in ((params.estimated_la, 'lambda'), (params.estimated_psi, 'psi'), (params.estimated_p, 'p')):
         for est in est_list:
             i = int(re.findall(r'[0-9]+', est)[0])
             ddf = pd.read_csv(est)
