@@ -14,7 +14,7 @@ os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
 sim_folder = os.path.join(folder, 'trees')
-n = int(config.get("n", 10))
+n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
 rule all:
@@ -49,7 +49,7 @@ rule estimate_params_p_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20 0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1 
+        bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20 0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1 --ci
         """
 
 rule estimate_params_psi_fixed:
@@ -75,7 +75,7 @@ rule estimate_params_psi_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20  0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1  
+        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20  0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1 --ci 
         """
 
 rule estimate_params_la_fixed:
@@ -102,5 +102,5 @@ rule estimate_params_la_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --la ${{la}}  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20  0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1 
+        bdpn_infer --la ${{la}}  --nwk {input.nwk} --log {output.est} --upper_bounds 1 0.2 20  0.9 0.9 --lower_bounds 0.05 0.05 0.5 0.01 0.1 --ci
         """

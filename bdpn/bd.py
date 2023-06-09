@@ -1,6 +1,5 @@
 import numpy as np
 
-from bdpn.parameter_estimator import get_rough_rate_etimates
 from bdpn.tree_manager import TIME, annotate_tree
 
 
@@ -47,41 +46,25 @@ def get_log_p(t, la, psi, rho, T, ti):
     return 2 * np.log(c3) + (c1 * (t - ti)) - 2 * np.log((c1 + la - psi) / (c1 - la + psi) * np.exp(c1 * (t - T)) + 1)
 
 
-def loglikelihood(tree, la, psi, rho, T=None):
-    if not hasattr(tree, TIME):
-        annotate_tree(tree)
+def loglikelihood(forest, la, psi, rho, T=None):
+    for tree in forest:
+        if not hasattr(tree, TIME):
+            annotate_tree(tree)
     if T is None:
-        T = max(getattr(_, TIME) for _ in tree)
+        T = 0
+        for tree in forest:
+            T = max(T, max(getattr(_, TIME) for _ in tree))
 
-    n = len(tree)
-    res = n * np.log(psi * rho) + (n - 1) * np.log(2 * la)
-    for n in tree.traverse('preorder'):
-        if not n.is_leaf():
-            ti = getattr(n, TIME)
-            c1, c2 = n.children
-            res += get_log_p(ti, la, psi, rho, T, getattr(c1, TIME)) \
-                   + get_log_p(ti, la, psi, rho, T, getattr(c2, TIME))
+    res = 0
+    for tree in forest:
+        n = len(tree)
+        res += n * np.log(psi * rho) + (n - 1) * np.log(2 * la)
+        for n in tree.traverse('preorder'):
+            if not n.is_leaf():
+                ti = getattr(n, TIME)
+                c1, c2 = n.children
+                res += get_log_p(ti, la, psi, rho, T, getattr(c1, TIME)) \
+                       + get_log_p(ti, la, psi, rho, T, getattr(c2, TIME))
     u = get_u(0, la, psi, rho, T)
-    return res + u / (1 - u) * np.log(u)
-    # return res
+    return res + len(forest) * u / (1 - u) * np.log(u)
 
-
-def get_bounds_start(tree, la, psi, rho):
-    bounds = []
-    l_ext = []
-    l_int = []
-    for n in tree.traverse('preorder'):
-        if n.dist:
-            (l_int if not n.is_leaf() else l_ext).append(n.dist)
-    min_la_rate = 1 / np.max(l_int)
-    max_la_rate = 1 / np.percentile(l_int, 0.1)
-    min_psi_rate = 1 / np.max(l_ext)
-    max_psi_rate = 1 / np.percentile(l_ext, 0.1)
-    if la is None:
-        bounds.append([min_la_rate, max_la_rate])
-    if psi is None:
-        bounds.append([min_psi_rate, max_psi_rate])
-    bounds.extend([[1e-3, 1]] * int(rho is None))
-    avg_la_rate = 1 / np.median(l_int)
-    avg_psi_rate = 1 / np.median(l_ext)
-    return np.array(bounds, np.float64), [avg_la_rate, avg_psi_rate, 0.5]

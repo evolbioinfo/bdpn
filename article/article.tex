@@ -1,6 +1,7 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath,mathrsfs}
+\usepackage{amsmath,mathrsfs}\usepackage{amsmath,amsfonts,amssymb,float,graphicx,mathtools,mathrsfs,tikz,amsthm}
+
 
 \usepackage{standalone}
 \usepackage{caption}
@@ -14,6 +15,7 @@
 \usepackage{algpseudocode}
 \usepackage{hyperref}
 \usepackage{natbib}
+\usepackage{booktabs}
 
 
 \definecolor{tip}{rgb}{0.84,0.1,0.11}
@@ -48,7 +50,7 @@ To allow for heterogeneity over time, Stadler~\textit{et~al.}~\cite{Stadler2013}
 
 Another important source of heterogeneity that none of these models account for is inflicted by non-random sampling. We can propose different sampling probabilities for different types of individuals in MTBD framework, or change of the sampling probability over time intervals with the BDSKY, however, none of them can account for non-randomness of sampling, in particular due to contact tracing and partner notification. 
 
-In this study we propose an extension of the MTBD framework that allows to model non-random sampling due to partner notification, MTBD-PN. In the rest of the article, we describe the MTBD-PN model family and its assumptions, implement a transmission tree simulator under these models, derive the equations for their likelihood calculation, implement a maximum likelihood parameter estimator and test it on simulated data. We also propose a test allowing to distinguish between MTBD and MTBD-PN models. Finally, we apply it to the study of HIV epidemic in Cuba.
+In this study we propose an extension of the MTBD framework that allows to model non-random sampling due to partner notification, MTBD-PN. In the rest of the article, we describe the MTBD-PN model family and its assumptions, implement a transmission tree simulator under these models, derive the equations for their likelihood calculation, implement a maximum likelihood parameter estimator and test it on simulated data. We also propose a test allowing to distinguish between MTBD and MTBD-PN models. Finally, we apply it to the study of HIV epidemic in the UK.
 
 
 \section{MTBD-PN Framework}
@@ -423,6 +425,26 @@ l_E^{(p)}(a, r)\textit{\color{gray}~~if $i=a$ and $s=E$}
 \end{cases}
 \end{equation}
 
+\subsection{Extension to forests}
+
+As we previously described in~\citep{zhukovaFastAccurateMaximumLikelihood2022}, the likelihood calculation with MTBD models can be easily extended to forests. This extension applies also to MTBD-PN models. Forests are useful for cases when a (sub-)epidemic started with several infected individuals (e.g. dur to multiple pathogen introductions to a country of interest or due to a change of health policies leading to a change in parameter values).
+
+In this case the (sub-)epidemic leads to a forest $\mathscr{F}$ of $f$ observed trees: $\mathscr{T}_1, \ldots, \mathscr{T}_f$. If all the trees started at the same time (e.g. due to health policy change), the forest might also include a certain number $u$ of unobserved trees, i.e., individuals who were infected at the beginning of the (sub-)epidemic, but whose trees stayed unobserved  as none of their tips got sampled.
+Forest likelihood formula hence combines the likelihoods of $f$ observed and $u$ hidden trees, and can be represented in logarithmic form~(\ref{eq:forest_likelihood}). Tree likelihood formula %[\ref{eq:tree_likelihood}] 
+is its special case, where $f=1$ and $u=0$. 
+
+%As our application to Ebola data (see~Application) shows, $u$ is an important parameter: while the results are not very sensible to slight $u$ variations, ignoring it completely (e.g. using $u=0$ instead of $u \approx 500$ in our example) can change the inferences.
+
+\begin{equation}
+logL(\mathscr{F}|\Theta,u)=u\,logU_{hidden}(\Theta) + \sum\limits_{j=1}^f logL(\mathscr{T}_j|\Theta), \textit{ where } U_{hidden}(\Theta)=\sum\limits_{s=1}^{d}\pi_s U_s(0) \label{eq:forest_likelihood} 
+\end{equation}
+
+If all the sub-epidemics started at the same time, for given model parameter values $\Theta$ we can estimate the number of hidden trees $u$ from the number of observed trees $f$ as:
+\begin{equation}
+u = f \frac{U_{hidden}(\Theta)}{1 - U_{hidden}(\Theta)}\label{eq:u} 
+\end{equation}
+
+
 
 \section{Tree simulator}
 We implemented a quick tree simulator that generates sampled transmission trees under MTBD and MTBD-PN models (with $m$ states). The simulator is Gillespie-based, generates state change, transmission and removal times, and only reconstructs the sampled parts of the tree to save memory and increase speed. 
@@ -449,5 +471,82 @@ The simulator is implemented in Python 3. It uses ETE 3 framework for tree manip
 
 It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/treesimulator}{treesimulator}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/treesimulator/tags}{evolbioinfo/treesimulator}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/treesimulator}{github.com/evolbioinfo/treesimulator}.
 
+
+\section{PN test}
+To access whether a give tree is generated under a classical MTBD model or MTBD-PN, we developed a non-parametric test based on cherries (two tips having a common parent). 
+The intuition behind the test is that in the presence of partner notification the tree will contain more cherries whose tips are close in time. 
+
+The test sorts the cherries by the times of their roots, and splits them into blocks of 100 cherries. For each cherry in a block, the test calculates the difference between its tip times. It then generates a collection of random cherry tip differences for the same block: For each original cherry root it picks 5 cherries with the roots that are the closest in time, randomly selects two tips among their tips, and calculates their time difference. The random cherry tip difference generation is repeated 100 times. Finally, the test reports the proportion of cases where the first quantile of the random cherry differences was smaller than that of the real cherries. 
+
+The test therefore reports a probability of partner notification being present at time interval corresponding to each block. To estimate the probability of partner notification being present in the whole tree, it averages the block probabilities. 
+
+
+\subsection{Performance on simulated data}
+To illustrate the PN test performance, we applied it to the trees simulated under BD and under BDPn models. 
+
+... details coming soon ... 
+
+\section{BD-PN parameter and CI estimator}
+We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\psi_n,\rho,\rho_n) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). 
+
+Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\citep{Wilks1938}.
+For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
+
+\subsection*{Code availability}
+The BD-PN parameter estimator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\cite{Huerta-Cepas2016} and NumPy package for array operations~\cite{harris_array_2020}. 
+
+It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/bdpn}{bdpn}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/bdpn/tags}{evolbioinfo/bdpn}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/bdpn}{github.com/evolbioinfo/bdpn}.
+
+\subsection{Performance on simulated data}
+
+To assess the performance of our maximum-likelihood estimator for the BD-PN model, we simulated 100 trees with 5\,000--10\,000 tips under the BD-PN model with our tree simulator. For each tree the parameter values were drawn randomly within the following bounds:
+$R_e = \frac{{\lambda}}{{\psi}} \in ]1, 5]$, 
+removal rate $\psi \in ]1 / 20, 1 / 5]$,
+ratio between the partner removal rate after notification and the removal rate $\frac{\psi_n}{\psi} \in ]10, 100]$,
+sampling probability $\rho \in ]0.01, 0.9]$,
+partner notification probability $\rho_n \in ]0.1, 0.9]$.
+We applied bdpn to each of the trees three times: fixing each of the BD parameters ($\lambda,\psi$ or $\rho$) to its real value (for identifiability). 
+
+
+As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than the tree likelihoods for the real parameter values in all the settings.
+
+We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree (Fig.~\ref{fig:sim}). 
+Average relative errors were the lowest when $\psi$ was fixed: $\leq 5\%$  for all the parameters but $\psi_n$, which turned to be the hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
+The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
+As with the point estimates, CI estimates were the best when $\psi$ was fixed: the target values of $\lambda, \psi_{n} \rho$ and $\rho_n$ were within the estimated CIs in correspondingly 97\%, 95\%, 87\%, and 76\% of cases. The values for the other settings are shown in Table~\ref{tbl:ci}.
+
+\begin{figure}[!pht]
+\centering 
+\includegraphics[width=1\textwidth]{Fig_errors.eps}
+\caption{Comparison of inference accuracy of bdpn on a data set of 100 trees of 5\,000--10\,000 tips each, with either $\lambda$ (blue), $\psi$ (orange) or $\rho$ (green) parameter being fixed to its real value.
+We show the swarmplots (coloured by fixed parameter) of relative errors for each test tree and parameter, which are measured as the normalized distance between the estimate and the real value. Average relative error (and in parentheses average bias, calculated on normalized values) are displayed for each parameter and method below their swarmplot. For $\rho$ absolute values are shown instead of normalized ones. } 
+\label{fig:sim} 
+\end{figure}
+ 
+ \begin{table}[!h]\centering
+\small
+\caption{Percentage of simulated trees for which the real parameter values were withing the estimated 95\% CIs. \smallskip}
+\begin{tabular}{c|ccc}
+\textbf{parameter} & \textbf{$\lambda$ fixed} & \textbf{$\psi$ fixed} & \textbf{$\rho$ fixed} \\
+\toprule 
+ $\lambda$ & -- &  97\% & 96\% \\
+ $\psi$ & 78\% & -- & 83\% \\
+ $\rho$ & 28\% & 87\%  & -- \\
+ $\psi_n$ & 94\% & 95\% & 95\% \\
+ $\rho_n$ & 75\% & 76\% & 77\% \\
+\bottomrule
+\end{tabular}
+\label{tbl:ci}
+\end{table}
+
+\subsection{Application: HIV-B epidemic in the UK}
+We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the dated phylogenetic tree from our recent study of HIV drug resistance in the UK~\citep{zhukovaModelingDrugResistance2023}. The tree represents the UK HIV-B epidemic between 1960s and 2017, its tips represent viruses sampled from 39\,159 individuals between 1996 and 2016. The samples come from the UK HIV Drug resistance database~\citep{Dunn2007}, which stores sequences from about 50\% of infected individuals in the UK~\citep{zhukovaModelingDrugResistance2023}. We therefore estimated the sampling probability $\rho$ as 0.5.
+
+We cut this tree at year 2005, and estimated the BD-PN parameters on the 2005-on forests, in order to have a more homogeneous setting in terms of access to antiretroviral treatment, awareness of the HIV infection, etc. The 2005-on forest contained 18\,483 trees with a total of 31\,648 tips. We estimated the following parameter values: $\lambda=0.262$, $\psi=0.186$, $\psi_n=186.921$, $\rho_n=0.033$, which corresponds to $R_e = 1.4$, infectious time $\frac{1}{\psi} = 5.4$ years, and about 2 days between partner notification and their sampling.
+ 
+The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 5 years. 
+
+To assess the robustness of these predictions with respect to $\rho$, we additionally estimated the parameter values for $\rho=0.4$ and for $\rho=0.6$. The results were very similar: $R_e$ of respectively $1.5$ and 
+$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
 
 \end{document}

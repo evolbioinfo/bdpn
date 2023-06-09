@@ -9,10 +9,11 @@ import numpy as np
 import scipy
 from matplotlib import rcParams
 from matplotlib.pyplot import hist, legend, savefig, clf, title, show
+from pastml.tree import read_forest
 from scipy.stats import stats
 from wquantiles import quantile
 
-from bdpn.tree_manager import TIME
+from bdpn.tree_manager import TIME, annotate_tree
 
 
 class SortedSet():
@@ -329,89 +330,57 @@ def pick_communities(tree, pn_delay):
         yield Motif(clustered_tips=clustered_tips)
 
 
-
-def pick_motifs(tree, pn_lookback, pn_delay, include_trivial=True, list_all_potential_notifiers=True):
+def main():
     """
-    Picks motifs that satisfy the given values of pn_lookback, pn_delay in the given tree.
-    :param tree: ete3.Tree, the tree of interest
-    :param pn_lookback: float, max value of PN lookback
-    (how old can a transmission be for a detected case to notify this partner)
-    :param pn_delay: float, max delay between the notification and the sampling
-    :param include_trivial: bool, whether to include trivial one-node motifs in the output
-    :param list_all_potential_notifiers: bool, whether to (True) list all potential notifiers
-    for each detected notified node, or (False) just one (the closest in time)
-    :return: iterator of Motif motifs
+    Entry point for PN test with command-line arguments.
+    :return: void
     """
-    # sorted by TIME
-    sorted_tips = SortedSet(tree.get_leaves(), key=lambda _: getattr(_, TIME))
+    import argparse
 
-    while sorted_tips:
-        # the oldest unprocessed tip
-        index_tip = sorted_tips.pop()
-        index_TIME = getattr(index_tip, TIME)
+    parser = \
+        argparse.ArgumentParser(description="Assess if the tree was generated under a -PN model.")
+    parser.add_argument('--log', required=True, type=str, help="output log file")
+    parser.add_argument('--nwk', required=True, type=str, help="input tree file")
+    parser.add_argument('--block_size', default=100, type=int, help="number of cherries per block")
+    parser.add_argument('--report_blocks', action="store_true", help="report p-values for each block as well")
+    params = parser.parse_args()
 
-        clustered_tips = [index_tip]
+    forest = read_forest(params.nwk)
+    for tree in forest:
+        if not hasattr(tree, TIME):
+            annotate_tree(tree)
 
-        cur_root = climb_up_tree(index_tip, pn_lookback)
-        cur_sorted_tips = sorted(cur_root.get_leaves(), key=lambda _: getattr(_, TIME))
+    all_cherries = []
+    for tree in forest:
+        all_cherries.extend(pick_cherries(tree, include_polytomies=True))
+    all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
 
-        notified2index = {}
-        for notified_tip in cur_sorted_tips:
-            # if it is our index tip skip it
-            if notified_tip == index_tip:
-                continue
-            # if it is an exception in the past, we have already processed this tip in another motif
-            if getattr(notified_tip, TIME) < index_TIME:
-                continue
+    logging.info('Picked {} cherries with {} roots.'.format(len(all_cherries), len({_.root for _ in all_cherries})))
 
-            potential_notifiers = get_potential_notifiers(notified_tip, clustered_tips, pn_lookback, pn_delay)
-            # convert a generator to either a list or its first value
-            potential_notifiers = list(potential_notifiers) \
-                if list_all_potential_notifiers else next(potential_notifiers, None)
-            if potential_notifiers:
-                clustered_tips.append(notified_tip)
-                notified2index[notified_tip] = potential_notifiers
-        # the first clustered tip is our index tip and we've already removed it with sorted_tips.pop()
-        for notified_tip in clustered_tips[1:]:
-            sorted_tips.remove(notified_tip)
+    results = []
+    root_times = []
+    for i in range(0, len(all_cherries) // params.block_size):
+        cherries = all_cherries[i * params.block_size: (i + 1) * params.block_size]
+        result = nonparametric_cherry_diff(cherries, repetitions=1e3)
+        results.append(result)
 
-        if include_trivial or len(clustered_tips) > 1:
-            yield Motif(clustered_tips=clustered_tips, notified2index_list=notified2index)
+        root_times.append((getattr(cherries[0].root, TIME), getattr(cherries[-1].root, TIME)))
+
+        logging.info(
+            'For {n} cherries with roots in [{start}-{stop}), PN test {res}.'
+            .format(res=result, start=getattr(cherries[0].root, TIME), stop=getattr(cherries[-1].root, TIME),
+                    n=len(cherries)))
+
+    pval = sum(results) / len(results)
+
+    logging.info("Total PN test {}.".format(pval))
+
+    with open(params.log, 'w+') as f:
+        f.write('Total\t{}\n'.format(pval))
+        if params.report_blocks:
+            for years, val in zip(root_times, results):
+                f.write('{}-{}\t{}\n'.format(*years, val))
 
 
 if __name__ == '__main__':
-    from tree_generator import simulate_pn_tree_gillespie
-
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
-
-    pn_delay = .5
-    sampling_rate, bifurcation_rate, death_rate, notification_rate = 1 / 10, 1 / 2, 1 / 50, 1 / pn_delay
-
-    logging.info('\n=================\n'
-                 'Real parameter values:\n'
-                 '\tPN delay:\t{} years,\n'
-                 '\ttransmission rate:\t{},\n'
-                 '\tsampling rate:\t{},\n'
-                 '\tdeath rate:\t{},\n'
-                 '\tnotification rate:\t{}.'.format(pn_delay, bifurcation_rate,
-                                                    sampling_rate, death_rate, notification_rate))
-
-    for (pn_prob_index, pn_prob_partner, community, pn_lookback, max_time) in [(.5, .5, True, 20, 80),
-                                                                               (.5, .5, False, 4, 25),
-                                                                               (0, 0, False, 0, 20)]:
-        logging.info('\n\n\n=================\nWITH{} notification ({})\n=================\n'.format(
-            '' if pn_prob_index else 'OUT',
-            'CT' if community else 'PN'))
-
-        tree = None
-        while not tree or len(tree) < 1000:
-            tree, _, _ = simulate_pn_tree_gillespie(sampling_rate, bifurcation_rate, death_rate,
-                                                    notification_rate, max_time, pn_lookback, pn_prob_index,
-                                                    pn_prob_partner,
-                                                    snowballing=not community,
-                                                    community=community, max_sampled=np.inf)
-        logging.info('Generated a tree of size {}'.format(len(tree)))
-        res = tracing_test(tree)
-        logging.info('PN test: {}'.format(res))
-        res = community_tracing_test(tree)
-        logging.info('CT test: {}'.format(res))
+    main()

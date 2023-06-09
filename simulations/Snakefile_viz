@@ -11,12 +11,14 @@ os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
 sim_folder = os.path.join(folder, 'trees')
-n = int(config.get("n", 10))
+n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
 rule all:
     input:
         os.path.join(sim_folder, 'BDPN', 'errors.svg'),
+        os.path.join(sim_folder,'BDPN','likelihood_stats.txt'),
+        stats = os.path.join(sim_folder, 'BDPN', 'CI_stats.txt'),
 
 
 rule likelihood_stats:
@@ -24,22 +26,41 @@ rule likelihood_stats:
     Calculate likelihood values for estimated parameters.
     '''
     input:
-        tab = os.path.join(sim_folder, '{dataset}', 'estimates.tab'),
-        nwk = expand(os.path.join(sim_folder, '{{dataset}}', 'trees', 'tree.{i}.nwk'), i=REPETITIONS),
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+        nwk = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'), i=REPETITIONS),
     output:
-        tab = os.path.join(sim_folder, '{dataset}', 'loglikelihoods.tab'),
-        stats = os.path.join(sim_folder, '{dataset}', 'likelihood_stats.txt'),
+        tab = os.path.join(sim_folder, 'BDPN', 'loglikelihoods.tab'),
+        stats = os.path.join(sim_folder, 'BDPN', 'likelihood_stats.txt'),
     params:
         mem = 2000,
         name = 'likelihoods',
         qos = 'fast',
-        nwk = os.path.join(sim_folder, '{dataset}', 'trees', 'tree.{}.nwk')
+        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{}.nwk')
     threads: 1
-    singularity: "docker://evolbioinfo/bdei:v0.4"
+    singularity: "docker://evolbioinfo/bdpn:v0.4"
     shell:
         """
         python3 py/likelihood_comparison.py --estimates {input.tab} \
         --tree_pattern {params.nwk} --likelihoods {output.tab} --log {output.stats}
+        """
+
+rule CI_stats:
+    '''
+    Calculate CI stats for estimated parameters.
+    '''
+    input:
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+    output:
+        stats = os.path.join(sim_folder, 'BDPN', 'CI_stats.txt'),
+    params:
+        mem = 2000,
+        name = 'CIs',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/assess_CIs.py --estimates {input.tab} --log {output.stats}
         """
 
 rule combine_estimates:
@@ -67,8 +88,6 @@ rule combine_estimates:
         --estimated_la {input.est_la} \
         --tab {output.tab}
         """
-
-
 
 rule plot_errors:
     '''

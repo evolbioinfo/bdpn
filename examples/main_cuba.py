@@ -13,7 +13,7 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'trees'
 
 # gotree resolve -i D_CRF_19_timetree.nwk | gotree brlen setmin -l 0.0027397260273972603 -o D_CRF_19_timetree.resolved.nwk
 NWK_CUBA = os.path.join(DATA_DIR, 'D_CRF_19_timetree.resolved.nwk')
-min_cherry_num = 50
+min_cherry_num = 25
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")

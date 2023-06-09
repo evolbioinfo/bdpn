@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
+from scipy.stats import stats
 
 from bdpn.tree_manager import TIME, annotate_tree
 
@@ -32,7 +33,7 @@ def rescale_log(loglikelihood_array):
     return factors
 
 
-def optimize_likelihood_params(tree, input_parameters, loglikelihood, bounds, start_parameters):
+def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, start_parameters, cis=False):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -45,10 +46,12 @@ def optimize_likelihood_params(tree, input_parameters, loglikelihood, bounds, st
     :param u: number of hidden trees, where no tip got sampled
     :return: the values of optimized parameters and the corresponding loglikelihood: (MU, LA, PSI, RHO, best_log_lh)
     """
-    if not hasattr(tree, TIME):
-        annotate_tree(tree)
-    T = max(getattr(_, TIME) for _ in tree)
-    # bounds, start_parameters = get_bounds_start(tree, *input_parameters)
+    for tree in forest:
+        if not hasattr(tree, TIME):
+            annotate_tree(tree)
+    T = 0
+    for tree in forest:
+        T = max(T, max(getattr(_, TIME) for _ in tree))
     # print('Bounds are {}'.format(bounds))
     # print('Starting parameter values are {}'.format(start_parameters))
 
@@ -76,7 +79,7 @@ def optimize_likelihood_params(tree, input_parameters, loglikelihood, bounds, st
         if np.any(np.isnan(ps)):
             return np.nan
         ps = get_real_params_from_optimised(ps)
-        res = loglikelihood(tree, *ps, T)
+        res = loglikelihood(forest, *ps, T)
         # print("{}\t-->\t{:g}".format(ps, res))
         return -res
 
@@ -99,19 +102,45 @@ def optimize_likelihood_params(tree, input_parameters, loglikelihood, bounds, st
                 best_log_lh = -fres.fun
                 break
         # print('Attempt {} of trying to optimise the parameters: {}.'.format(i, -fres.fun))
-    return get_real_params_from_optimised(x0)
+    optimised_parameters = get_real_params_from_optimised(x0)
 
+    n = len(optimised_parameters)
+    optimised_cis = np.zeros((n, 2))
+    optimised_cis[:, 0] = np.array(optimised_parameters)
+    optimised_cis[:, 1] = np.array(optimised_parameters)
 
-def get_rough_rate_etimates(tree):
-    l = []
-    for n in tree.traverse('preorder'):
-        if n.dist:
-            l.append(n.dist)
-    max_rate = 10 / np.mean(l)
-    min_rate = 1 / np.max(l)
-    # print('Considering ', max_rate, ' as max rate and ', min_rate, ' as min rate')
-    avg_rate = (min_rate + max_rate) / 2
-    return avg_rate, max_rate, min_rate
+    if cis:
+        lk_threshold = loglikelihood(forest, *optimised_parameters, T) - stats.chi2.ppf(q=0.95, df=1)
+
+        def binary_search(v_min, v_max, i, lower=True):
+            rps = np.array(optimised_parameters)
+            v = v_min + (v_max - v_min) / 2
+            if (v_max - v_min) < 1e-6:
+                return v
+            rps[i] = v
+            lk_diff = loglikelihood(forest, *rps, T) - lk_threshold
+            if np.abs(lk_diff) < 1e-6:
+                return v
+
+            go_left = (lower and lk_diff > 0) or ((not lower) and lk_diff < 0)
+
+            if go_left:
+                return binary_search(v_min, v, i)
+            return binary_search(v, v_max, i)
+
+        skipped_i = 0
+        for i in range(n):
+            optimised_value = optimised_parameters[i]
+            if input_parameters[i] is not None:
+                skipped_i += 1
+                continue
+
+            b_min, b_max = bounds[i - skipped_i, :]
+
+            optimised_cis[i, 0] = binary_search(b_min, optimised_value, i, True)
+            optimised_cis[i, 1] = binary_search(optimised_value, b_max, i, False)
+
+    return optimised_parameters, optimised_cis
 
 
 def AIC(k, loglk):

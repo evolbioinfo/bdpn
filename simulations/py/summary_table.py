@@ -19,14 +19,14 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
     df = pd.DataFrame(columns=['type', 'sampled_tips',
-                               'lambda',
-                               'psi',
-                               'psi_p',
-                               'R_naught',
-                               'infectious_time',
-                               'p',
-                               'pn',
-                               'partner_removal_time'])
+                               'lambda', 'lambda_min', 'lambda_max',
+                               'psi', 'psi_min', 'psi_max',
+                               'psi_p', 'psi_p_min', 'psi_p_max',
+                               'R_naught', 'R_naught_min', 'R_naught_max',
+                               'infectious_time', 'infectious_time_min', 'infectious_time_max',
+                               'p', 'p_min', 'p_max',
+                               'pn', 'pn_min', 'pn_max',
+                               'partner_removal_time', 'partner_removal_time_min', 'partner_removal_time_max'])
 
     for real in params.real:
         i = int(re.findall(r'[0-9]+', real)[0])
@@ -42,23 +42,24 @@ if __name__ == "__main__":
     for (est_list, fixed) in ((params.estimated_la, 'lambda'), (params.estimated_psi, 'psi'), (params.estimated_p, 'p')):
         for est in est_list:
             i = int(re.findall(r'[0-9]+', est)[0])
-            ddf = pd.read_csv(est)
+            ddf = pd.read_csv(est, index_col=0)
             est_label = 'BDPN({})'.format(fixed)
-            estimates = ddf.loc[next(iter(ddf.index)), :]
-            R0, it, p, pn, rt = ddf.loc[next(iter(ddf.index)), :]
+            R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['value', :]
             df.loc['{}.{}'.format(i, est_label),
             ['R_naught', 'infectious_time', 'partner_removal_time',
              'lambda', 'psi', 'psi_p', 'p', 'pn', 'type']] \
-                = [R0, it, rt, R0 / it, 1 / it, 1 / rt, p, pn, est_label]
+                = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
+            R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_min', :]
+            df.loc['{}.{}'.format(i, est_label),
+            ['R_naught_min', 'infectious_time_min', 'partner_removal_time_min',
+             'lambda_min', 'psi_min', 'psi_p_min', 'p_min', 'pn_min', 'type']] \
+                = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
+            R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_max', :]
+            df.loc['{}.{}'.format(i, est_label),
+            ['R_naught_max', 'infectious_time_max', 'partner_removal_time_max',
+             'lambda_max', 'psi_max', 'psi_p_max', 'p_max', 'pn_max', 'type_max']] \
+                = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
 
     df.index = df.index.map(lambda _: int(_.split('.')[0]))
     df.sort_index(inplace=True)
-    df[['type', 'sampled_tips',
-        'lambda',
-        'psi',
-        'psi_p',
-        'p',
-        'pn',
-        'R_naught',
-        'infectious_time',
-        'partner_removal_time']].to_csv(params.tab, sep='\t')
+    df.to_csv(params.tab, sep='\t')

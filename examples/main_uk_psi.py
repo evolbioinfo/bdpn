@@ -17,26 +17,6 @@ NWK_UK = os.path.join(DATA_DIR, 'UK_B_raxml.lsd2.resolved.nwk')
 min_cherry_num = 50
 
 
-def save_estimates(log, vs, cis):
-    with open(log, 'w+') as f:
-        f.write('\t{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability', 'notification probability',
-                                          'removal time after notification',
-                                          'transmission rate', 'removal rate', 'partner removal rate'])))
-        la, psi, psi_p, rho, rho_p = vs
-        R0 = la / psi
-        rt = 1 / psi
-        prt = 1 / psi_p
-        (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (rho_p_min, rho_p_max) = cis
-        R0_min, R0_max = la_min / psi, la_max / psi
-        rt_min, rt_max = 1 / psi_max, 1 / psi_min
-        prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
-        f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, rho_p, prt, la, psi, psi_p])))
-        f.write('CI_min,{}\n'.format(
-            ','.join(str(_) for _ in [R0_min, rt_min, rho_min, rho_p_min, prt_min, la_min, psi_min, psi_p_min])))
-        f.write('CI_max,{}\n'.format(
-            ','.join(str(_) for _ in [R0_max, rt_max, rho_max, rho_p_max, prt_max, la_max, psi_max, psi_p_max])))
-
-
 def cut_tree(tree, threshold_date):
     forest = []
     todo = [tree]
@@ -105,11 +85,11 @@ if __name__ == '__main__':
     cut_year = 2005
     root, forest = cut_tree(tree, cut_year)
 
-    for rho in (0.4, 0.5, 0.6, 0.7):
-        print("=======rho={}============".format(rho))
+    for psi in (1/3, 1/5, 1/7, 1/9):
+        print("=======psi={}============".format(psi))
         bounds = np.array([[0.1, 12], [0.05, 1], [0.5, 365], [0.0001, 0.99999], [0.0001, 0.99999]])
         start_parameters = (bounds[:, 0] + bounds[:, 1]) / 2
-        input_parameters = np.array([None, None, None, rho, None])
+        input_parameters = np.array([None, psi, None, None, None])
         vs_bdpn, ci_bdpn = optimize_likelihood_params(forest, input_parameters=input_parameters,
                                              loglikelihood=bdpn.loglikelihood,
                                              bounds=bounds[input_parameters == None],
@@ -117,35 +97,32 @@ if __name__ == '__main__':
         lk_bdpn = bdpn.loglikelihood(forest, *vs_bdpn)
         print('Found BDPN params for {}-on trees: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
               .format(cut_year, ', '.join('{:.3f}'.format(_) for _ in vs_bdpn), lk_bdpn, AIC(4, lk_bdpn), ci_bdpn))
-        save_estimates(NWK_UK.replace('.nwk', '2005.rho={}.est'.format(rho)), vs_bdpn, ci_bdpn)
-        # input_parameters_root = np.array([None, vs_bdpn[1], None, None, None])
-        # vs_bdpn, ci_bdpn = optimize_likelihood_params([root], input_parameters=input_parameters_root,
-        #                                      loglikelihood=bdpn.loglikelihood,
-        #                                      bounds=bounds[input_parameters_root == None],
-        #                                      start_parameters=start_parameters, cis=True)
-        # lk_bdpn = bdpn.loglikelihood([root], *vs_bdpn)
-        # print('Found BDPN params for the root tree: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
-        #       .format(', '.join('{:.3f}'.format(_) for _ in vs_bdpn), lk_bdpn, AIC(4, lk_bdpn), ci_bdpn))
-        #
-        # bd_indices = [0, 1, 3]
-        # input_parameters_bd = input_parameters[bd_indices]
-        # bounds_bd = bounds[bd_indices]
-        # start_parameters_bd = (bounds_bd[:, 0] + bounds_bd[:, 1]) / 2
-        # vs_bd, ci_bd = optimize_likelihood_params(forest, input_parameters=input_parameters_bd,
-        #                                    loglikelihood=bd.loglikelihood,
-        #                                    bounds=bounds_bd[input_parameters_bd == None],
-        #                                    start_parameters=start_parameters_bd, cis=True)
-        # lk_bd = bd.loglikelihood(forest, *vs_bd)
-        # print('Found BD params for {}-on trees: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
-        #       .format(cut_year, ', '.join('{:.3f}'.format(_) for _ in vs_bd), lk_bd, AIC(2, lk_bd), ci_bd))
-        # input_parameters_bd_root = np.array([None, vs_bdpn[1], None])
-        # vs_bd, ci_bd = optimize_likelihood_params([root], input_parameters=input_parameters_bd_root,
-        #                                    loglikelihood=bd.loglikelihood,
-        #                                    bounds=bounds_bd[input_parameters_bd_root == None],
-        #                                    start_parameters=start_parameters_bd, cis=True)
-        # lk_bd = bd.loglikelihood([root], *vs_bd)
-        # print('Found BD params for the root tree: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
-        #       .format(', '.join('{:.3f}'.format(_) for _ in vs_bd), lk_bd, AIC(2, lk_bd), ci_bd))
+        vs_bdpn, ci_bdpn = optimize_likelihood_params([root], input_parameters=input_parameters,
+                                             loglikelihood=bdpn.loglikelihood,
+                                             bounds=bounds[input_parameters == None],
+                                             start_parameters=start_parameters, cis=True)
+        lk_bdpn = bdpn.loglikelihood([root], *vs_bdpn)
+        print('Found BDPN params for the root tree: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
+              .format(', '.join('{:.3f}'.format(_) for _ in vs_bdpn), lk_bdpn, AIC(4, lk_bdpn), ci_bdpn))
+
+        bd_indices = [0, 1, 3]
+        input_parameters_bd = input_parameters[bd_indices]
+        bounds_bd = bounds[bd_indices]
+        start_parameters_bd = (bounds_bd[:, 0] + bounds_bd[:, 1]) / 2
+        vs_bd, ci_bd = optimize_likelihood_params(forest, input_parameters=input_parameters_bd,
+                                           loglikelihood=bd.loglikelihood,
+                                           bounds=bounds_bd[input_parameters_bd == None],
+                                           start_parameters=start_parameters_bd, cis=True)
+        lk_bd = bd.loglikelihood(forest, *vs_bd)
+        print('Found BD params for {}-on trees: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
+              .format(cut_year, ', '.join('{:.3f}'.format(_) for _ in vs_bd), lk_bd, AIC(2, lk_bd), ci_bd))
+        vs_bd, ci_bd = optimize_likelihood_params([root], input_parameters=input_parameters_bd,
+                                           loglikelihood=bd.loglikelihood,
+                                           bounds=bounds_bd[input_parameters_bd == None],
+                                           start_parameters=start_parameters_bd, cis=True)
+        lk_bd = bd.loglikelihood([root], *vs_bd)
+        print('Found BD params for the root tree: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
+              .format(', '.join('{:.3f}'.format(_) for _ in vs_bd), lk_bd, AIC(2, lk_bd), ci_bd))
 
     exit()
 

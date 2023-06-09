@@ -25,27 +25,27 @@ psi_n = 1 / rt
 la = R0 * psi
 
 
-lk_real_bdpn = bdpn.loglikelihood(tree, la, psi, psi_n, rho, rho_n)
-lk_real_bd = bd.loglikelihood(tree, la, psi, rho)
+lk_real_bdpn = bdpn.loglikelihood([tree], la, psi, psi_n, rho, rho_n)
+lk_real_bd = bd.loglikelihood([tree], la, psi, rho)
 print('Real params: {}\t loglikelihood-bdpn: {}\t loglikelihood-bd: {}'.format([la, psi, psi_n, rho, rho_n], lk_real_bdpn, lk_real_bd))
 
 input_parameters = np.array([None, None, None, rho, None])
 # bounds = np.array([[la / 10, la * 10], [psi / 10, psi * 10], [psi_n / 10, psi_n * 10], [1e-3, 1], [0, 1]])
 bounds = np.array([[0.05, 1], [0.05, 0.2], [0.5, 20], [0.01, 0.99999], [0.1, 0.99999]])
 start_parameters = (bounds[:, 0] + bounds[:, 1]) / 2
-vs_bdpn = optimize_likelihood_params(tree, input_parameters=input_parameters,
+vs_bdpn, cis_bdpn = optimize_likelihood_params([tree], input_parameters=input_parameters,
                                      loglikelihood=bdpn.loglikelihood,
                                      bounds=bounds[input_parameters == None],
-                                     start_parameters=start_parameters)
-lk_bdpn = bdpn.loglikelihood(tree, *vs_bdpn)
-print('Found BDPN params: {}\t loglikelihood: {}, AIC: {}'.format(vs_bdpn, lk_bdpn, AIC(4, lk_bdpn)))
+                                     start_parameters=start_parameters, cis=True)
+lk_bdpn = bdpn.loglikelihood([tree], *vs_bdpn)
+print('Found BDPN params: {}\n\t{}\t loglikelihood: {}, AIC: {}'.format(vs_bdpn, cis_bdpn, lk_bdpn, AIC(4, lk_bdpn)))
 
 bd_indices = [0, 1, 3]
 input_parameters_bd = input_parameters[bd_indices]
 bounds_bd = bounds[bd_indices]
 start_parameters_bd = (bounds_bd[:, 0] + bounds_bd[:, 1]) / 2
-vs_bd = optimize_likelihood_params(tree, input_parameters=input_parameters_bd,
+vs_bd, cis_bd = optimize_likelihood_params([tree], input_parameters=input_parameters_bd,
                                    loglikelihood=bd.loglikelihood, bounds=bounds_bd[input_parameters_bd == None],
-                                   start_parameters=start_parameters_bd)
-lk_bd = bd.loglikelihood(tree, *vs_bd)
-print('Found BD params: {}\t loglikelihood: {}, AIC: {}'.format(vs_bd, lk_bd, AIC(2, lk_bd)))
+                                   start_parameters=start_parameters_bd, cis=True)
+lk_bd = bd.loglikelihood([tree], *vs_bd)
+print('Found BD params: {}\n\t{}\t loglikelihood: {}, AIC: {}'.format(vs_bd, cis_bd, lk_bd, AIC(2, lk_bd)))
