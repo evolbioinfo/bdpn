@@ -1,0 +1,24 @@
+BDPN(psi) likelihood	 is higher than BDPN(p)	 in 1.0% of cases
+	 is equal to BDPN(p)	 in 3.0% of cases
+	 is lower than BDPN(p)	 in 96.0% of cases
+	 is different from BDPN(p)	 with a p-value of 1.23693e-27
+BDPN(psi) likelihood	 is higher than BDPN(lambda)	 in 2.0% of cases
+	 is equal to BDPN(lambda)	 in 4.0% of cases
+	 is lower than BDPN(lambda)	 in 94.0% of cases
+	 is different from BDPN(lambda)	 with a p-value of 1.17559e-25
+BDPN(psi) likelihood	 is higher than real	 in 100.0% of cases
+	 is equal to real	 in 0.0% of cases
+	 is lower than real	 in 0.0% of cases
+	 is different from real	 with a p-value of 1.57772e-30
+BDPN(p) likelihood	 is higher than BDPN(lambda)	 in 21.0% of cases
+	 is equal to BDPN(lambda)	 in 6.0% of cases
+	 is lower than BDPN(lambda)	 in 73.0% of cases
+	 is different from BDPN(lambda)	 with a p-value of 6.65367e-08
+BDPN(p) likelihood	 is higher than real	 in 100.0% of cases
+	 is equal to real	 in 0.0% of cases
+	 is lower than real	 in 0.0% of cases
+	 is different from real	 with a p-value of 1.57772e-30
+BDPN(lambda) likelihood	 is higher than real	 in 99.0% of cases
+	 is equal to real	 in 0.0% of cases
+	 is lower than real	 in 1.0% of cases
+	 is different from real	 with a p-value of 1.5935e-28
