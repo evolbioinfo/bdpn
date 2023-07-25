@@ -1,0 +1,303 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_trees --keep-going --cores 4 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To visualise the pipeline:
+# module load graphviz
+# snakemake --snakefile Snakefile_trees --dag | dot -Tsvg > pipeline_trees.svg
+
+localrules: all
+ruleorder: nex2nwk > date_lsd2 > root > optimise_branch_lengths > raxml > fasttree
+
+folder = os.path.abspath(config.get("folder", '..'))
+data_dir = os.path.join(folder, 'data')
+
+dating = ['lsd2']
+trees = ['raxml']
+
+subtypes = ['C', 'B']
+
+
+rule all:
+    input:
+        os.path.join(data_dir, 'metadata', 'lsd2.dates'),
+        expand(os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.nwk'), subtype=subtypes, tree=trees),
+        expand(os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.{dating}.nwk'), dating=dating, subtype=subtypes, tree=trees)
+
+
+rule unxzip:
+    '''
+    Unxzips the alignment.
+    '''
+    input:
+        fa = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa.xz')
+    output:
+        fa = temp(os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa'))
+    params:
+        mem = 120000,
+        name = 'unxz_ref',
+        qos = 'fast',
+        partition = 'common,dedicated,bioevo'
+    threads: 1
+    shell:
+        """
+        xz -dc {input.fa} > {output.fa}
+        """
+
+rule raxml:
+    '''
+    Reconstructs a tree with RAxML.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa')
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'raxml.nwk'),
+        log = os.path.join(data_dir, 'trees', '{subtype}', 'raxml.log'),
+    threads: 12
+    singularity: "docker://evolbioinfo/raxml-ng:v0.9.0"
+    params:
+        mem = 40000,
+        name = 'raxml_{subtype}',
+        qos = 'normal'
+    shell:
+        """
+        raxml-ng --model GTR+G4+FO+IO --msa {input.aln} \
+        --seed 239 --threads {threads} --force --tree pars{{1}}
+        cp {input.aln}.raxml.bestTree {output.tree}
+        cp {input.aln}.raxml.log {output.log}
+        rm -rf {input.aln}.raxml.*
+        """
+
+
+rule fasttree:
+    '''
+    Reconstructs a tree with FastTree.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa')
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'fast.nwk'),
+        log = os.path.join(data_dir, 'trees', '{subtype}', 'fast.log'),
+    threads: 1
+    singularity: "docker://evolbioinfo/fasttree:v2.1.10"
+    params:
+        mem = 10000,
+        name='fast_{subtype}',
+        qos = 'normal'
+    shell: "FastTree -gamma -nt -gtr -cat 4 -log {output.log} < {input.aln} > {output.tree}"
+
+
+rule resolve:
+    '''
+    Resolve multifurcations.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', '{tree}.nwk'),
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', '{tree}.resolved.nwk'),
+    singularity:
+        "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'resolve_{subtype}_{tree}',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        gotree resolve -o {output.tree} -i {input.tree}
+        """
+
+
+rule optimise_branch_lengths:
+    '''
+    Optimises branch lengths on a given tree with RAxML-NG
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.fa'),
+        tree = os.path.join(data_dir, 'trees', '{subtype}', '{tree}.resolved.nwk'),
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'raxed_{tree}.nwk'),
+        log = os.path.join(data_dir, 'trees', '{subtype}', 'raxed_{tree}.log'),
+    threads: 4
+    singularity: "docker://evolbioinfo/raxml-ng:v0.9.0"
+    params:
+        mem = 40000,
+        name = 'raxbr_{subtype}_{tree}',
+    shell:
+        """
+        cp {input.aln} {input.aln}.{wildcards.tree}
+        raxml-ng --evaluate --model GTR+G4+FO+IO --msa {input.aln}.{wildcards.tree} --msa-format FASTA --data-type DNA \
+        --tree {input.tree} --threads {threads} --force --seed 239
+        cp {input.aln}.{wildcards.tree}.raxml.bestTree {output.tree}
+        cp {input.aln}.{wildcards.tree}.raxml.log {output.log}
+        rm -rf {input.aln}.{wildcards.tree}*
+        """
+
+rule root:
+    '''
+    Roots a tree with an outgroup.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', '{tree}.nwk'),
+        outgroup = os.path.join(data_dir, 'aln', '{subtype}', 'outgroup.tab'),
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.nwk'),
+    singularity:
+        "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'root_{subtype}',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        gotree support clear -i {input.tree} | gotree reroot outgroup -l {input.outgroup} -o {output.tree} -r
+        """
+
+rule aln_length:
+    '''
+    Calculates alignment length.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'aln', '{subtype}', '{aln}.fa.xz'),
+    output:
+        length = os.path.join(data_dir, 'aln', '{subtype}', '{aln}.length'),
+    singularity:
+        "docker://evolbioinfo/goalign:v0.3.6"
+    params:
+        mem = 2000,
+        name = 'aln_len_{subtype}',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        goalign stats length -i {input.aln} > {output.length}
+        """
+
+rule tree_size:
+    '''
+    Calculates tree size.
+    '''
+    input:
+        tree = os.path.join(data_dir, '{tree}.nwk'),
+    output:
+        length = os.path.join(data_dir, '{tree}.ntips'),
+    singularity:
+        "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'tree_size',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        gotree stats -i {input.tree} | tail -n 1 | awk '{{print $3}}' > {output.length}
+        """
+
+rule extract_dates_lsd2:
+    '''
+    Reformats metadata into date file readable by LSD.
+    '''
+    input:
+        tab = os.path.join(data_dir, 'metadata', 'metadata.uk.tab'),
+    output:
+        tab = os.path.join(data_dir, 'metadata', 'lsd2.dates'),
+    params:
+        mem = 1000,
+        name = 'lsd2_dates',
+        date_col = 'sampledate_my'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer"
+    shell:
+        """
+        python3 {folder}/py/extract_dates_lsd.py --data {input.tab} --dates {output.tab} \
+        --date_col "{params.date_col}"
+        """
+
+rule date_lsd2:
+    '''
+    Detects outliers in a tree.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.nwk'),
+        ntips = os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.ntips'),
+        length = os.path.join(data_dir, 'aln', '{subtype}', 'aln.nodrm.length'),
+        dates = os.path.join(data_dir, 'metadata', 'lsd2.dates'),
+    output:
+        outliers = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.outliers'),
+        tree = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.nexus'),
+        log = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.log'),
+        rd = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.rootdate'),
+    threads: 1
+    singularity: "docker://evolbioinfo/lsd2:v2.3"
+    params:
+        mem = 4000,
+        name = 'lsd2_{subtype}',
+        wd = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.wd'),
+        qos = 'fast'
+    shell:
+        """
+        n=`head {input.length}`
+        t=`head {input.ntips}`
+        m=`awk -v t="$t" 'BEGIN {{ m=int(t * 0.33); print m}}'`
+
+        R=$((365 * 24))
+        lsd2 -i {input.tree} -d {input.dates} -e 3 -s $n -o {params.wd} -u e -f 1000 -R $R
+        rm -rf {output.outliers}
+
+        outliers=`cat {params.wd} | grep "outliers" -A1 | tail -n 1`
+        echo $outliers
+        for o in $outliers
+        do
+            echo $o >> {output.outliers}
+        done
+
+        mv "{params.wd}.date.nexus" "{output.tree}"
+        mv "{params.wd}" "{output.log}"
+        rm "{params.wd}.nwk"
+        rm -rf "{params.wd}*"
+
+        echo `grep "], tMRCA" {output.log} | sed -e 's/rate [0-9\\.e+-]\\+ \\[[0-9\\.e+-]\\+; [0-9\\.e+-]\\+\\], tMRCA //g' \
+        | sed -e 's/ \\[[0-9\\.e+-]\\+; [0-9\\.e+-]\\+\\], objective function [0-9\\.e+-]\\+//g'` > {output.rd}
+        """
+
+rule rm_outliers:
+    '''
+    Removes the outliers.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.nwk'),
+        outliers = os.path.join(data_dir, 'timetrees', '{subtype}', '{tree}.lsd2.outliers'),
+    output:
+        tree = os.path.join(data_dir, 'trees', '{subtype}', 'rooted_{tree}.no_outliers.nwk'),
+    singularity: "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'outliers_rm_{subtype}',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        gotree prune -i {input.tree} -f {input.outliers} -o {output.tree}
+        """
+
+
+rule nex2nwk:
+    '''
+    Converts a nexus tree to newick while keeping the date data and naming the nodes.
+    '''
+    input:
+        tree = os.path.join(data_dir, '{tree}.nexus'),
+    output:
+        tree = os.path.join(data_dir, '{tree}.nwk'),
+    singularity: "docker://evolbioinfo/pastml:v1.9.34"
+    params:
+        mem = 2000,
+        name = 'annotate',
+        qos = 'fast'
+    threads: 1
+    shell:
+        """
+        python {folder}/py/nex2nwk.py --nexus {input.tree} --out_nwk {output.tree}
+        """
