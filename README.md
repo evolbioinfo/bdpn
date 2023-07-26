@@ -8,7 +8,7 @@ Estimator of BDPN model parameters from phylogenetic trees.
 * ψ -- removal rate
 * p -- sampling probability upon removal
 * p<sub>n</sub> -- probability to notify the last partner upon sampling
-* ψ<sub>pn</sub> -- removal rate after notification
+* ψ<sub>p</sub> -- removal rate after notification
 
 Epidemiological parameters:
 * R<sub>0</sub>=λ/ψ -- reproduction number
@@ -20,32 +20,26 @@ To install bdpn:
 pip3 install bdpn
 ```
 
-## Usage
-### Command line 
+## Usage in command line 
 
-## BDPN
+## BDPN paramer estimation
 The following command estimated the BDPN parameters for a given tree tree.nwk and a given sampling probability p=0.4, 
 and saves the estimated parameters to a comma-separated file estimates.csv:
 ```bash
 bdpn_infer --p 0.4 --nwk tree.nwk --log estimates.csv
 ```
-To seee detailed options, run:
+To see detailed options, run:
 ```bash
 bdpn_infer --help
 ```
 
-
-### Python3
-To estimate the BDPN parameters for a given tree tree.nwk and a given sampling probability p=0.4:
-```python
-from ete3 import Tree
-from bdpn.parameter_estimator import optimize_likelihood_params
-from bdpn.bdpn import loglikelihood, get_bounds_start
-
-nwk = 'tree.nwk'
-p = 0.4
-tree = Tree(nwk)
-la, psi, psi_n, rho, rho_n = optimize_likelihood_params(tree, input_parameters=[None, None, None, p, None],
-                                loglikelihood=loglikelihood, get_bounds_start=get_bounds_start)
-print('Found BDPN params: {}'.format([la, psi, psi_n, rho, rho_n]))
+## PN test
+The applies the PN test to a given tree tree.nwk and saves the PN-test value to the file cherry_test.txt:
+```bash
+pn_test --nwk tree.nwk --log cherry_test.txt --block_size 100
 ```
+To see detailed options, run:
+```bash
+pn_test --help
+```
+

@@ -1,0 +1,36 @@
+
+================BDPN(psi)===============
+lambda:	82.0% within CIs
+lambda:	11.1% median CI width
+psi:	100.0% within CIs
+psi:	0.0% median CI width
+psi_p:	94.0% within CIs
+psi_p:	32.2% median CI width
+p:	51.0% within CIs
+p:	26.7% median CI width
+pn:	67.0% within CIs
+pn:	21.1% median CI width
+
+================BDPN(p)===============
+lambda:	92.0% within CIs
+lambda:	11.2% median CI width
+psi:	78.0% within CIs
+psi:	26.0% median CI width
+psi_p:	95.0% within CIs
+psi_p:	31.9% median CI width
+p:	100.0% within CIs
+p:	0.0% median CI width
+pn:	64.0% within CIs
+pn:	20.7% median CI width
+
+================BDPN(lambda)===============
+lambda:	100.0% within CIs
+lambda:	0.0% median CI width
+psi:	34.0% within CIs
+psi:	20.6% median CI width
+psi_p:	95.0% within CIs
+psi_p:	31.9% median CI width
+p:	20.0% within CIs
+p:	20.6% median CI width
+pn:	69.0% within CIs
+pn:	21.1% median CI width

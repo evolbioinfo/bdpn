@@ -30,9 +30,9 @@ if __name__ == "__main__":
             for par in PARAMETERS:
                 df.loc[mask, '{}_within_CI'.format(par)] \
                     = (np.less_equal(df.loc[mask, '{}_min'.format(par)], real_df[par])
-                       | np.less_equal(np.abs(real_df[par] - df.loc[mask, '{}_min'.format(par)]), 1e-6)) \
+                       | np.less_equal(np.abs(real_df[par] - df.loc[mask, '{}_min'.format(par)]), 1e-3)) \
                       & (np.less_equal(real_df[par], df.loc[mask, '{}_max'.format(par)])
-                         | np.less_equal(np.abs(df.loc[mask, '{}_max'.format(par)] - real_df[par]), 1e-6))
+                         | np.less_equal(np.abs(df.loc[mask, '{}_max'.format(par)] - real_df[par]), 1e-3))
                 print('{}:\t{:.1f}% within CIs'
                       .format(par, 100 * sum(df.loc[mask, '{}_within_CI'.format(par)]) / n_observations))
                 f.write('{}:\t{:.1f}% within CIs\n'

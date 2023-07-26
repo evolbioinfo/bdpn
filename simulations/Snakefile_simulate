@@ -7,7 +7,7 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'large_trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -38,6 +38,6 @@ rule simulate_bdpn:
         """
         while [ ! -f {output.nwk} ]
         do
-            timeout 60s python3 py/tree_generator.py --min_tips 5000 --max_tips 10000 --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+            timeout 60s python3 py/tree_generator.py --min_tips 500 --max_tips 1000 --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """

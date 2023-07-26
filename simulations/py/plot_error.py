@@ -92,7 +92,7 @@ if __name__ == "__main__":
                         pval_abs = 1
                     par2types2pval[par][(type_1, type_2)] = pval_abs
 
-        ERROR_COL = 'relative error' if 'p' not in pars else 'relative or absolute (for {}) error'.format(par2greek['p'])
+        ERROR_COL = 'relative error' if 'p' not in pars else 'relative or absolute (for {} and {}) error'.format(par2greek['p'], par2greek['pn'])
         plot_df = pd.DataFrame(data=data, columns=['parameter', ERROR_COL, 'config'])
 
         # if 'BEAST2' not in types:

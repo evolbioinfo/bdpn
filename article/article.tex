@@ -120,13 +120,13 @@ Importantly, the BD model is asymptotically unidentifiable (see Remark 3.4 in~\c
 
 \subsection{PN extension}
 
-We now propose a non-Markovian extension of the BD model that adds partner notification (PN).  In BD-PN, at the moment of sampling the sampled individual might notify their most recent partner with a given probability $\rho_n$. Upon notification, partner is removed almost instantaneously (modeled via a notified removal rate $\psi_n >> \psi$). BD-PN hence has 3 classical BD and 2 additional parameters:
+We now propose a non-Markovian extension of the BD model that adds partner notification (PN).  In BD-PN, at the moment of sampling the sampled individual might notify their most recent partner with a given probability $\rho_n$. Upon notification, partner is removed almost instantaneously (modeled via a notified removal rate $\psi_p >> \psi$). BD-PN hence has 3 classical BD and 2 additional parameters:
 \begin{itemize}
  \item $\lambda$ -- constant transmission rate: an infected individual transmits their pathogen to a newly infected individual (which corresponds to an internal node in the transmission tree);
  \item $\psi$ -- constant removal rate: an infected individual stops being infectious at this rate. This corresponds to a tip in the transmission tree (observed or hidden);
  \item $\rho$ -- constant sampling probability: upon removal the individual's pathogen might get sampled with this probability, which corresponds to an observed tip in the transmission tree;
  \item $\rho_n$ -- constant notification probability: upon sampling, the sampled individual might notify their most recent partner with this probability;
- \item $\psi_n >> \psi$ -- constant notified removal rate: a notified individual (if not yet removed via standard procedure) stops being infectious and gets observed with this rate. This creates an observed tip in the transmission tree.
+ \item $\psi_p >> \psi$ -- constant notified removal rate: a notified individual (if not yet removed via standard procedure) stops being infectious and gets observed with this rate. This creates an observed tip in the transmission tree.
 \end{itemize}
 
 
@@ -201,7 +201,7 @@ p^{(i,nh)}(t) =  E_4
 %\\
 %q^{(p)}(i)  = p^{(i, o)}(t_j)  \textit{\color{gray} ~if $i$ is an internal or tip node whose individual will be notified after $t_i$}
 %\\
-%q^{(p)}(i, r)  = p^{(r, o)}(t_j) e^{- \psi_n (t_i - t_r)} \textit{\color{gray} if $i$ is a \textbf{partner} tip notified by $r$ at time $t_r \leq t_i$}
+%q^{(p)}(i, r)  = p^{(r, o)}(t_j) e^{- \psi_p (t_i - t_r)} \textit{\color{gray} if $i$ is a \textbf{partner} tip notified by $r$ at time $t_r \leq t_i$}
 %\end{cases}
 %\label{eq:branch}
 %\end{equation}
@@ -216,7 +216,7 @@ Using the formulas~(\ref{eq:ps}), we can calculate the likelihood density of a t
 %\rho_{n} \textit{\color{gray} ~~~~~~~~if $i$ notified their most recent patner}\\
 %l^{(u,\not{n})}(i) = q^{(u)}(i)\psi\rho (1-\rho_{n}) \textit{\color{gray} ~if $i$ did not notify}
 %\end{cases}\\
-%l^{(p)}(i, r) &= q^{(p)}(i,r)\psi_{n}\cdot \begin{cases}
+%l^{(p)}(i, r) &= q^{(p)}(i,r)\psi_p\cdot \begin{cases}
 %\rho_{n} \textit{\color{gray} ~~~~~~~~if $i$ notified their most recent patner}\\
 %(1-\rho_{n}) \textit{\color{gray} ~if $i$ did not notify}
 %\end{cases}\\
@@ -234,11 +234,11 @@ l^{(u,n)}(i) &= p^{(i,nh)}(t_j)\psi\rho
 l^{(u,\not{n})}(i) &= p^{i}(t_j)\psi\rho (1-\rho_{n}) \textit{\color{gray} ~if $i$ was not notified and did not notify}\\
 l^{(p,n)}(i,r) &= \begin{cases}
 p^{(i, nh)}(t_j)\psi\rho\rho_{n} \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and notified their most recent patner}\\
-p^{(r, nh)}(t_j) e^{- \psi_n (t_i - t_r)} \psi_n \rho_{n} \textit{\color{gray} ~if $i$ got notified at time $t_r \leq t_i$ and notified}
+p^{(r, nh)}(t_j) e^{- \psi_p (t_i - t_r)} \psi_p \rho_{n} \textit{\color{gray} ~if $i$ got notified at time $t_r \leq t_i$ and notified}
 \end{cases}\\
 l^{(p,\not{n})}(i,r) &= \begin{cases}
 p^{(i, o)}(t_j)\psi\rho(1 - \rho_{n}) \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and did not notify}\\
-p^{(r, o)}(t_j) e^{- \psi_n (t_i - t_r)} \psi_n (1-\rho_{n}) \textit{\color{gray} ~if $i$ got notified at time $t_r \leq t_i$ and did not notify}
+p^{(r, o)}(t_j) e^{- \psi_p (t_i - t_r)} \psi_p (1-\rho_{n}) \textit{\color{gray} ~if $i$ got notified at time $t_r \leq t_i$ and did not notify}
 \end{cases}\\
 \end{array}
 \label{eq:tip}
@@ -422,7 +422,7 @@ Note that $l^{(p)}(a, b)$ depends on the notifier $b$ and can only be calculated
 
 \bigskip
 
-The tree $\mathscr{T}$ likelihood density $\mathscr{L}(\mathscr{T}|\Theta)$ under BD-PN model with parameters $\Theta=\{\lambda, \psi, \rho, \psi_n, \rho_n\}$ can be calculated as $l^{(u)}(root)$, as the root can only correspond to an unnotified individual (since there was no observed transmission before it).
+The tree $\mathscr{T}$ likelihood density $\mathscr{L}(\mathscr{T}|\Theta)$ under BD-PN model with parameters $\Theta=\{\lambda, \psi, \rho, \psi_p, \rho_n\}$ can be calculated as $l^{(u)}(root)$, as the root can only correspond to an unnotified individual (since there was no observed transmission before it).
 
 %The computational of $\mathscr{L}(\mathscr{T}|\Theta)$ includes $O(N^2)$ resolutions of system~(\ref{eq:p}) (for different times and initial conditions) in the worst case (caterpillar tree) and $O(NlogN)$ in the best case (for a balanced tree), where $N$ is the number of tips in $\mathscr{T}$.
 
@@ -469,7 +469,7 @@ At step 3, we randomly draw an individual $i$ of type $k$ (selected at step 2) f
 For transmission and sampling events we also record their time and ids of the involved individuals. These values are used to reconstruct the sampled parts of the tree once the simulation is finished.
 
 
-For the PN version of this simulator, we add an additional $m+1^{th}$ state for notified partners. $m + 1$'s state-change and transmission rates are set to zero: $\mu_{k,m+1} = \mu_{m+1,k} = \lambda_{k,m+1} = \lambda_{m+1,k} = 0\; \forall 1 \leq k \leq m$, while its removal rate is set to the notification removal rate: $\psi_{m+1} = \psi_n >> \psi_k\; \forall 1 \leq k \leq m$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, we check whether the individual $i$ is a notified partner (i.e. in state $m+1$). If yes, we put them into $N[m+1]$ without performing the sampling probability draw. If not, and if $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \rho_n$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$), we change $j$'s state to $m + 1$ as in a state-change event.
+For the PN version of this simulator, we add an additional $m+1^{th}$ state for notified partners. $m + 1$'s state-change and transmission rates are set to zero: $\mu_{k,m+1} = \mu_{m+1,k} = \lambda_{k,m+1} = \lambda_{m+1,k} = 0\; \forall 1 \leq k \leq m$, while its removal rate is set to the notification removal rate: $\psi_{m+1} = \psi_p >> \psi_k\; \forall 1 \leq k \leq m$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, we check whether the individual $i$ is a notified partner (i.e. in state $m+1$). If yes, we put them into $N[m+1]$ without performing the sampling probability draw. If not, and if $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \rho_n$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$), we change $j$'s state to $m + 1$ as in a state-change event.
 
 
 \subsection*{Code availability}
@@ -491,7 +491,7 @@ The test therefore reports a probability of partner notification being present a
 To illustrate the PN test performance, we applied it to the trees simulated under BD and under BD-PN models. We simulated 100 trees with 500--1\,000 tips under the BD-PN model with our tree simulator. For each tree the parameter values were drawn randomly within the following bounds:
 $R_e = \frac{{\lambda}}{{\psi}} \in ]1, 5]$, 
 removal rate $\psi \in ]1 / 20, 1 / 5]$,
-ratio between the partner removal rate after notification and the removal rate $\frac{\psi_n}{\psi} \in ]50, 500]$,
+ratio between the partner removal rate after notification and the removal rate $\frac{\psi_p}{\psi} \in ]50, 500]$,
 sampling probability $\rho \in ]0.1, 0.9]$,
 partner notification probability $\rho_n \in ]0.01/\rho, 0.9]$. We also simulated 100 trees of 500--1\,000 tips under the BD model. For each tree in the BD data set the parameter values ($\lambda, \psi,$ and $\rho$) were the same as the ones selected for the corresponding tree of the BD-PN dataset.
 
@@ -500,7 +500,7 @@ Our test therefore showed both high specificity and sensitivity.
  
 
 \section{BD-PN parameter and CI estimator}
-We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\psi_n,\rho,\rho_n) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). 
+We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\psi_p,\rho,\rho_n) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). 
 
 Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\citep{Wilks1938}.
 For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
@@ -520,14 +520,15 @@ We applied bdpn to each of the trees three times: fixing each of the BD paramete
 As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values in all the settings.
 
 We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree (Fig.~\ref{fig:sim}). 
-Average relative errors were the lowest when $\psi$ was fixed: $\leq 5\%$  for all the parameters but $\psi_n$, which turned to be the hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
-The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
-As with the point estimates, CI estimates were the best when $\psi$ was fixed: the target values of $\lambda, \psi_{n} \rho$ and $\rho_n$ were within the estimated CIs in correspondingly 97\%, 95\%, 87\%, and 76\% of cases. The values for the other settings are shown in Table~\ref{tbl:ci}.
+Average relative errors were the lowest when $\psi$ was fixed: $\leq 10\%$  for all the parameters. The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
+%The hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
+
+As with the point estimates, CI estimates were the best when $\psi$ was fixed: the target values of $\lambda, \psi_p, \rho$ and $\rho_n$ were within the estimated CIs in correspondingly 82\%, 94\%, 51\%, and 67\% of cases. The CI estimates when $\lambda$ was fixed were the worst (see Table~\ref{tbl:ci}). The relative width of the CIs ($\frac{value_{97.5\%} - value_{2.5\%}}{value}$) varied between 11\% for $\lambda$ and 33\% for $\psi_p$ (in all the settings).
 
 \begin{figure}[!pht]
 \centering 
 \includegraphics[width=1\textwidth]{Fig_errors.eps}
-\caption{Comparison of inference accuracy of bdpn on a data set of 100 trees of 5\,000--10\,000 tips each, with either $\lambda$ (blue), $\psi$ (orange) or $\rho$ (green) parameter being fixed to its real value.
+\caption{Comparison of inference accuracy of bdpn on a data set of 100 trees of 500--1\,000 tips each, with either $\lambda$ (blue), $\psi$ (orange) or $\rho$ (green) parameter being fixed to its real value.
 We show the swarmplots (coloured by fixed parameter) of relative errors for each test tree and parameter, which are measured as the normalized distance between the estimate and the real value. Average relative error (and in parentheses average bias, calculated on normalized values) are displayed for each parameter and method below their swarmplot. For $\rho$ absolute values are shown instead of normalized ones. } 
 \label{fig:sim} 
 \end{figure}
@@ -538,31 +539,33 @@ We show the swarmplots (coloured by fixed parameter) of relative errors for each
 \begin{tabular}{c|ccc}
 \textbf{parameter} & \textbf{$\lambda$ fixed} & \textbf{$\psi$ fixed} & \textbf{$\rho$ fixed} \\
 \toprule 
- $\lambda$ & -- &  97\% & 96\% \\
- $\psi$ & 78\% & -- & 83\% \\
- $\rho$ & 28\% & 87\%  & -- \\
- $\psi_n$ & 94\% & 95\% & 95\% \\
- $\rho_n$ & 75\% & 76\% & 77\% \\
+ $\lambda$ & -- &  82\% & 92\% \\
+ $\psi$ & 34\% & -- & 78\% \\
+ $\rho$ & 20\% & 51\%  & -- \\
+ $\psi_p$ & 95\% & 94\% & 95\% \\
+ $\rho_n$ & 69\% & 67\% & 64\% \\
 \bottomrule
 \end{tabular}
 \label{tbl:ci}
 \end{table}
 
-\subsection{Application: HIV-B epidemic in the UK}
-We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the dated phylogenetic tree from our recent study of HIV drug resistance in the UK~\citep{zhukovaModelingDrugResistance2023}. The tree represents the UK HIV-B epidemic between 1960s and 2016, its tips represent viruses sampled from 39\,130 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\citep{Dunn2007}~\citep{zhukovaModelingDrugResistance2023}. 
 
-Between 2012 and 2015, in the UK antiretroviral treatment (ART) of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\citep{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count > 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\citep{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e. later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\citep{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated tree between 2012 and 2015, and estimated the BD-PN parameters on the 2012-2015 forests. 
+\subsection{Application: HIV-B epidemic in the UK}
+We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the dated phylogenetic tree from our recent study of HIV drug resistance in the UK~\citep{zhukovaModelingDrugResistance2023}. The tree represents the UK HIV-B epidemic between 1960s and 2016, its tips represent viruses sampled from 39\,130 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\citep{Dunn2007}.
+
+Between 2012 and 2015, in the UK antiretroviral treatment (ART) of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\citep{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count > 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\citep{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e. later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\citep{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated tree between 2012 and 2015, and estimated the BD-PN parameters on the 2012--2015 forests. 
 
 According to the \href{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112132123mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/602942/HIV_in_the_UK_report.pdf}{``Towards elimination of HIV transmission, AIDS and HIV-related deaths in the UK''}
  report, the estimated total number of people living with HIV in the UK in 2015 was 101\,200 (97\,500 to 105\,700). % in 2012 this number was 98\,400 (93\,500-104\,300) [\href{HIV in the United Kingdom: 2013 Report}{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112133715mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/326601/HIV_annual_report_2013.pdf}]. Moreover these document report about 400 HIV-related deaths per year. 
 According to our estimate~\citep{zhukovaModelingDrugResistance2023}, 66.5\% of the HIV-infected individuals in the UK were infected with HIV-B. We hence estimated that in 2015 67\,298 (64\,837, 70\,291) people were living with HIV-B. Our tree contains 39\,047 tips sampled by the end of 2015. Hence, it accounts for about 58\% (56\%, 60\%) of the total number of individuals living with HIV-B in the UK. However this estimate does not take into account deaths of the HIV-infected individuals over the years, which would increase the total number of HIV-infected individuals by 2015, and decrease the proportion of individuals represented by our tree. We therefore tested several sampling probabilities $\rho=$0.6; 0.5; 0.4.
  
  
- We estimated the following parameter values: $\lambda=0.262$, $\psi=0.186$, $\psi_n=186.921$, $\rho_n=0.033$, which corresponds to $R_e = 1.4$, infectious time $\frac{1}{\psi} = 5.4$ years, and about 2 days between partner notification and their sampling.
+Using $\rho=0.6$, we estimated the following parameter values: $\lambda=0.262$, $\psi=0.186$, $\psi_p=186.921$, $\rho_n=0.033$, which corresponds to $R_e = 1.4$, infectious time $\frac{1}{\psi} = 5.4$ years, and about 2 days between partner notification and their sampling. The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
+$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
  
 The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 5 years. 
 
-To assess the robustness of these predictions with respect to $\rho$, we additionally estimated the parameter values for $\rho=0.4$ and for $\rho=0.6$. The results were very similar: $R_e$ of respectively $1.5$ and 
-$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
+
+
 
 \end{document}
