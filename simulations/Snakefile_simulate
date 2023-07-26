@@ -7,7 +7,7 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.join(folder, 'trees')
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'large_trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -16,8 +16,8 @@ rule all:
         expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'), i=REPETITIONS)
     shell:
         """
-        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n} --unlock 2> /dev/null
-        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n}
+        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n} sf={sim_folder}
         """
 
 
@@ -27,7 +27,7 @@ rule simulate_bdpn:
     '''
     output:
         log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk')
+        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
     params:
         mem = 2000,
         name = 'simulate_{i}',
@@ -38,6 +38,6 @@ rule simulate_bdpn:
         """
         while [ ! -f {output.nwk} ]
         do
-            timeout 1m python3 py/tree_generator.py --min_tips 5000 --max_tips 10000 --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+            timeout 60s python3 py/tree_generator.py --min_tips 5000 --max_tips 10000 --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """

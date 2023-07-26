@@ -10,7 +10,7 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.join(folder, 'trees')
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -107,4 +107,44 @@ rule plot_errors:
     shell:
         """
         python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf}
+        """
+
+rule plot_errors_pn_small:
+    '''
+    Plots the errors.
+    '''
+    input:
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+    output:
+        pdf = os.path.join(sim_folder, 'BDPN', 'errors_pn<0.5.svg'),
+        tab = os.path.join(sim_folder, 'BDPN', 'errors_pn<0.5.tab'),
+    params:
+        mem = 2000,
+        name = 'errors',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/plot_error.py --estimates {input.tab} --tab "{output.tab}" --pdf "{output.pdf}" --pn_max 0.1
+        """
+
+rule plot_errors_pn_large:
+    '''
+    Plots the errors.
+    '''
+    input:
+        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+    output:
+        pdf = os.path.join(sim_folder, 'BDPN', 'errors_pn>=0.5.svg'),
+        tab = os.path.join(sim_folder, 'BDPN', 'errors_pn>=0.5.tab'),
+    params:
+        mem = 2000,
+        name = 'errors',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/plot_error.py --estimates {input.tab} --tab "{output.tab}" --pdf "{output.pdf}" --pn_min 0.1
         """

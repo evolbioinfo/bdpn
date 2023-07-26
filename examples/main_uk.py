@@ -3,17 +3,20 @@ import os
 from collections import defaultdict
 
 import numpy as np
-from pastml.tree import read_forest, annotate_dates, DATE
+from matplotlib.pyplot import plot, show
+from pastml.tree import read_forest, annotate_dates, DATE, parse_nexus
 
 from bdpn import bdpn, bd
-from bdpn.model_distinguisher import pick_cherries, nonparametric_cherry_diff, pick_motifs
+from bdpn.model_distinguisher import pick_cherries, nonparametric_cherry_diff
 from bdpn.parameter_estimator import optimize_likelihood_params, AIC
-from bdpn.tree_manager import annotate_tree
+from bdpn.tree_manager import annotate_tree, TIME
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'trees'))
 
-# gotree resolve -i UK_B_raxml.lsd2.nwk | gotree brlen setmin -l 0.0027397260273972603 -o UK_B_raxml.lsd2.resolved.nwk
-NWK_UK = os.path.join(DATA_DIR, 'UK_B_raxml.lsd2.resolved.nwk')
+# min len of 1 h
+# lsd2 -i rooted_raxml.nwk -d lsd2.interval.dates -e 3 -s 3102 -u 0.0027397260273972603 -l 0 -m 20000
+NWK_UK = os.path.join(DATA_DIR, 'UK', 'timetree.nexus')
+PN_TEST_LOG = os.path.join(DATA_DIR, 'UK', 'cherry_test.txt')
 min_cherry_num = 50
 
 
@@ -48,7 +51,7 @@ def cut_tree(tree, threshold_date):
             n.detach()
             n.dist = date - threshold_date
             forest.append(n)
-            if len(parent.children) == 1:
+            if parent and len(parent.children) == 1:
                 child = parent.children[0]
                 if not parent.is_root():
                     grandparent = parent.up
@@ -65,59 +68,84 @@ def cut_tree(tree, threshold_date):
     return tree, forest
 
 
-def check_cherries(tree):
-    all_cherries = list(pick_cherries(tree, include_polytomies=True))
+def check_cherries(forest, block_size=100, log=None):
+    all_cherries = []
+    for tree in forest:
+        all_cherries.extend(pick_cherries(tree, include_polytomies=True))
+    all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
+
     logging.info('Picked {} cherries with {} roots.'.format(len(all_cherries), len({_.root for _ in all_cherries})))
-    year2cherries = defaultdict(list)
-    for _ in all_cherries:
-        year2cherries[int(getattr(_.root, DATE))].append(_)
-    total_cherries = len(all_cherries)
-    year = min(year2cherries.keys())
-    cherries = []
-    max_year = max(year2cherries.keys())
-    while year <= max_year:
-        start_year = year
-        while len(cherries) < min_cherry_num and year <= max_year:
-            cherries.extend(year2cherries[year])
-            year += 1
-        # drop the last few cherries if they are not the only ones we have
-        if len(cherries) < min_cherry_num / 2 and min_cherry_num <= total_cherries:
-            break
+
+    results = []
+    root_times = []
+    for i in range(0, len(all_cherries) // block_size):
+        cherries = all_cherries[i * block_size: (i + 1) * block_size]
         result = nonparametric_cherry_diff(cherries, repetitions=1e3)
+        results.append(result)
+        root_times.append((getattr(cherries[0].root, DATE), getattr(cherries[-1].root, DATE)))
 
-        logging.info(
-            'For {n} cherries with a root in {start}-{stop}, PN test {res}.'
-            .format(res=result, start=start_year, stop=year - 1, n=len(cherries)))
-        cherries = []
+        # logging.info(
+        #     'For {n} cherries with roots in [{start}-{stop}), PN test {res}.'
+        #     .format(res=result, start=getattr(cherries[0].root, DATE), stop=getattr(cherries[-1].root, DATE),
+        #             n=len(cherries)))
 
-        # res = community_tracing_test(tree)
-        # logging.info('CT test: {}'.format(res))
+    pval = sum(results) / len(results)
+
+    logging.info("Total PN test {}.".format(pval))
+
+    if log is not None:
+        with open(log, 'w+') as f:
+            f.write('Total\t{}\n'.format(pval))
+            for years, val in zip(root_times, results):
+                f.write('{}-{}\t{}\n'.format(*years, val))
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
-    tree = read_forest(NWK_UK)[0]
+    tree = parse_nexus(NWK_UK)[0]
     annotate_dates([tree])
     annotate_tree(tree)
 
-    # check_cherries(tree)
-    cut_year = 2005
+    # check_cherries([tree], log=PN_TEST_LOG)
+    cut_year = 2012
     root, forest = cut_tree(tree, cut_year)
+    # check_cherries(forest)
 
-    for rho in (0.4, 0.5, 0.6, 0.7):
+    # psi_n = np.arange(0.5, 10000000, 10000)
+    # lks = [bdpn.loglikelihood(forest, la=0.295, psi=0.194, psi_n=_, rho=0.400, rho_n=0.033) for _ in psi_n]
+    #
+    # plot(psi_n, lks)
+    # show()
+
+    # for psi in (0.1, 0.15, 0.18, 0.2):
+    #     print("=======psi={}============".format(psi))
+    #     bounds = np.array([[0.1, 12], [0.05, 1], [0.5, 365], [0.0001, 0.99999], [0.0001, 0.99999]])
+    #     start_parameters = (bounds[:, 0] + bounds[:, 1]) / 2
+    #     input_parameters = np.array([None, psi, None, None, None])
+    #     vs_bdpn, ci_bdpn = optimize_likelihood_params(forest, input_parameters=input_parameters,
+    #                                                   loglikelihood=bdpn.loglikelihood,
+    #                                                   bounds=bounds[input_parameters == None],
+    #                                                   start_parameters=start_parameters, cis=True)
+    #     lk_bdpn = bdpn.loglikelihood(forest, *vs_bdpn)
+    #     print('Found BDPN params for {}-on trees: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
+    #           .format(cut_year, ', '.join('{:.3f}'.format(_) for _ in vs_bdpn), lk_bdpn, AIC(4, lk_bdpn), ci_bdpn))
+    #     save_estimates(NWK_UK.replace('.nwk', '2005.{}={}.est'.format(cut_year, psi)), vs_bdpn, ci_bdpn)
+
+
+    for rho in (0.5, 0.6, 0.7):
         print("=======rho={}============".format(rho))
         bounds = np.array([[0.1, 12], [0.05, 1], [0.5, 365], [0.0001, 0.99999], [0.0001, 0.99999]])
         start_parameters = (bounds[:, 0] + bounds[:, 1]) / 2
         input_parameters = np.array([None, None, None, rho, None])
         vs_bdpn, ci_bdpn = optimize_likelihood_params(forest, input_parameters=input_parameters,
-                                             loglikelihood=bdpn.loglikelihood,
-                                             bounds=bounds[input_parameters == None],
-                                             start_parameters=start_parameters, cis=True)
+                                                      loglikelihood=bdpn.loglikelihood,
+                                                      bounds=bounds[input_parameters == None],
+                                                      start_parameters=start_parameters, cis=True)
         lk_bdpn = bdpn.loglikelihood(forest, *vs_bdpn)
         print('Found BDPN params for {}-on trees: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
               .format(cut_year, ', '.join('{:.3f}'.format(_) for _ in vs_bdpn), lk_bdpn, AIC(4, lk_bdpn), ci_bdpn))
-        save_estimates(NWK_UK.replace('.nwk', '2005.rho={}.est'.format(rho)), vs_bdpn, ci_bdpn)
+        save_estimates(NWK_UK.replace('.nwk', '{}.rho={}.est'.format(cut_year, rho)), vs_bdpn, ci_bdpn)
         # input_parameters_root = np.array([None, vs_bdpn[1], None, None, None])
         # vs_bdpn, ci_bdpn = optimize_likelihood_params([root], input_parameters=input_parameters_root,
         #                                      loglikelihood=bdpn.loglikelihood,
@@ -147,15 +175,3 @@ if __name__ == '__main__':
         # print('Found BD params for the root tree: {}\t loglikelihood: {}, AIC: {}\n\t CIs:\n\t{}'
         #       .format(', '.join('{:.3f}'.format(_) for _ in vs_bd), lk_bd, AIC(2, lk_bd), ci_bd))
 
-    exit()
-
-    with open(os.path.join(DATA_DIR, "motifs.nwk"), "w+") as f:
-        for motif in pick_motifs(tree, pn_lookback=100, pn_delay=.5):
-            if len(motif.clustered_tips) < 2:
-                continue
-            print(motif.root.get_ascii(attributes=["name", "dist"]))
-            for tip, indices in motif.notified2index_list.items():
-                print("tip {} was notified by {}".format(tip.name, [_.name for _ in indices]))
-            print("")
-
-            f.write("{}\n".format(motif.root.write(format=3)))

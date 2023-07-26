@@ -22,12 +22,17 @@ if __name__ == "__main__":
     parser.add_argument('--estimates', type=str, help="estimated parameters")
     parser.add_argument('--pdf', type=str, help="plot")
     parser.add_argument('--tab', type=str, help="error table")
+    parser.add_argument('--pn_min', type=float, default=0., help="Only display cases with pn greater or equal to this value")
+    parser.add_argument('--pn_max', type=float, default=1, help="Only display cases with pn smaller than this value")
     params = parser.parse_args()
 
     df = pd.read_csv(params.estimates, sep='\t', index_col=0)
 
     real_df = df.loc[df['type'] == 'real', :]
+    real_df = real_df[(real_df['pn'] * real_df['p'] >= params.pn_min) & (real_df['pn'] * real_df['p'] < params.pn_max)]
+
     df = df.loc[df['type'] != 'real', :]
+    df = df.loc[real_df.index, :]
     types = sorted(df['type'].unique(), key=lambda _: next(i for (i, par) in enumerate(RATE_PARAMETERS) if par in _))
 
     for type in types:

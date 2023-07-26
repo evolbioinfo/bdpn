@@ -355,11 +355,15 @@ def main():
         all_cherries.extend(pick_cherries(tree, include_polytomies=True))
     all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
 
-    logging.info('Picked {} cherries with {} roots.'.format(len(all_cherries), len({_.root for _ in all_cherries})))
+    n_cherries = len(all_cherries)
+    logging.info('Picked {} cherries with {} roots.'.format(n_cherries, len({_.root for _ in all_cherries})))
 
     results = []
     root_times = []
-    for i in range(0, len(all_cherries) // params.block_size):
+    if n_cherries < params.block_size:
+        raise ValueError('The block size (argument --block_size) must be smaller '
+                         'than the number of cherries in the input tree ({}).'.format(n_cherries))
+    for i in range(0, n_cherries // params.block_size):
         cherries = all_cherries[i * params.block_size: (i + 1) * params.block_size]
         result = nonparametric_cherry_diff(cherries, repetitions=1e3)
         results.append(result)

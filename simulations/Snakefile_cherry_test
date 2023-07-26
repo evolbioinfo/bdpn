@@ -42,7 +42,7 @@ rule simulate_bd:
         
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bd --min_tips 5000 --max_tips 10000 --la $la --psi $psi --p $p --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+            timeout 10m generate_bd --min_tips 500 --max_tips 1000 --la $la --psi $psi --p $p --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
 

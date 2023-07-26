@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from treesimulator import save_log, save_forest
 from treesimulator.generator import generate
@@ -24,13 +26,15 @@ if __name__ == "__main__":
     parser.add_argument('--max_tips', default=10000, type=int, help="Max number of tips")
     params = parser.parse_args()
 
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(message)s', datefmt="%Y-%m-%d %H:%M:%S",
+                        filename=params.nwk.replace('.nwk', '.txt'), filemode='w+')
+
     R0 = random_float(1, 5)
     psi = random_float(1 / 20, 1 / 5)
     la = psi * R0
-    psi_ratio = random_float(10, 100)
-    psi_n = psi * psi_ratio
-    rho = random_float(0.01, 0.9)
-    rho_n = random_float(0.1, 0.9)
+    psi_n = psi * random_float(50, 500)
+    rho = random_float(0.1, 0.9)
+    rho_n = random_float(0.01 / rho, 0.9)
 
     print(la, psi, psi_n, rho, rho_n)
 

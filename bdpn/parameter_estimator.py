@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
-from scipy.stats import stats
+from scipy.stats import chi2
 
 from bdpn.tree_manager import TIME, annotate_tree
 
@@ -20,7 +20,7 @@ def rescale_log(loglikelihood_array):
 
     non_zero_loglh_array = loglikelihood_array[loglikelihood_array > -np.inf]
     if len(non_zero_loglh_array) == 0:
-        raise ValueError('Underflow')
+        return 0
     min_lh_value = np.min(non_zero_loglh_array)
     max_lh_value = np.max(non_zero_loglh_array)
 
@@ -33,18 +33,13 @@ def rescale_log(loglikelihood_array):
     return factors
 
 
-def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, start_parameters, cis=False):
+def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, start_parameters, cis=False, threads=1):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
 
-    :param forest: a list of ete3.Tree trees, annotated with node states and times via features STATE_K and TI.
-    :param T: time at end of the sampling period
-    :param model: MTBD model containing starting parameter values
-    :param optimise: MTBD model whose rates indicate which parameters need to optimized:
-        positive rates correspond to optimized parameters
-    :param u: number of hidden trees, where no tip got sampled
-    :return: the values of optimized parameters and the corresponding loglikelihood: (MU, LA, PSI, RHO, best_log_lh)
+    :param forest: a list of ete3.Tree trees
+    :return: tuple: (the values of optimized parameters, CIs)
     """
     for tree in forest:
         if not hasattr(tree, TIME):
@@ -79,7 +74,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
         if np.any(np.isnan(ps)):
             return np.nan
         ps = get_real_params_from_optimised(ps)
-        res = loglikelihood(forest, *ps, T)
+        res = loglikelihood(forest, *ps, T, threads=threads)
         # print("{}\t-->\t{:g}".format(ps, res))
         return -res
 
@@ -110,35 +105,39 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     optimised_cis[:, 1] = np.array(optimised_parameters)
 
     if cis:
-        lk_threshold = loglikelihood(forest, *optimised_parameters, T) - stats.chi2.ppf(q=0.95, df=1)
+        lk_threshold = loglikelihood(forest, *optimised_parameters, T, threads=threads) - chi2.ppf(q=0.95, df=1) / 2
 
         def binary_search(v_min, v_max, i, lower=True):
             rps = np.array(optimised_parameters)
             v = v_min + (v_max - v_min) / 2
-            if (v_max - v_min) < 1e-6:
+            if (v_max - v_min) < 1e-4:
                 return v
             rps[i] = v
-            lk_diff = loglikelihood(forest, *rps, T) - lk_threshold
-            if np.abs(lk_diff) < 1e-6:
+            lk = loglikelihood(forest, *rps, T, threads=threads) #threads=max(1, threads // len(bounds)))
+            lk_diff = lk - lk_threshold
+            if np.abs(lk_diff) < 1e-4:
                 return v
 
             go_left = (lower and lk_diff > 0) or ((not lower) and lk_diff < 0)
 
             if go_left:
-                return binary_search(v_min, v, i)
-            return binary_search(v, v_max, i)
+                return binary_search(v_min, v, i, lower)
+            return binary_search(v, v_max, i, lower)
 
-        skipped_i = 0
-        for i in range(n):
-            optimised_value = optimised_parameters[i]
-            if input_parameters[i] is not None:
-                skipped_i += 1
-                continue
-
-            b_min, b_max = bounds[i - skipped_i, :]
-
+        def get_ci(args):
+            (i, optimised_value), (b_min, b_max) = args
             optimised_cis[i, 0] = binary_search(b_min, optimised_value, i, True)
             optimised_cis[i, 1] = binary_search(optimised_value, b_max, i, False)
+
+        # if threads > 1:
+        #     with ThreadPool(processes=min(threads, len(bounds))) as pool:
+        #         pool.map(func=get_ci,
+        #                  iterable=zip(((i, v) for (i, v) in enumerate(optimised_parameters)
+        #                                if input_parameters[i] is not None), bounds), chunksize=1)
+        # else:
+        for _ in zip(((i, v) for (i, v) in enumerate(optimised_parameters) if input_parameters[i] is None),
+                     bounds):
+            get_ci(_)
 
     return optimised_parameters, optimised_cis
 
