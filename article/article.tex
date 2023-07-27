@@ -37,16 +37,16 @@
 %\end{abstract}
 
 \section{Introduction}
-The interaction of epidemiological and evolutionary processes leaves a footprint in pathogen genomes. Phylodynamics leverages this footprint to estimate epidemiological parameters~\cite{Grenfell2004a,Volz2013}. It relies on models that bridge the gap between traditional epidemiology and sequence data by estimating such parameters as the basic reproduction number, $R_0$, from topology and branch lengths of pathogen phylogenies (i.e. genealogies of the pathogen population, approximating the transmission trees) combined with metadata on the samples. This is particularly useful for emerging epidemics, when not enough data (e.g. incidence curves) might be gathered for accurate estimations with classic epidemiological methods, while using genetic data for phylodynamic estimations can provide valuable insights and help prevent epidemic spreads (e.g. accurate estimation of the infectious period is crucial for adjusting health policies for self-isolation).
+The interaction of epidemiological and evolutionary processes leaves a footprint in pathogen genomes. Phylodynamics leverages this footprint to estimate epidemiological parameters~\citep{Grenfell2004a,Volz2013}. It relies on models that bridge the gap between traditional epidemiology and sequence data by estimating such parameters as the basic reproduction number, $R_0$, from topology and branch lengths of pathogen phylogenies (i.e. genealogies of the pathogen population, approximating the transmission trees) combined with metadata on the samples. This is particularly useful for emerging epidemics, when not enough data (e.g. incidence curves) might be gathered for accurate estimations with classic epidemiological methods, while using genetic data for phylodynamic estimations can provide valuable insights and help prevent epidemic spreads (e.g. accurate estimation of the infectious period is crucial for adjusting health policies for self-isolation).
 
 
-Phylodynamic models can be classified into two main families:  coalescent~\cite{Volz2009a,Drummond2005,Pybus2000a} and birth-death (BD)~\cite{Kendall1948,Maddison2007,Stadler2009,Stadler2010}. Coalescent models are often preferred for estimating deterministic population dynamics, however for highly stochastic processes, such as the dynamics of emerging pathogens, BD models are better adapted~\cite{Macpherson2021}. In the classic BD model with incomplete sampling~\cite{Stadler2009}, births represent pathogen transmission events (happening at a constant transmission rate), while deaths correspond to becoming non-infectious (e.g. due to healing, self-isolation, starting a treatment, or death, modelled with a constant removal rate). 
+Phylodynamic models can be classified into two main families:  coalescent~\citep{Volz2009a,Drummond2005,Pybus2000a} and birth-death (BD)~\citep{Kendall1948,Maddison2007,Stadler2009,Stadler2010}. Coalescent models are often preferred for estimating deterministic population dynamics, however for highly stochastic processes, such as the dynamics of emerging pathogens, BD models are better adapted~\citep{Macpherson2021}. In the classic BD model with incomplete sampling~\citep{Stadler2009}, births represent pathogen transmission events (happening at a constant transmission rate), while deaths correspond to becoming non-infectious (e.g. due to healing, self-isolation, starting a treatment, or death, modelled with a constant removal rate). 
 
 The epidemic spread and detection can however be non-homogenous and depend on different factors, including governmental health policies (e.g. quarantine measures or development of pathogen detection tests), pathogen evolution over time (e.g. some SARS-CoV-2 variants are more transmissible than other),  differences between host individuals (e.g. due to their immune system particularities or to their behaviour).
 
-To allow for heterogeneity at the population level, the multi-type birth-death (MTBD) extention of the classical BDS model was developed by Stadler \textit{et al.}~\cite{Stadler2013a}. MTBD framework allows for different types of individual states (and changes between them, modelled with state change rates). These models are phylodynamic analogies of compartmental models in classical epidemiology (e.g. SIR, Susceptible-Infectious-Removed).  Examples of the MTBD family models include the birth-death exposed-infectious (BDEI) model, which was designed for pathogens featuring an incubation period between the moments of infection and of becoming infectious (e.g. Ebola and SARS-CoV-2), and the birth-death with superspreading model (BDSS) accounting for the fact that some individuals might spread the pathogen more than the others~\cite{Stadler2014}.
+To allow for heterogeneity at the population level, the multi-type birth-death (MTBD) extention of the classical BDS model was developed by~\citet{Stadler2013a}. MTBD framework allows for different types of individual states (and changes between them, modelled with state change rates). These models are phylodynamic analogies of compartmental models in classical epidemiology (e.g. SIR, Susceptible-Infectious-Removed).  Examples of the MTBD family models include the birth-death exposed-infectious (BDEI) model, which was designed for pathogens featuring an incubation period between the moments of infection and of becoming infectious (e.g. Ebola and SARS-CoV-2), and the birth-death with superspreading model (BDSS) accounting for the fact that some individuals might spread the pathogen more than the others~\citep{Stadler2014}.
 
-To allow for heterogeneity over time, Stadler~\textit{et~al.}~\cite{Stadler2013} developed one-state Bayesian birth-death skyline plot (BDSKY) that divides the time into intervals and allows for different piecewise constant rates on them. K\"{u}hnert \textit{et al.}~\cite{Kuhnert2016} combined the MTBD model with the BDSKY to allow for both piecewise-constant rate changes over time and multiple individual types. In particular the skyline approach can be useful to account for changes in the sampling policies (e.g. before/after HIV discovery or before/after PCR test spread for SARS-CoV-2).
+To allow for heterogeneity over time, \citet{Stadler2013} developed one-state Bayesian birth-death skyline plot (BDSKY) that divides the time into intervals and allows for different piecewise constant rates on them. \citet{Kuhnert2016} combined the MTBD model with the BDSKY to allow for both piecewise-constant rate changes over time and multiple individual types. In particular the skyline approach can be useful to account for changes in the sampling policies (e.g. before/after HIV discovery or before/after PCR test spread for SARS-CoV-2).
 
 
 Another important source of heterogeneity that none of these models accounts for is inflicted by non-random sampling. We can propose different sampling probabilities for different types of individuals in MTBD framework, or change of the sampling probability over time intervals with the BDSKY, however, none of them can account for non-randomness of sampling, in particular due to contact tracing and partner notification. 
@@ -86,7 +86,7 @@ U(T) = & 1\;  \textit{\color{gray} $\leftarrow$ the probability to stay unsample
 \end{equation}
 
 
-With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch that finishes at time $t_i$, starting on this branch at a time $t \leq t_i$. The master equations for the BD models were initially developed by ~\citet{Stadler2009}, however what we present here, is their branch-specific formulation that we proposed in~\cite{zhukovaFastAccurateMaximumLikelihood2022}:
+With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch that finishes at time $t_i$, starting on this branch at a time $t \leq t_i$. The master equations for the BD models were initially developed by ~\citet{Stadler2009}, however what we present here, is their branch-specific formulation that we proposed in~\citep{zhukovaFastAccurateMaximumLikelihood2022}:
 
 \begin{equation}
 \scriptsize
@@ -139,7 +139,7 @@ This model is a simplification of the notification process, in particular it mak
 \item only the most recent partner can get notified.
 \end{enumerate}
 
-These assumptions make the mathematics behind the model manageable, however they can be easily relaxed in a tree simulator (e.g., to be used with a deep learning estimator~\cite{Voznica2021}, which does not require likelihood calculation).
+These assumptions make the mathematics behind the model manageable, however they can be easily relaxed in a tree simulator (e.g., to be used with a deep learning estimator~\citep{Voznica2021}, which does not require likelihood calculation).
 
 Note that the most recent partner relationship is not necessarily symmetrical, as the most recent partner of $i$ might have transmitted their virus further after the contact with $i$. 
 
@@ -206,7 +206,7 @@ p^{(i,nh)}(t) =  E_4
 %\label{eq:branch}
 %\end{equation}
 
-Using the formulas~(\ref{eq:ps}), we can calculate the likelihood density of a tree using a pruning algorithm~\cite{10.1093/sysbio/22.3.240}, where for each visited node $i$ we calculate the likelihood density of its subtree if the branch connecting it to its parent node $j$ corresponds to (1) an unnotified individual $l^{(u)}(i)$; or (2) an (eventually) notified partner $l^{(p)}(i, r)$ (notified by the individual corresponding to the tip $r$ at time $t_r$). For each visited tip we additionally consider whether the corresponding individual notified their most recent partner or not.
+Using the formulas~(\ref{eq:ps}), we can calculate the likelihood density of a tree using a pruning algorithm~\citep{10.1093/sysbio/22.3.240}, where for each visited node $i$ we calculate the likelihood density of its subtree if the branch connecting it to its parent node $j$ corresponds to (1) an unnotified individual $l^{(u)}(i)$; or (2) an (eventually) notified partner $l^{(p)}(i, r)$ (notified by the individual corresponding to the tip $r$ at time $t_r$). For each visited tip we additionally consider whether the corresponding individual notified their most recent partner or not.
 
 %For a tip $i$ in state $si$ these values can be calculated as:
 %\begin{equation}
@@ -473,7 +473,7 @@ For the PN version of this simulator, we add an additional $m+1^{th}$ state for 
 
 
 \subsection*{Code availability}
-The simulator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\cite{Huerta-Cepas2016} and NumPy package for array operations~\cite{harris_array_2020}. 
+The simulator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
 
 It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/treesimulator}{treesimulator}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/treesimulator/tags}{evolbioinfo/treesimulator}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/treesimulator}{github.com/evolbioinfo/treesimulator}.
 
@@ -506,7 +506,7 @@ Once the optimal parameter values are found, we calculate their confidence inter
 For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
 
 \subsection*{Code availability}
-The BD-PN parameter estimator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\cite{Huerta-Cepas2016} and NumPy package for array operations~\cite{harris_array_2020}. 
+The BD-PN parameter estimator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
 
 It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/bdpn}{bdpn}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/bdpn/tags}{evolbioinfo/bdpn}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/bdpn}{github.com/evolbioinfo/bdpn}.
 
@@ -566,6 +566,8 @@ $1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probabilit
 The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 5 years. 
 
 
+\bibliographystyle{plainnat}
+\bibliography{refs}
 
 
 \end{document}
