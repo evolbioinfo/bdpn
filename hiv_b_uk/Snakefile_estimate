@@ -19,7 +19,6 @@ REPETITIONS = list(range(n))
 rule all:
     input:
         expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est'), i=REPETITIONS, p=[0.4, 0.5, 0.6], min_date=[2012], max_date=[2015]),
-        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.psi={psi}.est'), i=REPETITIONS, psi=[0.1, 0.2, 0.3, 0.5], min_date=[2012], max_date=[2015]),
         expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
 
 
@@ -39,7 +38,8 @@ rule estimate_params_p_fixed:
     singularity: "docker://evolbioinfo/bdpn:v0.1"
     shell:
         """
-        bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
+        # bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
+        bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
         """
 
 rule estimate_params_psi_fixed:
@@ -58,7 +58,8 @@ rule estimate_params_psi_fixed:
     singularity: "docker://evolbioinfo/bdpn:v0.1"
     shell:
         """
-        bdpn_infer --psi {wildcards.psi}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
+        # bdpn_infer --psi {wildcards.psi}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
+        bdpn_infer --psi {wildcards.psi}  --nwk {input.nwk} --log {output.est} --ci
         """
 
 

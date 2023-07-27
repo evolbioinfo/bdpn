@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import chi2
 
-from bdpn.tree_manager import TIME, annotate_tree
+from bdpn.tree_manager import TIME, annotate_forest_with_time
 
 MIN_VALUE = np.log(np.finfo(np.float64).eps)
 MAX_VALUE = np.log(np.finfo(np.float64).max)
@@ -41,14 +41,10 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     :param forest: a list of ete3.Tree trees
     :return: tuple: (the values of optimized parameters, CIs)
     """
-    for tree in forest:
-        if not hasattr(tree, TIME):
-            annotate_tree(tree)
+    annotate_forest_with_time(forest)
     T = 0
     for tree in forest:
         T = max(T, max(getattr(_, TIME) for _ in tree))
-    # print('Bounds are {}'.format(bounds))
-    # print('Starting parameter values are {}'.format(start_parameters))
 
     def get_real_params_from_optimised(ps):
         ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
@@ -81,14 +77,11 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     x0 = get_optimised_params_from_real(start_parameters)
     best_log_lh = -get_v(x0)
 
-    for i in range(10):
+    for i in range(5):
         if i == 0:
             vs = x0
         else:
-            keep_searching = True
-            while keep_searching:
-                keep_searching = False
-                vs = np.random.uniform(bounds[:, 0], bounds[:, 1])
+            vs = np.random.uniform(bounds[:, 0], bounds[:, 1])
 
         fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=bounds)
         if fres.success and not np.any(np.isnan(fres.x)):
@@ -96,7 +89,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
                 x0 = np.array(fres.x)
                 best_log_lh = -fres.fun
                 break
-        # print('Attempt {} of trying to optimise the parameters: {}.'.format(i, -fres.fun))
+            # print('Attempt {} of trying to optimise the parameters: {} -> {}.'.format(i, x0, -fres.fun))
     optimised_parameters = get_real_params_from_optimised(x0)
 
     n = len(optimised_parameters)

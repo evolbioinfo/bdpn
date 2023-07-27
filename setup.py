@@ -23,6 +23,7 @@ setup(
     entry_points={
             'console_scripts': [
                 'bdpn_infer = bdpn.bdpn:main',
+                'bd_infer = bdpn.bd:main',
                 'pn_test = bdpn.model_distinguisher:main',
             ]
     },

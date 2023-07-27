@@ -2,18 +2,23 @@ import os
 from multiprocessing.pool import ThreadPool
 
 import numpy as np
-from pastml.tree import read_forest
 
-from bdpn.parameter_estimator import optimize_likelihood_params, rescale_log
-from bdpn.tree_manager import TIME, annotate_tree
+from bdpn import bd
 from bdpn.formulas import get_log_p, get_c1, get_c2, get_E2, get_E1, get_log_po, get_log_pnh, get_log_po_from_p_pnh, \
     get_u
+from bdpn.parameter_estimator import optimize_likelihood_params, rescale_log
+from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
+
+PARAMETER_NAMES = np.array(['la', 'psi', 'partner_psi', 'p', 'pn'])
+
+DEFAULT_LOWER_BOUNDS = [bd.DEFAULT_MIN_RATE, bd.DEFAULT_MIN_RATE, bd.DEFAULT_MIN_RATE,
+                        bd.DEFAULT_MIN_PROB, bd.DEFAULT_MIN_PROB]
+DEFAULT_UPPER_BOUNDS = [bd.DEFAULT_MAX_RATE, bd.DEFAULT_MAX_RATE, bd.DEFAULT_MAX_RATE * 1e3,
+                        bd.DEFAULT_MAX_PROB, bd.DEFAULT_MAX_PROB]
 
 
 def loglikelihood(forest, la, psi, psi_n, rho, rho_n, T=None, threads=1):
-    for tree in forest:
-        if not hasattr(tree, TIME):
-            annotate_tree(tree)
+    annotate_forest_with_time(forest)
     if T is None:
         T = 0
         for tree in forest:
@@ -275,6 +280,28 @@ def loglikelihood(forest, la, psi, psi_n, rho, rho_n, T=None, threads=1):
     return result + len(forest) * u / (1 - u) * np.log(u)
 
 
+def save_results(vs, cis, log, ci=False):
+    os.makedirs(os.path.dirname(os.path.abspath(log)), exist_ok=True)
+    with open(log, 'w+') as f:
+        f.write('\t{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability', 'notification probability',
+                                          'removal time after notification',
+                                          'transmission rate', 'removal rate', 'partner removal rate'])))
+        la, psi, psi_p, rho, rho_p = vs
+        R0 = la / psi
+        rt = 1 / psi
+        prt = 1 / psi_p
+        (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (rho_p_min, rho_p_max) = cis
+        R0_min, R0_max = la_min / psi, la_max / psi
+        rt_min, rt_max = 1 / psi_max, 1 / psi_min
+        prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
+        f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, rho_p, prt, la, psi, psi_p])))
+        if ci:
+            f.write('CI_min,{}\n'.format(
+                ','.join(str(_) for _ in [R0_min, rt_min, rho_min, rho_p_min, prt_min, la_min, psi_min, psi_p_min])))
+            f.write('CI_max,{}\n'.format(
+                ','.join(str(_) for _ in [R0_max, rt_max, rho_max, rho_p_max, prt_max, la_max, psi_max, psi_p_max])))
+
+
 def main():
     """
     Entry point for tree parameter estimation with the BDPN model with command-line arguments.
@@ -291,44 +318,61 @@ def main():
     parser.add_argument('--partner_psi', required=False, default=None, type=float, help='partner removal rate')
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--nwk', required=True, type=str, help="input tree file")
-    parser.add_argument('--upper_bounds', required=True, type=float, nargs='+', help="upper bounds for parameters")
-    parser.add_argument('--lower_bounds', required=True, type=float, nargs='+', help="lower bounds for parameters")
+    parser.add_argument('--upper_bounds', required=False, type=float, nargs=5,
+                        help="upper bounds for parameters (la, psi, partner_psi, p, pn)", default=DEFAULT_UPPER_BOUNDS)
+    parser.add_argument('--lower_bounds', required=False, type=float, nargs=5,
+                        help="lower bounds for parameters (la, psi, partner_psi, p, pn)", default=DEFAULT_LOWER_BOUNDS)
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
     params = parser.parse_args()
 
-    if params.la is None and params.psi is None and params.p is None and params.pn is None and params.partner_psi is None:
-        raise ValueError('At least one of the model parameters needs to be specified for identifiability')
+    if params.la is None and params.psi is None and params.p is None:
+        raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
+                         'for identifiability')
 
     forest = read_forest(params.nwk)
     print('Read a forest of {} trees with {} tips in total'.format(len(forest), sum(len(_) for _ in forest)))
+    vs, cis = infer(forest, **vars(params))
+
+    save_results(vs, cis, params.log, ci=params.ci)
+
+
+def infer(forest, la=None, psi=None, partner_psi=None, p=None, pn=None,
+          lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, **kwargs):
+    """
+    Infers BDPN model parameters from a given forest.
+
+    :param forest: list of one or more trees
+    :param la: transmission rate
+    :param psi: removal rate
+    :param partner_psi: partner removal rate
+    :param p: sampling probability
+    :param pn: partner notification probability
+    :param lower_bounds: array of lower bounds for parameter values (la, psi, partner_psi, p, pn)
+    :param upper_bounds: array of upper bounds for parameter values (la, psi, partner_psi, p, pn)
+    :param ci: whether to calculate the CIs or not
+    :return: tuple(vs, cis) of estimated parameter values vs=[la, psi, partner_psi, p, pn]
+        and CIs ci=[[la_min, la_max], ..., [pn_min, pn_max]]. In the case when CIs were not set to be calculated,
+        their values would correspond exactly to the parameter values.
+    """
+    if la is None and psi is None and p is None:
+        raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
+                         'for identifiability')
     bounds = np.zeros((5, 2), dtype=np.float64)
-    bounds[:, 0] = params.lower_bounds
-    bounds[:, 1] = params.upper_bounds
-    start_parameters = (bounds[:, 0] + bounds[:, 1]) / 2
-    input_params = np.array([params.la, params.psi, params.partner_psi, params.p, params.pn])
+    bounds[:, 0] = lower_bounds
+    bounds[:, 1] = upper_bounds
+    vs, _ = bd.infer(forest, la=la, psi=psi, p=p,
+                     lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
+    start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if partner_psi is None or partner_psi < 0 else partner_psi,
+                                 vs[-1], 0.5 if pn is None or pn <= 0 or pn > 1 else pn])
+    input_params = np.array([la, psi, partner_psi, p, pn])
+    print('Input parameters {} are fixed: {}'.format(PARAMETER_NAMES[input_params != None],
+                                                     input_params[input_params != None]))
+    print('Starting BDPN parameters: {}'.format(start_parameters))
     vs, cis = optimize_likelihood_params(forest, input_parameters=input_params,
                                          loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                         start_parameters=start_parameters, cis=params.ci)
-
-    os.makedirs(os.path.dirname(os.path.abspath(params.log)), exist_ok=True)
-    with open(params.log, 'w+') as f:
-        f.write('\t{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability', 'notification probability',
-                                          'removal time after notification',
-                                          'transmission rate', 'removal rate', 'partner removal rate'])))
-        la, psi, psi_p, rho, rho_p = vs
-        R0 = la / psi
-        rt = 1 / psi
-        prt = 1 / psi_p
-        (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (rho_p_min, rho_p_max) = cis
-        R0_min, R0_max = la_min / psi, la_max / psi
-        rt_min, rt_max = 1 / psi_max, 1 / psi_min
-        prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
-        f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, rho_p, prt, la, psi, psi_p])))
-        if params.ci:
-            f.write('CI_min,{}\n'.format(
-                ','.join(str(_) for _ in [R0_min, rt_min, rho_min, rho_p_min, prt_min, la_min, psi_min, psi_p_min])))
-            f.write('CI_max,{}\n'.format(
-                ','.join(str(_) for _ in [R0_max, rt_max, rho_max, rho_p_max, prt_max, la_max, psi_max, psi_p_max])))
+                                         start_parameters=start_parameters, cis=ci)
+    print('Estimated BDPN parameters: {}'.format(vs))
+    return vs, cis
 
 
 if '__main__' == __name__:
