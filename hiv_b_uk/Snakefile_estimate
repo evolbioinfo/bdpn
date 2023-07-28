@@ -18,7 +18,7 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
-        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est'), i=REPETITIONS, p=[0.4, 0.5, 0.6], min_date=[2012], max_date=[2015]),
+        os.path.join(data_dir, 'estimates.tab'),
         expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
 
 
@@ -80,4 +80,27 @@ rule cherry_test:
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log} --block_size 100
+        """
+
+
+rule combine_estimates:
+    '''
+    Combine estimates.
+    '''
+    input:
+        nwk = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.nwk'), i=REPETITIONS,
+            min_date=[2012], max_date=[2015]),
+        est = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est'), i=REPETITIONS,
+            p=[0.58], min_date=[2012], max_date=[2015]),
+    output:
+        tab = os.path.join(data_dir, 'estimates.tab'),
+    params:
+        mem = 2000,
+        name = 'estimates',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    shell:
+        """
+        python3 py/summary_table.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
         """
