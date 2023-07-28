@@ -283,7 +283,7 @@ def loglikelihood(forest, la, psi, psi_n, rho, rho_n, T=None, threads=1):
 def save_results(vs, cis, log, ci=False):
     os.makedirs(os.path.dirname(os.path.abspath(log)), exist_ok=True)
     with open(log, 'w+') as f:
-        f.write('\t{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability', 'notification probability',
+        f.write(',{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability', 'notification probability',
                                           'removal time after notification',
                                           'transmission rate', 'removal rate', 'partner removal rate'])))
         la, psi, psi_p, rho, rho_p = vs

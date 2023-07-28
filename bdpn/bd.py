@@ -115,7 +115,7 @@ def infer(forest, la=None, psi=None, p=None,
 def save_results(vs, cis, log, ci=False):
     os.makedirs(os.path.dirname(os.path.abspath(log)), exist_ok=True)
     with open(log, 'w+') as f:
-        f.write('\t{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability',
+        f.write(',{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability',
                                           'transmission rate', 'removal rate'])))
         la, psi, rho = vs
         R0 = la / psi
