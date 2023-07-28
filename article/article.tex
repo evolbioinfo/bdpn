@@ -120,7 +120,7 @@ Importantly, the BD model is asymptotically unidentifiable (see Remark 3.4 in~\c
 
 \subsection{PN extension}
 
-We now propose a non-Markovian extension of the BD model that adds partner notification (PN).  In BD-PN, at the moment of sampling the sampled individual might notify their most recent partner with a given probability $\rho_n$. Upon notification, partner is removed almost instantaneously (modeled via a notified removal rate $\psi_p >> \psi$). BD-PN hence has 3 classical BD and 2 additional parameters:
+We now propose a non-Markovian extension of the BD model that adds partner notification (PN).  In BD-PN, at the moment of sampling the sampled individual might notify their most recent partner with a constant probability $\rho_n$. Upon notification, the partner is removed almost instantaneously (modeled via a constant notified removal rate $\psi_p >> \psi$). BD-PN hence has 3 classical BD and 2 additional parameters:
 \begin{itemize}
  \item $\lambda$ -- constant transmission rate: an infected individual transmits their pathogen to a newly infected individual (which corresponds to an internal node in the transmission tree);
  \item $\psi$ -- constant removal rate: an infected individual stops being infectious at this rate. This corresponds to a tip in the transmission tree (observed or hidden);
@@ -142,6 +142,8 @@ This model is a simplification of the notification process, in particular it mak
 These assumptions make the mathematics behind the model manageable, however they can be easily relaxed in a tree simulator (e.g., to be used with a deep learning estimator~\citep{Voznica2021}, which does not require likelihood calculation).
 
 Note that the most recent partner relationship is not necessarily symmetrical, as the most recent partner of $i$ might have transmitted their virus further after the contact with $i$. 
+
+In Appendix we discuss how the -PN extension can be generalized to multi-type birth-death models (MTBD-PN).
 
 \subsubsection{Mathematical formulation}
 $p^{(i)}(t)$ in equations~(\ref{eq:p}) describes an evolution along a tree branch, provided that we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at time $t$. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$.
@@ -451,9 +453,151 @@ u = f \frac{U_{hidden}(\Theta)}{1 - U_{hidden}(\Theta)}\label{eq:u}
 \end{equation}
 
 
+\section{PN test}~\label{sec:test}
+To access whether a give tree is generated under a classical MTBD model or MTBD-PN, we developed a non-parametric test based on cherries (two tips having a common parent). 
+The intuition behind the test is that in the presence of partner notification the tree will contain more cherries whose tips are close in time. 
 
-\section{Tree simulator}
-We implemented a quick tree simulator that generates sampled transmission trees under MTBD and MTBD-PN models (with $m$ states). The simulator is Gillespie-based, generates state change, transmission and removal times, and only reconstructs the sampled parts of the tree to save memory and increase speed. 
+The test sorts the cherries by the times of their roots, and splits them into blocks of 100 cherries (adjustable parameter). For each cherry in a block, the test calculates the difference between its tip times, hence obtaining an array of 100 cherry tip differences. It then generates a collection of random cherry tip differences for the same block: For each original cherry root it picks 5 (adjustable parameter) cherries with the roots that are the closest in time, randomly selects two tips among their tips, and calculates their time difference. An array of 100 reshuffled cherry tip differences is thus obtained for the same block. The reshuffled cherry tip difference array generation is repeated 1\,000 times (adjustable parameter). Finally, the test reports the proportion of reshuffled arrays whose first quantile (adjustable parameter) is smaller than that of the real cherry array. 
+
+The test therefore reports a probability of partner notification being present at time interval corresponding to each block. To estimate the probability of partner notification being present in the whole tree, it averages the block probabilities. 
+
+\subsection*{Code availability}
+We implemented the PN-test in Python 3. It is available as a part of BDPN parameter estimator (see section~\ref{sec:sim}).
+
+
+\subsection{Performance on simulated data}~\label{sec:test:sim}
+To illustrate the PN test performance, we applied it to the trees simulated under BD and under BD-PN models. We implemented a MTBD/MTBD-PN tree simulator (see Appendix for details) and used it to generate 100 trees with 500--1\,000 tips under the BD-PN model. For each tree the parameter values were drawn randomly within the following bounds:
+$R_e = \frac{{\lambda}}{{\psi}} \in ]1, 5]$, 
+removal rate $\psi \in ]1 / 20, 1 / 5]$,
+ratio between the partner removal rate after notification and the removal rate $\frac{\psi_p}{\psi} \in ]50, 500]$,
+sampling probability $\rho \in ]0.1, 0.9]$,
+partner notification probability $\rho_n \in ]0.01/\rho, 0.9]$. We also generated 100 trees of 500--1\,000 tips under the BD model. For each tree in the BD data set the parameter values ($\lambda, \psi,$ and $\rho$) were the same as the ones selected for the corresponding tree of the BD-PN dataset.
+
+We then run the PN tests on each tree of the both datasets. For 98 out of 100 trees in the BD dataset the PN test value was above $0.05$ (i.e. 98\% true negative and 2\% false positive results), the mean PN test value was $0.468$. For 96 (out of 100) trees in the BD-PN dataset the PN test value was below $0.05$ (i.e. 96\% true positive and 4\% false negative results), the mean PN test value was $0.008$.
+Our test therefore showed both high specificity and sensitivity.
+ 
+
+\section{BD-PN parameter and CI estimator}\label{sec:sim}
+We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\psi_p,\rho,\rho_n) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). 
+
+Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\citep{Wilks1938}.
+For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
+
+\subsection*{Code availability}
+The BD-PN parameter estimator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
+
+It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/bdpn}{bdpn}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/bdpn/tags}{evolbioinfo/bdpn}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/bdpn}{github.com/evolbioinfo/bdpn}.
+
+\subsection{Performance on simulated data}
+
+To assess the performance of our maximum-likelihood estimator for the BD-PN model, we used the 100 trees with 500--1\,000 tips simulated under the BD-PN model as described in subsection~\ref{sec:test:sim}.
+
+We applied bdpn to each of the trees three times: fixing each of the BD parameters ($\lambda,\psi$ or $\rho$) to its real value (for identifiability). 
+
+
+As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values in all the settings.
+
+We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree (Fig.~\ref{fig:sim}). 
+Average relative errors were the lowest when $\psi$ or $\rho$ were fixed: $\leq 10\%$  for all the parameters. The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
+%The hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
+
+As with the point estimates, CI estimates were the best when $\psi$ or $\rho$ were fixed, and the worst when $\lambda$ was fixed (see Table~\ref{tbl:ci}). The relative width of the CIs ($\frac{value_{97.5\%} - value_{2.5\%}}{value}$) varied between 11\% for $\lambda$ estimates and 32\% for $\psi_p$ estimates (in all the settings).
+
+\begin{figure}[!pht]
+\centering 
+\includegraphics[width=1\textwidth]{Fig_errors.eps}
+\caption{Comparison of inference accuracy of bdpn on a data set of 100 trees of 500--1\,000 tips each, with either $\lambda$ (blue), $\psi$ (orange) or $\rho$ (green) parameter being fixed to its real value.
+We show the swarmplots (coloured by fixed parameter) of relative errors for each test tree and parameter, which are measured as the normalized distance between the estimate and the real value. Average relative error (and in parentheses average relative bias) are displayed for each parameter and method below their swarmplot. For $\rho$ and $\rho_n$ absolute values are shown instead of normalized ones. } 
+\label{fig:sim} 
+\end{figure}
+ 
+ \begin{table}[!h]\centering
+\small
+\caption{Percentage of simulated trees for which the real parameter values were withing the estimated 95\% CIs. \smallskip}
+\begin{tabular}{c|ccc}
+\textbf{parameter} & \textbf{$\lambda$ fixed} & \textbf{$\psi$ fixed} & \textbf{$\rho$ fixed} \\
+\toprule 
+ $\lambda$ & -- &  76\% & 96\% \\
+ $\psi$ & 22\% & -- & 78\% \\
+ $\rho$ & 16\% & 55\%  & -- \\
+ $\psi_p$ & 70\% & 93\% & 94\% \\
+ $\rho_n$ & 21\% & 68\% & 63\% \\
+\bottomrule
+\end{tabular}
+\label{tbl:ci}
+\end{table}
+
+
+\subsection{Application: HIV-B epidemic in the UK}
+We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the phylogenetic tree from our recent study of HIV drug resistance in the UK~\citep{zhukovaModelingDrugResistance2023}. The tree tips represent viruses sampled from 40\,055 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\citep{Dunn2007}. The sampling date metadata for these samples were month-specific (e.g. Aug 2015), hence potentially creating simultaneous sampling dates for cases, which were sampled on different days of the month. To avoid this issue we randomly selected a date within the specified month for each sample, and time-scaled the tree with LSD2~\citep{To2016} (v2.4.1, strict molecular clock with outlier removal). We repeated this time-scaling procedure 10 times, obtaining 10 trees with slightly different branch lengths and root dates between Oct 5 and Nov 11, 1962.
+
+Between 2012 and 2015, in the UK antiretroviral treatment (ART) of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\citep{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count > 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\citep{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e. later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\citep{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated trees between 2012 and 2015. We then applied the PN-test and estimated the BD-PN parameters on these 2012--2015 forests. 
+
+The PN-test values were below 0.05 for all the forests (value between $0.01$ and $0.04$), suggesting the presence of partner notification.
+
+To estimate the BD-PN parameter values, we needed to fix one of the parameters for model identifiability. We therefore estimated the base sampling probability $\rho$ as follows. According to the \href{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112132123mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/602942/HIV_in_the_UK_report.pdf}{``Towards elimination of HIV transmission, AIDS and HIV-related deaths in the UK''}
+ report, the estimated total number of people living with HIV in the UK in 2015 was 101\,200 (97\,500 to 105\,700). % in 2012 this number was 98\,400 (93\,500-104\,300) [\href{HIV in the United Kingdom: 2013 Report}{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112133715mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/326601/HIV_annual_report_2013.pdf}]. Moreover these document report about 400 HIV-related deaths per year. 
+According to our estimate~\citep{zhukovaModelingDrugResistance2023}, 66.5\% of the HIV-infected individuals in the UK were infected with HIV-B. We hence estimated that in 2015 67\,298 (64\,837, 70\,291) people were living with HIV-B. Our trees contained 39\,047 tips sampled by the end of 2015, and therefore account for about 58\% (56\%, 60\%) of the total number of individuals living with HIV-B in the UK. We hence fixed the sampling probability $\rho$ to 0.58. %However this estimate does not take into account deaths of the HIV-infected individuals over the years, which would increase the total number of HIV-infected individuals by 2015, and decrease the proportion of individuals represented by our tree. We therefore tested several sampling probabilities $\rho=$0.6; 0.5; 0.4.
+ 
+ 
+Using $\rho=0.58$, we estimated the following parameter values: $\lambda=0.53$, $\psi=0.43$, $\psi_p=23--59$, $\rho_n=0.006--0.007$, which corresponds to $R_e = 1.2$, infectious time $\frac{1}{\psi} = 2.3$ years, and about 6--16 days between partner notification and their sampling. The results are consistent between 10 forests and shown in Table~\ref{tbl:uk}. %The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
+%$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
+ 
+The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 5 years. 
+
+\begin{table}
+\caption{BD-PN model parameters estimated for UK HIV-1 B epidemic between 2012 and 2015, assuming that our data represents 58\% of infected cases ($\rho=0.58$).}
+\label{tbl:uk}
+\begin{tabular}{c|cc|cccc}
+&&&&infectious&partner&\\
+fo-&num.&num.&&time&removal t.&\\
+rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]& $\frac{1}{\psi_p}$ [days]&$\rho_n$\\
+\toprule
+ $1$ & $11\,117$ & $8\,838$& $1.24\;[1.22-1.27]$& $2.34\;[2.29-2.39]$& $8\;[5-12]$& $0.007\;[0.004-0.010]$ \\
+ $2$ & $11\,109$ & $8\,833$& $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.39]$& $6\;[4-10]$& $0.006\;[0.003-0.009]$ \\
+ $3$ & $11\,122$ & $8\,844$& $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.39]$& $16\;[3-18]$& $0.006\;[0.003-0.010]$ \\
+ $4$ & $11\,119$ & $8\,838$& $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.39]$& $7\;[5-11]$& $0.007\;[0.004-0.010]$ \\
+ $5$ & $11\,116$ & $8\,829$& $1.24\;[1.22-1.27]$& $2.33\;[2.28-2.39]$& $9\;[6-13]$& $0.006\;[0.003-0.009]$ \\
+ $6$ & $11\,111$ & $8\,827$& $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.39]$& $8\;[5-12]$& $0.006\;[0.003-0.009]$ \\
+ $7$ & $11\,119$ & $8\,838$& $1.24\;[1.22-1.27]$& $2.33\;[2.28-2.39]$& $7\;[5-11]$& $0.006\;[0.003-0.009]$ \\
+ $8$ & $11111$ & $8\,830$& $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.39]$& $6\;[4-11]$& $0.006\;[0.003-0.008]$ \\
+ $9$ & $11\,120$ & $8\,833$& $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.39]$& $7\;[4-12]$& $0.006\;[0.003-0.009]$ \\
+ $10$ & $11\,112$ & $8\,827$& $1.25\;[1.22-1.27]$& $2.34\;[2.29-2.39]$& $7\;[5-11]$& $0.006\;[0.004-0.009]$ \\
+ \bottomrule
+ \end{tabular}
+ \end{table}
+
+
+
+\section{Discussion}
+\label{disc}
+
+We proposed an extension of the phylodynamic birth-death model that accounts for non-random sampling due to partner notification (BD-PN). In real-life epidemics, detected infected individuals might notify the people whom they think they might have infected or got infected by, and who in turn might get tested and detected in a much faster and non-random way. Our model accounts for this scenario.
+
+The -PN extension adds two constant parameters to the classical BD model: the probability of partner notification $p_n$ and the partner detection rate $\psi_p$. It can also be applied to a more general, multi-type birth-death (MTBD) model framework, which accounts for heterogeneity in the infected population (see Appendix). 
+
+We developed a mathematical framework for calculation of the likelihood density of a transmission tree (approximated by a time-scaled phylogenetic tree) under the BD-PN model, and implemented a maximum-likelihood BD-PN parameter estimator based on this framework. The advantage of the BD-PN model is that the differential equations describing it have closed-form solutions, which are quick to calculate and do not require numerical approximation (as is the case for more complex MTBD models). Tests on simulated data show that our estimator robustly infers model parameter values and their CIs in the setting when the duration of the infectious period $\frac{1}{psi}$ or the base sampling probability $\rho$ if fixed. Fixing one of the model parameters is needed for identifiability. In practice, $\rho$ and $\frac{1}{psi}$ may often be approximated from epidemiological data, e.g., as the proportion of sampled cases among the declared ones (for $\rho$), or estimated from observations of infected cases ($\frac{1}{\psi}$). 
+
+We also developed a PN-test allowing to distinguish between trees generated under models with and without partner notification. Its application to simulated data showed high sensitivity and specificity. 
+
+We applied the PN-test our estimator to the HIV-1 B epidemic in the UK, between 2012 and 2015. The test detected the presence of partner notification. The obtained estimates of epidemiological parameters are in agreement with what we now know about this epidemic (e.g., $R_e \approx 1.2$ ). We estimated a modest partner notification probability $\rho_p \in [0.003-0.1]$, and rapid notified partner detection ($3-18$ days vs $\approx2.3$ years for detection under the standard random procedure).
+
+The BD-PN model is the first steps towards accounting for non-random sampling in phylodynamic models. In order to reduce its mathematical complexity (having closed-form solutions for its differential equations) and make parameter estimation fast, we made several assumptions: (i) that only detected individuals can notify their partner; (ii) only the most recent partner can get notified; (iii) after the notification, notified partners do not transmit further; and (iv) notified partners are always sampled upon removal (i.e., observed in the transmission tree). These assumptions may be too simple to fully grasp the real partner notification process and should be relaxed in the future work. Another needed extension should account for population heterogeneity (i.e., MTBD-PN). As it is much easier to implement a tree simulator with a complex model than to derive its likelihood, a promising path to take for future -PN model developments would be using deep learning (e.g., adding new models to PhyloDeep~\citep{Voznica2021}). 
+
+
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\section{Appendix}
+\subsection{MTBD-PN models}
+MTBD models~\citep{Stadler2013a} add population structure to the BD model by allowing different individual states, transmissions between them and state changes. A general MTBD model with $m$ individual states has $2m^2 + m$ parameters: An individual in state $k \in \{1, \ldots, m\}$ can be removed at a constant average rate $\psi_k$ (with pathogen sampling probability $\rho_k$), change their state to state $l \in \{1, \ldots, m\}$ at a constant average rate $\mu_{kl}$ (where $\mu_{kk} = 0$), and transmit their pathogen to an individual in state $l$ at a constant average rate $\lambda_{kl}$. The time between events of the same type is hence modeled with exponential distribution.
+
+The -PN extension can be easily generalized from BD to MTBD models: at the moment of sampling an individual of any type can notify their last partner with the probability $\rho_n$, who will then stop transmitting and get removed at a constant removal rate $\psi_n >> \psi_k \; \forall k \in \{1, \ldots, m\}$. The -PN extension therefore adds two parameters to an MTBD model: $\psi_p$ and $\rho_n$.
+
+\subsection{MTBD-PN tree simulator}
+
+We implemented a tree simulator that generates sampled transmission trees under MTBD and MTBD-PN models (with $m$ states). The simulator is Gillespie-based, generates state change, transmission and removal times, and only reconstructs the sampled parts of the tree to save memory and increase speed. 
 
 The simulator iterates through occurring events till either time or sampled tip number limit is reached. 
 It keeps updating an array $C = [c_1, \ldots, c_m]$ of counts of currently infected individuals (i.e. non-removed) in different states; an array $S = [s_1, \ldots, s_m]$ of counts of sampled individuals in different states; as well as a mapping $M$ between states and ids of currently infected individuals in those states, and a mapping $N$ between states and ids of sampled individuals in those states.  In the beginning ($t=0$) the only infected individual corresponds to the root: $c_k = 0 \;\forall k \neq state(root), \;c_{state(root)} = 1; \;M_k = \emptyset \; \forall k \neq state(root)$, $ \; M_{state(root)} = \{root\}$, and no individual is sampled: $s_k=0,\;N_k = \emptyset \; \forall 1 \leq k \leq m$.
@@ -472,102 +616,10 @@ For transmission and sampling events we also record their time and ids of the in
 For the PN version of this simulator, we add an additional $m+1^{th}$ state for notified partners. $m + 1$'s state-change and transmission rates are set to zero: $\mu_{k,m+1} = \mu_{m+1,k} = \lambda_{k,m+1} = \lambda_{m+1,k} = 0\; \forall 1 \leq k \leq m$, while its removal rate is set to the notification removal rate: $\psi_{m+1} = \psi_p >> \psi_k\; \forall 1 \leq k \leq m$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, we check whether the individual $i$ is a notified partner (i.e. in state $m+1$). If yes, we put them into $N[m+1]$ without performing the sampling probability draw. If not, and if $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \rho_n$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$), we change $j$'s state to $m + 1$ as in a state-change event.
 
 
-\subsection*{Code availability}
+\subsubsection*{Code availability}
 The simulator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
 
 It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/treesimulator}{treesimulator}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/treesimulator/tags}{evolbioinfo/treesimulator}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/treesimulator}{github.com/evolbioinfo/treesimulator}.
-
-
-\section{PN test}
-To access whether a give tree is generated under a classical MTBD model or MTBD-PN, we developed a non-parametric test based on cherries (two tips having a common parent). 
-The intuition behind the test is that in the presence of partner notification the tree will contain more cherries whose tips are close in time. 
-
-The test sorts the cherries by the times of their roots, and splits them into blocks of 100 cherries (adjustable parameter). For each cherry in a block, the test calculates the difference between its tip times, hence obtaining an array of 100 cherry tip differences. It then generates a collection of random cherry tip differences for the same block: For each original cherry root it picks 5 more cherries with the roots that are the closest in time, randomly selects two tips among their tips, and calculates their time difference. An array of 100 reshuffled cherry tip differences is thus obtained fro the same block. The reshuffled cherry tip difference array generation is repeated 100 times (adjustable parameter). Finally, the test reports the proportion of reshuffled arrays whose first quantile is smaller than that of the real cherry array. 
-
-The test therefore reports a probability of partner notification being present at time interval corresponding to each block. To estimate the probability of partner notification being present in the whole tree, it averages the block probabilities. 
-
-
-\subsection{Performance on simulated data}
-To illustrate the PN test performance, we applied it to the trees simulated under BD and under BD-PN models. We simulated 100 trees with 500--1\,000 tips under the BD-PN model with our tree simulator. For each tree the parameter values were drawn randomly within the following bounds:
-$R_e = \frac{{\lambda}}{{\psi}} \in ]1, 5]$, 
-removal rate $\psi \in ]1 / 20, 1 / 5]$,
-ratio between the partner removal rate after notification and the removal rate $\frac{\psi_p}{\psi} \in ]50, 500]$,
-sampling probability $\rho \in ]0.1, 0.9]$,
-partner notification probability $\rho_n \in ]0.01/\rho, 0.9]$. We also simulated 100 trees of 500--1\,000 tips under the BD model. For each tree in the BD data set the parameter values ($\lambda, \psi,$ and $\rho$) were the same as the ones selected for the corresponding tree of the BD-PN dataset.
-
-We then run the PN tests on each tree of the both datasets. For 98 out of 100 trees in the BD dataset the PN test value was above $0.05$ (i.e. 98\% true negative and 2\% false positive results), the mean PN test value was $0.468$. For 96 (out of 100) trees in the BD-PN dataset the PN test value was below $0.05$ (i.e. 96\% true positive and 4\% false negative results), the mean PN test value was $0.008$.
-Our test therefore showed both high specificity and sensitivity.
- 
-
-\section{BD-PN parameter and CI estimator}
-We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\psi_p,\rho,\rho_n) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). 
-
-Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\citep{Wilks1938}.
-For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
-
-\subsection*{Code availability}
-The BD-PN parameter estimator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
-
-It is available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/bdpn}{bdpn}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/bdpn/tags}{evolbioinfo/bdpn}). Its source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/bdpn}{github.com/evolbioinfo/bdpn}.
-
-\subsection{Performance on simulated data}
-
-To assess the performance of our maximum-likelihood estimator for the BD-PN model, we used the 100 trees with 500--1\,000 tips simulated under the BD-PN model as described in the ``PN test'' section.
-
-We applied bdpn to each of the trees three times: fixing each of the BD parameters ($\lambda,\psi$ or $\rho$) to its real value (for identifiability). 
-
-
-As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values in all the settings.
-
-We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree (Fig.~\ref{fig:sim}). 
-Average relative errors were the lowest when $\psi$ was fixed: $\leq 10\%$  for all the parameters. The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
-%The hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
-
-As with the point estimates, CI estimates were the best when $\psi$ was fixed: the target values of $\lambda, \psi_p, \rho$ and $\rho_n$ were within the estimated CIs in correspondingly 82\%, 94\%, 51\%, and 67\% of cases. The CI estimates when $\lambda$ was fixed were the worst (see Table~\ref{tbl:ci}). The relative width of the CIs ($\frac{value_{97.5\%} - value_{2.5\%}}{value}$) varied between 11\% for $\lambda$ and 33\% for $\psi_p$ (in all the settings).
-
-\begin{figure}[!pht]
-\centering 
-\includegraphics[width=1\textwidth]{Fig_errors.eps}
-\caption{Comparison of inference accuracy of bdpn on a data set of 100 trees of 500--1\,000 tips each, with either $\lambda$ (blue), $\psi$ (orange) or $\rho$ (green) parameter being fixed to its real value.
-We show the swarmplots (coloured by fixed parameter) of relative errors for each test tree and parameter, which are measured as the normalized distance between the estimate and the real value. Average relative error (and in parentheses average bias, calculated on normalized values) are displayed for each parameter and method below their swarmplot. For $\rho$ absolute values are shown instead of normalized ones. } 
-\label{fig:sim} 
-\end{figure}
- 
- \begin{table}[!h]\centering
-\small
-\caption{Percentage of simulated trees for which the real parameter values were withing the estimated 95\% CIs. \smallskip}
-\begin{tabular}{c|ccc}
-\textbf{parameter} & \textbf{$\lambda$ fixed} & \textbf{$\psi$ fixed} & \textbf{$\rho$ fixed} \\
-\toprule 
- $\lambda$ & -- &  82\% & 92\% \\
- $\psi$ & 34\% & -- & 78\% \\
- $\rho$ & 20\% & 51\%  & -- \\
- $\psi_p$ & 95\% & 94\% & 95\% \\
- $\rho_n$ & 69\% & 67\% & 64\% \\
-\bottomrule
-\end{tabular}
-\label{tbl:ci}
-\end{table}
-
-
-\subsection{Application: HIV-B epidemic in the UK}
-We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the dated phylogenetic tree from our recent study of HIV drug resistance in the UK~\citep{zhukovaModelingDrugResistance2023}. The tree represents the UK HIV-B epidemic between 1960s and 2016, its tips represent viruses sampled from 39\,130 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\citep{Dunn2007}.
-
-Between 2012 and 2015, in the UK antiretroviral treatment (ART) of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\citep{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count > 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\citep{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e. later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\citep{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated tree between 2012 and 2015, and estimated the BD-PN parameters on the 2012--2015 forests. 
-
-According to the \href{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112132123mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/602942/HIV_in_the_UK_report.pdf}{``Towards elimination of HIV transmission, AIDS and HIV-related deaths in the UK''}
- report, the estimated total number of people living with HIV in the UK in 2015 was 101\,200 (97\,500 to 105\,700). % in 2012 this number was 98\,400 (93\,500-104\,300) [\href{HIV in the United Kingdom: 2013 Report}{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112133715mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/326601/HIV_annual_report_2013.pdf}]. Moreover these document report about 400 HIV-related deaths per year. 
-According to our estimate~\citep{zhukovaModelingDrugResistance2023}, 66.5\% of the HIV-infected individuals in the UK were infected with HIV-B. We hence estimated that in 2015 67\,298 (64\,837, 70\,291) people were living with HIV-B. Our tree contains 39\,047 tips sampled by the end of 2015. Hence, it accounts for about 58\% (56\%, 60\%) of the total number of individuals living with HIV-B in the UK. However this estimate does not take into account deaths of the HIV-infected individuals over the years, which would increase the total number of HIV-infected individuals by 2015, and decrease the proportion of individuals represented by our tree. We therefore tested several sampling probabilities $\rho=$0.6; 0.5; 0.4.
- 
- 
-Using $\rho=0.6$, we estimated the following parameter values: $\lambda=0.262$, $\psi=0.186$, $\psi_p=186.921$, $\rho_n=0.033$, which corresponds to $R_e = 1.4$, infectious time $\frac{1}{\psi} = 5.4$ years, and about 2 days between partner notification and their sampling. The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
-$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
- 
-The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 5 years. 
-
-
-\bibliographystyle{plainnat}
-\bibliography{refs}
 
 
 \end{document}
