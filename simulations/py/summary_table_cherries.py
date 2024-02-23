@@ -16,7 +16,7 @@ if __name__ == "__main__":
         i = int(re.findall(r'[0-9]+', log)[0])
         with open(log, 'r') as f:
             pval = float(f.readline().strip('\n').split('\t')[1])
-        model = re.findall(r'BDPN|BD', log)[0]
+        model = re.findall(r'BDPN|BDEIPN|BDSSPN|BDEI|BDSS|BD', log)[0]
         df.loc['{}.{}'.format(i, model), :] = [model, i, pval]
 
     for model in df['model'].unique():
