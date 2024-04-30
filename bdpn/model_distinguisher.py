@@ -3,7 +3,10 @@ from functools import reduce
 from multiprocessing.pool import ThreadPool
 
 import numpy as np
-from wquantiles import quantile
+import scipy
+from matplotlib import pyplot as plt
+from matplotlib.pyplot import show
+import seaborn as sns
 
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
 
@@ -24,7 +27,7 @@ class CherryLikeMotif(object):
         :param root: ete.TreeNode, the root of the motif subtree
         :param clustered_tips: list of clustered child tips
         """
-        self.root = root if root else clustered_tips[0].get_common_ancestor(*clustered_tips)
+        self.root = root # if root else clustered_tips[0].get_common_ancestor(*clustered_tips)
         self.clustered_tips = clustered_tips
 
     def __str__(self):
@@ -160,6 +163,189 @@ def pn_test(forest, k=DEFAULT_NEIGHBOURHOOD_SIZE, repetitions=RANDOM_REPETITIONS
     return result
 
 
+def sign_test(forest):
+    """
+    Tests if the input forest was generated under a -PN model.
+
+    The test detects cherries in the forest and sorts them by the times of their roots.
+    For each cherry the test calculates the difference between its tip times,
+    hence obtaining an array of cherry tip differences.
+    It then generates a collection of random cherry tip differences of the same size:
+    It fixed one of the tips for each cherry and then swaps the other tips between neighbouring cherries,
+    such that the other tip of cherry 2i is swapped with the other tip of cherry 2i + 1 (i = 0, 1, ...).
+    (If the total number of cherries is odd, the last three cherries instead of the last two
+    swap their other tips in a cycle). For each hence reshuffled cherry its tip difference is calculated.
+
+    Finally, we calculate the sign test of one by one comparison of real vs reshuffled diffs
+    (-1 if the difference for the i-th cherry is smaller in the real array, 1 if larger, 0 is the same).
+
+    The test therefore reports a probability of partner notification
+    being present in the tree.
+
+    :param forest: list of trees
+    :return: pval
+    """
+    annotate_forest_with_time(forest)
+
+    all_cherries = []
+    for tree in forest:
+        all_cherries.extend(pick_cherries(tree, include_polytomies=False))
+    all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
+
+    n_cherries = len(all_cherries)
+    logging.info('Picked {} cherries with {} roots.'.format(n_cherries, len({_.root for _ in all_cherries})))
+
+    def get_diff(b1, b2):
+        return abs(b1.dist - b2.dist)
+
+    def get_diff_array(cherries):
+        return np.array([get_diff(*cherry.clustered_tips) for cherry in cherries])
+
+    first_tips, other_tips = [], []
+    for cherry in all_cherries:
+        t1, t2 = cherry.clustered_tips
+        if np.random.rand() < 0.5:
+            t2, t1 = t1, t2
+        first_tips.append(t1)
+        other_tips.append(t2)
+
+    reshuffled_cherries = []
+    for i in range(n_cherries):
+        other_tip_i = i + (-1 if i % 2 else 1)
+        if n_cherries % 2 and i >= n_cherries - 3:
+            other_tip_i = (i + 1) if (i < n_cherries - 1) else (i - 2)
+        reshuffled_cherries.append(CherryLikeMotif(clustered_tips=[first_tips[i], other_tips[other_tip_i]]))
+
+    real_diffs, random_diffs = get_diff_array(all_cherries), get_diff_array(reshuffled_cherries)
+    k = (random_diffs < real_diffs).sum()
+
+    result = scipy.stats.binomtest(k, n=n_cherries, p=0.5, alternative='less').pvalue
+
+    # logging.info(
+    #     'For {n} cherries with roots in [{start}-{stop}), PN test {res}.'
+    #     .format(res=result, start=getattr(all_cherries[0].root, TIME), stop=getattr(all_cherries[-1].root, TIME),
+    #             n=n_cherries))
+
+    return result
+
+
+
+def estimate_pn(forest):
+    """
+    Tests if the input forest was generated under a -PN model.
+
+    The test detects cherries in the forest and sorts them by the times of their roots.
+    For each cherry the test calculates the difference between its tip times,
+    hence obtaining an array of cherry tip differences.
+    It then generates a collection of random cherry tip differences of the same size:
+    It fixed one of the tips for each cherry and then swaps the other tips between neighbouring cherries,
+    such that the other tip of cherry 2i is swapped with the other tip of cherry 2i + 1 (i = 0, 1, ...).
+    (If the total number of cherries is odd, the last three cherries instead of the last two
+    swap their other tips in a cycle). For each hence reshuffled cherry its tip difference is calculated.
+
+    Finally, we calculate the sign test of one by one comparison of real vs reshuffled diffs
+    (-1 if the difference for the i-th cherry is smaller in the real array, 1 if larger, 0 is the same).
+
+    The test therefore reports a probability of partner notification
+    being present in the tree.
+
+    :param forest: list of trees
+    :return: pval
+    """
+    annotate_forest_with_time(forest)
+
+    all_cherries = []
+    for tree in forest:
+        all_cherries.extend(pick_cherries(tree, include_polytomies=False))
+    all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
+
+    all_tips = []
+    for tree in forest:
+        all_tips.extend([CherryLikeMotif([_], _.up) for _ in tree])
+    all_tips = sorted(all_tips, key=lambda _: getattr(_.root, TIME))
+
+
+    n_cherries = len(all_cherries)
+    logging.info('Picked {} cherries with {} roots.'.format(n_cherries, len({_.root for _ in all_cherries})))
+
+    def get_diff(b1, b2):
+        return abs(b1.dist - b2.dist)
+
+
+    n = 0
+    i = 0
+    N = 6
+    cherry2tips = []
+    diffs = []
+    for cherry in all_cherries:
+        while all_tips[i].clustered_tips[0] not in cherry.clustered_tips:
+            i += 1
+        tips = sorted([_ for _ in all_tips[max(0, i - N): min(len(all_tips) - 1, i + N + 2)]],
+                      key=lambda _: np.abs(getattr(_.root, TIME) - getattr(cherry.root, TIME)))[:N + 2]
+        diff = np.abs(getattr(tips[-1].root, TIME) - getattr(tips[0].root, TIME))
+        cherry2tips.append([cherry, tips, diff])
+        diffs.append(diff)
+
+    median_diff = np.median(diffs)
+    cherry2tips = [_ for _ in cherry2tips if _[-1] <= median_diff]
+    for cherry, tips, diff in cherry2tips:
+        real_diff = get_diff(*cherry.clustered_tips)
+        k, m = 0, 0
+        for ti, tip1 in enumerate(tips):
+            for tip2 in tips[ti + 1:]:
+                if tip1.root != tip2.root:
+                    m += 1
+                    if get_diff(tip1.clustered_tips[0], tip2.clustered_tips[0]) < real_diff:
+                        k += 1
+        if scipy.stats.binomtest(k, n=m, p=0.5, alternative='less').pvalue < 0.05 / len(cherry2tips):
+            n += 1
+
+    return n / len(cherry2tips)
+
+
+def cherry_diff_plot(forest, outfile=None):
+    """
+    Plots cherry tip time differences against cherry root times.
+
+    :param forest: list of trees
+    :param outfile: (optional) output file where the plot should be saved.
+        If not specified, the plot will be shown instead.
+    :return: void
+    """
+    annotate_forest_with_time(forest)
+
+    all_cherries = []
+    for tree in forest:
+        all_cherries.extend(pick_cherries(tree, include_polytomies=False))
+
+    def get_diff(cherry):
+        b1, b2 = cherry.clustered_tips
+        return abs(b1.dist - b2.dist)
+
+    plt.clf()
+    x = np.array([getattr(_.root, TIME) for _ in all_cherries])
+    diffs = np.array([get_diff(_) for _ in all_cherries])
+    perc = np.percentile(diffs, [25, 50, 75])
+    mask = np.digitize(diffs, perc)
+    colors = sns.color_palette("colorblind")
+
+    for i, label in zip(range(4), ('1st', '2nd', '3rd', '4th')):
+        ax = sns.scatterplot(x=x[mask == i], y=diffs[mask == i], alpha=0.75,
+                             label='{} quantile'.format(label), color=colors[i])
+    # col = ax.collections[0]
+    # y = col.get_offsets()[:, 1]
+    # perc = np.percentile(y, [25, 50, 75])
+    # col.set_array(np.digitize(y, perc))
+    ax.set_xlabel('cherry root time')
+    ax.set_ylabel('cherry tip time difference')
+    ax.legend()
+    plt.tight_layout()
+    if not outfile:
+        show()
+    else:
+        plt.savefig(outfile, dpi=300)
+
+
 def main():
     """
     Entry point for PN test with command-line arguments.
@@ -176,26 +362,21 @@ The test detects cherries in the forest and sorts them by the times of their roo
 For each cherry the test calculates the difference between its tip times, 
 hence obtaining an array of real cherry tip differences. 
 It then generates a collection of random cherry tip differences of the same size: 
-For each original cherry root it picks k cherries with the roots that are the closest in time, 
-randomly selects two tips among their tips, and calculates their time difference. 
-An array of reshuffled cherry tip differences is thus obtained. 
-The reshuffled cherry tip difference array generation is repeated 'repetition' times.
-Finally, the test reports the average number of reshuffled arrays that, in one by one comparison of elements,
-contain more that half smaller elements than the real cherry array.
+Processing the cherries in couples from the two cherries with the oldest roots 
+to the two (three if the total number of cherries is odd) cherries with the most recent roots,
+we pick one tip per cherry and swap them. We then calculate the tip differences in these swapped cherries.
+An array of reshuffled cherry tip differences (of the same size as the real one) is thus obtained. 
+Finally, the test reports the sign test between the reshuffled and the real values.
 
 The test therefore reports a probability of partner notification being present in the tree.""")
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--nwk', required=True, type=str, help="input forest file in newick or nexus format")
-    parser.add_argument('--k', default=DEFAULT_NEIGHBOURHOOD_SIZE, type=int,
-                        help="number of cherry neighbours for random cherry generation")
-    parser.add_argument('--repetitions', default=RANDOM_REPETITIONS, type=int,
-                        help="number of random cherry tip difference arrays")
     params = parser.parse_args()
 
     forest = read_forest(params.nwk)
-    pval = pn_test(forest, k=params.k, repetitions=params.repetitions)
+    pval = sign_test(forest)
 
-    logging.info("Total PN test {}.".format(pval))
+    logging.info("PN test {}.".format(pval))
 
     with open(params.log, 'w+') as f:
         f.write('PN-test\t{}\n'.format(pval))

@@ -22,8 +22,8 @@ setup(
     install_requires=['six', 'ete3', 'numpy', 'scipy', 'wquantiles'],
     entry_points={
             'console_scripts': [
-                'bdpn_infer = bdpn.bdpn:main',
-                'bd_infer = bdpn.bd:main',
+                'bdpn_infer = bdpn.bdpn_model:main',
+                'bd_infer = bdpn.bd_model:main',
                 'pn_test = bdpn.model_distinguisher:main',
             ]
     },
