@@ -1,7 +1,8 @@
 import pandas as pd
 from ete3 import Tree
 
-from bdpn.bdpn import loglikelihood
+from bdpn import bd_model
+from bdpn.bdpn_model import loglikelihood
 import numpy as np
 from scipy.stats import binomtest
 
@@ -32,7 +33,10 @@ if __name__ == "__main__":
         type2lk = {}
         for type in ALL_TYPES:
             la, psi, psi_n, rho, rho_n = df.loc['{}_{}'.format(type, i), ['lambda', 'psi', 'psi_p', 'p', 'pn']]
-            type2lk[type] = loglikelihood([tree], la, psi, psi_n, rho, rho_n)
+            if 'BDPN' in type:
+                type2lk[type] = loglikelihood([tree], la, psi, psi_n, rho, rho_n)
+            else:
+                type2lk[type] = bd_model.loglikelihood([tree], la, psi, rho)
             index.append(i)
         best_lk = max(type2lk.values())
         for _ in ALL_TYPES:

@@ -13,18 +13,19 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.{p}.est'), i=REPETITIONS, p=['p', 'psi', 'la'])
-    shell:
-        """
-        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
-        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder}
-        """
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p', 'psi'],
+            model=['BDPN'], estimator=['bd', 'bdpn'])
+    # shell:
+    #     """
+    #     snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+    #     snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder}
+    #     """
 
 
 rule estimate_params_p_fixed:
@@ -32,10 +33,10 @@ rule estimate_params_p_fixed:
     Estimate parameters.
     '''
     input:
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
-        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
     output:
-        est = os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est'),
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.p.est_bdpn'),
     params:
         mem = 2000,
         name = 'est_p_{i}',
@@ -52,15 +53,38 @@ rule estimate_params_p_fixed:
         bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --ci
         """
 
+rule estimate_params_p_fixed_bd:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+    output:
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.p.est_bd'),
+    params:
+        mem = 2000,
+        name = 'est_p_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    shell:
+        """
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        cat {input.log}
+
+        bd_infer --p $p  --nwk {input.nwk} --log {output.est} --ci
+        """
+
 rule estimate_params_psi_fixed:
     '''
     Estimate parameters.
     '''
     input:
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
-        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
     output:
-        est = os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est'),
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.psi.est_bdpn'),
     params:
         mem = 2000,
         name = 'est_psi_{i}',
@@ -78,15 +102,40 @@ rule estimate_params_psi_fixed:
         bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci 
         """
 
+
+rule estimate_params_psi_fixed_bd:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+    output:
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.psi.est_bd'),
+    params:
+        mem = 2000,
+        name = 'est_psi_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    shell:
+        """
+        it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        cat {input.log}
+
+        bd_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci 
+        """
+
 rule estimate_params_la_fixed:
     '''
     Estimate parameters.
     '''
     input:
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
-        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
     output:
-        est = os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est'),
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.la.est_bdpn'),
     params:
         mem = 2000,
         name = 'est_la_{i}',
@@ -103,4 +152,29 @@ rule estimate_params_la_fixed:
         cat {input.log}
 
         bdpn_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  --ci
+        """
+
+rule estimate_params_la_fixed_bd:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+    output:
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.la.est_bd'),
+    params:
+        mem = 2000,
+        name = 'est_la_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    shell:
+        """
+        r=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
+        it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
+        la=`echo "print($r/${{it}})" | python3`
+        cat {input.log}
+
+        bd_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  --ci
         """

@@ -10,13 +10,13 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
 rule all:
     input:
-        os.path.join(sim_folder, 'BDPN', 'errors.svg'),
+        expand(os.path.join(sim_folder, 'BDPN', 'errors_{par}.svg'), par=['psi', 'p']),
         os.path.join(sim_folder,'BDPN','likelihood_stats.txt'),
         stats = os.path.join(sim_folder, 'BDPN', 'CI_stats.txt'),
 
@@ -72,6 +72,9 @@ rule combine_estimates:
         est_p = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est'), i=REPETITIONS),
         est_psi = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est'), i=REPETITIONS),
         est_la = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est'), i=REPETITIONS),
+        est_p_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est_bd'), i=REPETITIONS),
+        est_psi_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
+        est_la_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est_bd'), i=REPETITIONS),
     output:
         tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
     params:
@@ -86,6 +89,9 @@ rule combine_estimates:
         --estimated_p {input.est_p} \
         --estimated_psi {input.est_psi} \
         --estimated_la {input.est_la} \
+        --estimated_p_bd {input.est_p_bd} \
+        --estimated_psi_bd {input.est_psi_bd} \
+        --estimated_la_bd {input.est_la_bd} \
         --tab {output.tab}
         """
 
@@ -96,8 +102,8 @@ rule plot_errors:
     input:
         tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
     output:
-        pdf = os.path.join(sim_folder, 'BDPN', 'errors.svg'),
-        tab = os.path.join(sim_folder, 'BDPN', 'errors.tab'),
+        pdf = os.path.join(sim_folder, 'BDPN', 'errors_{p}.svg'),
+        tab = os.path.join(sim_folder, 'BDPN', 'errors_{p}.tab'),
     params:
         mem = 2000,
         name = 'errors',
@@ -106,7 +112,7 @@ rule plot_errors:
     singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
     shell:
         """
-        python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf}
+        python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf} --fixed {wildcards.p}
         """
 
 rule plot_errors_pn_small:

@@ -7,9 +7,12 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.join(folder, 'trees')
+sim_folder = os.path.join(folder, 'small_trees')
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
+m, M = 50, 100 # small_trees
+# m, M = 500, 1000 # trees
+# m, M = 5000, 10000 # large_trees
 
 rule all:
     input:
@@ -46,7 +49,7 @@ rule simulate_bdeipn:
         
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bdei --min_tips 500 --max_tips 1000 --la $la --psi $psi --p $p --mu $mu\
+            timeout 10m generate_bdei --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --mu $mu\
             --partner_psi $psin  --pn $pn\
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
@@ -88,7 +91,7 @@ rule simulate_bdsspn:
 
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bdss --min_tips 500 --max_tips 1000 \
+            timeout 10m generate_bdss --min_tips {m} --max_tips {M} \
             --la_ss $lass --la_sn $lasn --la_nn $lann --la_ns $lans \
             --psi $psi --p $p \
             --partner_psi $psin  --pn $pn \
@@ -130,7 +133,7 @@ rule simulate_bdss:
 
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bdss --min_tips 500 --max_tips 1000 \
+            timeout 10m generate_bdss --min_tips {m} --max_tips {M} \
             --la_ss $lass --la_sn $lasn --la_nn $lann --la_ns $lans \
             --psi $psi --p $p \
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
@@ -166,7 +169,7 @@ rule simulate_bdei:
 
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bdei --min_tips 500 --max_tips 1000 --la $la --psi $psi --p $p --mu $mu\
+            timeout 10m generate_bdei --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --mu $mu\
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
@@ -197,7 +200,7 @@ rule simulate_bd:
         
         while [ ! -f {output.nwk} ]
         do
-            timeout 10m generate_bd --min_tips 500 --max_tips 1000 --la $la --psi $psi --p $p --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+            timeout 10m generate_bd --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
 

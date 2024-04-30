@@ -7,11 +7,11 @@ import seaborn as sns
 from matplotlib.offsetbox import TextArea, HPacker, AnchoredOffsetbox, VPacker
 from statsmodels.stats.weightstats import CompareMeans
 
-RATE_PARAMETERS = ['lambda', 'psi', 'psi_p', 'p', 'pn']
-EPIDEMIOLOGIC_PARAMETERS = ['R_naught', 'infectious_time', 'partner_removal_time']
-par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'psi_p': u'\u03c8p', 'p': '\u03c1', 'pn': '\u03c1n',
+RATE_PARAMETERS = ['lambda', 'psi', 'p']
+EPIDEMIOLOGIC_PARAMETERS = ['R_naught', 'infectious_time']
+par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'p': '\u03c1',
              'R_naught': u'\u0052\u2080' + '=' + u'\u03bb\u002F\u03c8',
-             'infectious_time': 'infectious time 1' + u'\u002F\u03c8', 'partner_removal_time': 'partner removal time 1' + u'\u002F\u03c8p'}
+             'infectious_time': 'infectious time 1' + u'\u002F\u03c8'}
 PARAMETERS = RATE_PARAMETERS + EPIDEMIOLOGIC_PARAMETERS
 
 if __name__ == "__main__":
@@ -22,14 +22,11 @@ if __name__ == "__main__":
     parser.add_argument('--pdf', type=str, help="plot")
     parser.add_argument('--tab', type=str, help="error table")
     parser.add_argument('--fixed', type=str, default='p', help="fixed parameter", choices=RATE_PARAMETERS)
-    # parser.add_argument('--pn_min', type=float, default=0., help="Only display cases with pn greater or equal to this value")
-    # parser.add_argument('--pn_max', type=float, default=1, help="Only display cases with pn smaller than this value")
     params = parser.parse_args()
 
     df = pd.read_csv(params.estimates, sep='\t', index_col=0)
 
     real_df = df.loc[df['type'] == 'real', :]
-    # real_df = real_df[(real_df['pn'] * real_df['p'] >= params.pn_min) & (real_df['pn'] * real_df['p'] < params.pn_max)]
 
     df = df.loc[df['type'] != 'real', :]
     df = df.loc[real_df.index, :]
@@ -40,12 +37,10 @@ if __name__ == "__main__":
         mask = df['type'] == type
         for par in PARAMETERS:
             # df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
-            if par != 'p' and par != 'pn':
-                if 'PN' in type or par != 'psi_p':
-                    df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
+            if par != 'p':
+                df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
             else:
-                if 'PN' in type or par != 'pn':
-                    df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
+                df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
 
     error_columns = [col for col in df.columns if 'error' in col]
     df[['type'] + PARAMETERS + error_columns].to_csv(params.tab, sep='\t')
@@ -53,7 +48,7 @@ if __name__ == "__main__":
     plt.clf()
     n_types = len(types)
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 12))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 12))
     rc = {'font.size': 12, 'axes.labelsize': 10, 'legend.fontsize': 10, 'axes.titlesize': 10, 'xtick.labelsize': 10,
           'ytick.labelsize': 10}
     sns.set(style="whitegrid")
@@ -118,46 +113,13 @@ if __name__ == "__main__":
                                                    fontweight='bold'))
                      for text, color in zip((par2type2avg_error[par][_] for _ in types), palette)]
             return HPacker(children=boxes, align="center", pad=0, sep=4 if len(pars) == 3 else 0)
-        xbox = HPacker(children=[get_xbox(par) for par in pars], align="center", pad=0, sep=65 if len(pars) == 3 else 16)
+        xbox = HPacker(children=[get_xbox(par) for par in pars], align="center", pad=0, sep=120)
         anchored_xbox = AnchoredOffsetbox(loc=3, child=xbox, pad=0, frameon=False,
-                                          bbox_to_anchor=(0.07 if len(pars) == 3 else 0.04, -0.08),
+                                          bbox_to_anchor=(0.2, -0.08),
                                           bbox_transform=ax.transAxes, borderpad=0.)
         ax.set_xlabel('')
 
         ax.add_artist(anchored_xbox)
-
-        def get_pbox(par):
-            EMPTY = ' ' * 10
-            LONG_DASH = u"\u2014"
-            FILLED = LONG_DASH * 10
-            boxes = []
-            for i in range(n_types - 1):
-                type_1 = types[i]
-                s = EMPTY * max(0, i)
-                skip = par in type_1 or (par == 'infectious_time' and 'psi' in type_1) \
-                       or (par == 'incubation_period' and 'mu' in type_1)
-                for j in range(i + 1, n_types):
-                    type_2 = types[j]
-                    skip = skip or par in type_2 or (par == 'infectious_time' and 'psi' in type_2) \
-                       or (par == 'incubation_period' and 'mu' in type_2)
-                    pval = par2types2pval[par][(type_1, type_2)]
-                    if not skip:
-                        print(par, type_1, type_2, pval)
-                    if not skip and pval < 0.05:
-                        boxes.append(TextArea(s + LONG_DASH * 3 + '{:.5f}'.format(pval) + LONG_DASH * 3 + EMPTY * (n_types - j - 1),
-                                              textprops=dict(color='black', ha='center', va='center',
-                                                             fontsize='x-small', fontweight='bold', family='monospace')))
-                    else:
-                        boxes.append(TextArea(EMPTY * n_types,
-                                              textprops=dict(color='black', ha='center', va='center',
-                                                             fontsize='x-small', fontweight='bold', family='monospace')))
-                    s += FILLED
-            return VPacker(children=list(reversed(boxes)), mode='equal', pad=0, sep=3) if len(boxes) > 1 else boxes[0]
-
-        xbox = HPacker(children=[get_pbox(par) for par in pars], align="center", pad=0, sep=20)
-        anchored_xbox = AnchoredOffsetbox(loc=3, child=xbox, pad=0, frameon=False,
-                                          bbox_to_anchor=(0.17 if n_types == 3 else 0.20, 1),
-                                          bbox_transform=ax.transAxes, borderpad=0.)
         # ax.add_artist(anchored_xbox)
 
         ax.set_xlabel('')
@@ -166,6 +128,6 @@ if __name__ == "__main__":
         #     leg.remove()
 
     plt.tight_layout()
-    fig.set_size_inches(12, 9)
+    fig.set_size_inches(6, 9)
     # plt.show()
     plt.savefig(params.pdf, dpi=300)

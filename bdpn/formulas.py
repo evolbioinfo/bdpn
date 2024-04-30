@@ -80,24 +80,33 @@ def get_log_po(la, psi, c1, t, ti, E1, E2):
     return np.log(E2 + 1) - np.log(E1 + 1) + (c1 + la + psi) * (t - ti) / 2
 
 
-def get_log_po_from_p_pnh(log_p, log_pnh):
+def get_log_po_from_p_pn(log_p, log_pn):
     """
     Returns log(po(t)), where
     dpo(t)/dt = la + psi * po(t) − la * po(t) * U(t)
     po(ti) = 1
-    if log(p(t)) and log(pnh(t)) are known, where
-    dpnh(t)/dt = la + psi * pnh(t)
-    pnh(ti) = 1,
+    if log(p(t)) and log(pn(t)) are known, where
+    dpn(t)/dt = la + psi * pnh(t)
+    pn(ti) = 1,
     dp(t)/dt = la + psi * p(t) − 2 * la * p(t) * U(t)
     p(ti) = 1
     """
-    return (log_p + log_pnh) / 2
+    return (log_p + log_pn) / 2
 
 
-def get_log_pnh(la, psi, t, ti):
+def get_log_pn(la, psi, t, ti):
     """
-    Returns log(pnh(t)), where
-    dpnh(t)/dt = la + psi * pnh(t)
-    pnh(ti) = 1
+    Returns log(pn(t)), where
+    dpn(t)/dt = la + psi * pn(t)
+    pn(ti) = 1
     """
     return (la + psi) * (t - ti)
+
+
+def get_log_pp(la, phi, t, ti):
+    """
+    Returns log(pp(t)), where
+    dpp(t)/dt = phi * pp(t)
+    pp(ti) = 1
+    """
+    return phi * (t - ti)
