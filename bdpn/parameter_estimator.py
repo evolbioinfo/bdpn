@@ -41,6 +41,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     :param forest: a list of ete3.Tree trees
     :return: tuple: (the values of optimized parameters, CIs)
     """
+    # print('Bounds are set to {}'.format(bounds))
     annotate_forest_with_time(forest)
     T = 0
     for tree in forest:

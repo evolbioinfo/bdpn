@@ -10,7 +10,7 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -69,12 +69,12 @@ rule combine_estimates:
     '''
     input:
         log = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'), i=REPETITIONS),
-        est_p = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est'), i=REPETITIONS),
-        est_psi = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est'), i=REPETITIONS),
-        est_la = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est'), i=REPETITIONS),
+        est_p = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est_bdpn'), i=REPETITIONS),
+        est_psi = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est_bdpn'), i=REPETITIONS),
+        # est_la = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est_bdpn'), i=REPETITIONS),
         est_p_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.p.est_bd'), i=REPETITIONS),
         est_psi_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
-        est_la_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est_bd'), i=REPETITIONS),
+        # est_la_bd = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.la.est_bd'), i=REPETITIONS),
     output:
         tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
     params:
@@ -88,12 +88,12 @@ rule combine_estimates:
         python3 py/summary_table.py --real {input.log} \
         --estimated_p {input.est_p} \
         --estimated_psi {input.est_psi} \
-        --estimated_la {input.est_la} \
         --estimated_p_bd {input.est_p_bd} \
         --estimated_psi_bd {input.est_psi_bd} \
-        --estimated_la_bd {input.est_la_bd} \
         --tab {output.tab}
         """
+        # --estimated_la {input.est_la} \
+        # --estimated_la_bd {input.est_la_bd} \
 
 rule plot_errors:
     '''

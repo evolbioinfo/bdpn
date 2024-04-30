@@ -13,7 +13,7 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'large_trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -21,11 +21,11 @@ rule all:
     input:
         expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p', 'psi'],
             model=['BDPN'], estimator=['bd', 'bdpn'])
-    # shell:
-    #     """
-    #     snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
-    #     snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder}
-    #     """
+    shell:
+        """
+        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder}
+        """
 
 
 rule estimate_params_p_fixed:
