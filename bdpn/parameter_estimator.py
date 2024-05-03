@@ -99,29 +99,65 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     optimised_cis[:, 1] = np.array(optimised_parameters)
 
     if cis:
-        lk_threshold = loglikelihood(forest, *optimised_parameters, T, threads=threads) - chi2.ppf(q=0.95, df=1) / 2
+        print('Estimated parameters:', optimised_parameters)
+        print('Estimating CIs...')
+        diff = chi2.ppf(q=0.95, df=1) / 2
+        lk_threshold = loglikelihood(forest, *optimised_parameters, T, threads=threads) - diff
 
-        def binary_search(v_min, v_max, i, lower=True):
-            rps = np.array(optimised_parameters)
+        def binary_search(v_min, v_max, get_lk, lower=True):
             v = v_min + (v_max - v_min) / 2
-            if (v_max - v_min) < 1e-4:
-                return v
-            rps[i] = v
-            lk = loglikelihood(forest, *rps, T, threads=threads) #threads=max(1, threads // len(bounds)))
-            lk_diff = lk - lk_threshold
-            if np.abs(lk_diff) < 1e-4:
+            if (v_max - v_min) < 1e-3:
+                return v_min if lower else v_max
+
+            lk_diff = get_lk(v) - lk_threshold
+            if np.abs(lk_diff) < diff / 100:
                 return v
 
             go_left = (lower and lk_diff > 0) or ((not lower) and lk_diff < 0)
 
             if go_left:
-                return binary_search(v_min, v, i, lower)
-            return binary_search(v, v_max, i, lower)
+                return binary_search(v_min, v, get_lk, lower)
+            return binary_search(v, v_max, get_lk, lower)
 
         def get_ci(args):
             (i, optimised_value), (b_min, b_max) = args
-            optimised_cis[i, 0] = binary_search(b_min, optimised_value, i, True)
-            optimised_cis[i, 1] = binary_search(optimised_value, b_max, i, False)
+            # print('---------')
+            # print(i, optimised_value, (b_min, b_max))
+
+            bs = []
+            bound_iterator = iter(bounds)
+            for bs_i in range(n):
+                if input_parameters[bs_i] is not None:
+                    continue
+                if bs_i == i:
+                    # skip these bounds
+                    next(bound_iterator)
+                    continue
+                bs.append(next(bound_iterator))
+
+            bs = np.array(bs)
+            rps = np.array(optimised_parameters)
+            ip = np.array(input_parameters)
+
+            def get_lk(v):
+                rps[i] = v
+                ip[i] = v
+                return optimize_likelihood_params(forest, ip, loglikelihood, bounds=bs, start_parameters=rps,
+                                                  cis=False, threads=threads)[-1]
+
+            # Try to narrow down the bounds a bit
+            v = max(b_min, optimised_value / 2)
+            if get_lk(v) < lk_threshold:
+                b_min = v
+
+            v = min(b_max, 1.5 * optimised_value)
+            if get_lk(v) < lk_threshold:
+                b_max = v
+
+            optimised_cis[i, 0] = binary_search(b_min, optimised_value, get_lk, True)
+            optimised_cis[i, 1] = binary_search(optimised_value, b_max, get_lk, False)
+            # print(i, optimised_cis[i, :])
+            # print('---------')
 
         # if threads > 1:
         #     with ThreadPool(processes=min(threads, len(bounds))) as pool:
@@ -133,7 +169,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
                      bounds):
             get_ci(_)
 
-    return optimised_parameters, optimised_cis
+    return optimised_parameters, optimised_cis, best_log_lh
 
 
 def AIC(k, loglk):

@@ -7,12 +7,12 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.join(folder, 'small_trees')
+sim_folder = os.path.join(folder, 'large_trees')
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
-m, M = 50, 100 # small_trees
+# m, M = 50, 100 # small_trees
 # m, M = 500, 1000 # trees
-# m, M = 5000, 10000 # large_trees
+m, M = 5000, 10000 # large_trees
 
 rule all:
     input:

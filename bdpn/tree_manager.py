@@ -80,10 +80,7 @@ def read_forest(tree_path):
 
 def annotate_tree(tree):
     for n in tree.traverse('preorder'):
-        if n.is_root():
-            p_time = 0
-        else:
-            p_time = getattr(n.up, TIME)
+        p_time = 0 if n.is_root() else getattr(n.up, TIME)
         n.add_feature(TIME, p_time + n.dist)
 
 

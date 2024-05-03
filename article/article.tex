@@ -530,7 +530,7 @@ It is available as a command-line program and a Python 3 package via PyPi (\href
 
 To assess the performance of our maximum-likelihood estimator for the BD-PN model, we used the 100 trees with 500--1\,000 tips simulated under the BD-PN model as described in subsection~\ref{sec:test:sim}.
 
-We applied bdpn to each of the trees three times: fixing each of the BD parameters ($\lambda,\psi$ or $\rho$) to its real value (for identifiability). 
+We applied bdpn to each of the trees fixing the sampling probability $\rho$ to its real value (for identifiability). The results with the becoming-uninfectious rate $\psi$ are similar and given in the Supplementary Material.
 
 
 As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values in all the settings.

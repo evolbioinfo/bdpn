@@ -108,7 +108,7 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
         tj = ti - tip.dist
 
         if tr < tj:
-            return -np.inf
+            return -np.inf, -np.inf
         if tr > ti:
             return getattr(tip, 'lnx_late'), getattr(tip, 'lnn_late')
         else:
@@ -176,7 +176,7 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
     def process_tree(tree):
         for node in tree.traverse('postorder'):
             process_node(node)
-        return getattr(tree, 'lx')
+        return getattr(tree, 'lx' if not tree.is_leaf() else 'lxx')
 
     if threads > 1 and len(forest) > 1:
         with ThreadPool(processes=threads) as pool:
@@ -250,7 +250,7 @@ def main():
     #     la = R * psi
     #     phi = 1 / rt
     #     print('Real parameters: ', np.array([la, psi, phi, p, pn]))
-    #     params.p = p
+    #     params.psi = psi
 
     if params.la is None and params.psi is None and params.p is None:
         raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
@@ -292,13 +292,16 @@ def infer(forest, la=None, psi=None, phi=None, p=None, pn=None,
     start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
                                  vs[-1], 0.5 if pn is None or pn <= 0 or pn > 1 else pn])
     input_params = np.array([la, psi, phi, p, pn])
-    print('Input parameters {} are fixed: {}'.format(PARAMETER_NAMES[input_params != None],
-                                                     input_params[input_params != None]))
+    print('Fixed input parameter(s): {}'
+          .format(', '.join('{}={:g}'.format(*_)
+                            for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
     print('Starting BDPN parameters: {}'.format(start_parameters))
-    vs, cis = optimize_likelihood_params(forest, input_parameters=input_params,
-                                         loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                         start_parameters=start_parameters, cis=ci)
+    vs, cis, lk = optimize_likelihood_params(forest, input_parameters=input_params,
+                                             loglikelihood=loglikelihood, bounds=bounds[input_params == None],
+                                             start_parameters=start_parameters, cis=ci)
     print('Estimated BDPN parameters: {}'.format(vs))
+    if ci:
+        print('Estimated CIs:\n{}'.format(cis))
     return vs, cis
 
 

@@ -35,12 +35,22 @@ if __name__ == "__main__":
         i = int(re.findall(r'[0-9]+', real)[0])
         ddf = pd.read_csv(real)
         # R0,infectious time,sampling probability,notification probability,removal time after notification,tips,time,hidden_trees
-        R0, it, p, pn, rt, tips, T, h_trees \
-            = ddf.loc[next(iter(ddf.index)), :]
-        df.loc['{}.real'.format(i),
-               ['R_naught', 'infectious_time', 'partner_removal_time',
-                'lambda', 'psi', 'psi_p', 'p', 'pn', 'sampled_tips', 'type']] \
-            = [R0, it, rt, R0 / it, 1 / it, 1 / rt, p, pn, tips, 'real']
+        try:
+            R0, it, p, pn, rt, tips, T, h_trees \
+                = ddf.loc[next(iter(ddf.index)), :]
+            df.loc['{}.real'.format(i),
+                   ['R_naught', 'infectious_time', 'partner_removal_time',
+                    'lambda', 'psi', 'psi_p', 'p', 'pn', 'sampled_tips', 'type']] \
+                = [R0, it, rt, R0 / it, 1 / it, 1 / rt, p, pn, tips, 'real']
+        except:
+            # This is a BD model tree actually
+            R0, it, p, tips, T, h_trees \
+                = ddf.loc[next(iter(ddf.index)), :]
+            df.loc['{}.real'.format(i),
+                   ['R_naught', 'infectious_time',
+                    'lambda', 'psi', 'p', 'sampled_tips', 'type']] \
+                = [R0, it, R0 / it, 1 / it, p, tips, 'real']
+
 
     estimate_list = []
     if params.estimated_la:

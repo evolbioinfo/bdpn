@@ -102,12 +102,13 @@ def infer(forest, la=None, psi=None, p=None,
     bounds[:, 1] = upper_bounds
     start_parameters = get_start_parameters(forest, la, psi, p)
     input_params = np.array([la, psi, p])
-    print('Input parameters {} are fixed: {}'.format(PARAMETER_NAMES[input_params != None],
-                                                     input_params[input_params != None]))
+    print('Fixed input parameter(s): {}'
+          .format(', '.join('{}={:g}'.format(*_)
+                            for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
     print('Starting BD parameters: {}'.format(start_parameters))
-    vs, cis = optimize_likelihood_params(forest, input_parameters=input_params,
-                                      loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                      start_parameters=start_parameters, cis=ci)
+    vs, cis, lk = optimize_likelihood_params(forest, input_parameters=input_params,
+                                             loglikelihood=loglikelihood, bounds=bounds[input_params == None],
+                                             start_parameters=start_parameters, cis=ci)
     print('Estimated BD parameters: {}'.format(vs))
     return vs, cis
 
@@ -116,7 +117,7 @@ def save_results(vs, cis, log, ci=False):
     os.makedirs(os.path.dirname(os.path.abspath(log)), exist_ok=True)
     with open(log, 'w+') as f:
         f.write(',{}\n'.format(','.join(['R0', 'infectious time', 'sampling probability',
-                                          'transmission rate', 'removal rate'])))
+                                         'transmission rate', 'removal rate'])))
         la, psi, rho = vs
         R0 = la / psi
         rt = 1 / psi
