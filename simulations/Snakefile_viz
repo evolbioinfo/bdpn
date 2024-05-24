@@ -16,6 +16,7 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
+        expand(os.path.join(sim_folder,'errors_{par}.svg'), par=['psi', 'p']),
         expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=['psi', 'p'], model=['BDPN', 'BD']),
         os.path.join(sim_folder,'BDPN','likelihood_stats.txt'),
         expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
@@ -113,4 +114,25 @@ rule plot_errors:
     shell:
         """
         python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf} --fixed {wildcards.p}
+        """
+
+
+rule plot_error_boths:
+    '''
+    Plots the errors.
+    '''
+    input:
+        tab1 = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
+        tab2 = os.path.join(sim_folder, 'BD', 'estimates.tab'),
+    output:
+        pdf = os.path.join(sim_folder, 'errors_{p}.svg'),
+    params:
+        mem = 2000,
+        name = 'errors',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    shell:
+        """
+        python3 py/plot_error_both.py --estimates_bdpn {input.tab1} --estimates_bd {input.tab2} --pdf {output.pdf} --fixed {wildcards.p}
         """

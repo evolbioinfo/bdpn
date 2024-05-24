@@ -373,8 +373,8 @@ p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t)p_{bottom=s2}^{(i)}(t_h)U_p(t_h,
 \end{equation}\label{eq:mixed}
 
 
-Note that since the branch contains a hidden partner, this partner must have at least one notifier who is observed. If the branch is external, the notifier could correspond to its tip (e.g., tip A in Fig.~\ref{fig:pn-branches}(3) and tip C in Fig.~\ref{fig:pn-branches}(2b)) or to a tip in the tip's supertree (the tree without the tip and its branch): For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b)). If the branch is external, the notifier could only correspond to a tip in its node's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c)). 
-Having a notifier as the branch's tip implies that the bottom part of the branch corresponds to the notifier. Having a notifier in the supertree implies that the top part of the branch corresponds to the partner. Hence if the branch is internal, the top part can only correspond to the partner, while the bottom part can only correspond to a standard state (unnotified non-notifier), as the bottom part of such a branch corresponds to the partner's recipient. Finally, if the branch is external, and the only partner's notifier corresponds to its tip, then there are two possibilities for its top part: (1a) either it fully corresponds to a standard state (unnotified non-notifier); or (1b) there is another partners' notifier in its supertree, and this other partner is also hidden along the top part of the same branch, hence the top part of the branch is partner-standard (see Fig.~\ref{fig:pn-mixed}). If the branch is external, and the partner's notifier(s) is(are) only found in its supertree, then there are two possibilities for its bottom part: (2a) either it fully corresponds to a standard state (unnotified non-notifier); or (2b) there is another partners' notifier at its tip, and this other partner is also hidden along the bottom part of the same branch, hence the bottom part of the branch is standard-notifier (see Fig.~\ref{fig:pn-mixed}). Note that (1b) and (2b) represent the same case but from the point of view of two different hidden partners (B and its notifier C for former, and D and its notifier C for the latter in Fig.~\ref{fig:pn-mixed}).  
+Note that since the branch contains a hidden partner, this partner must have at least one notifier (who is observed as all the notifiers). If the branch is external, the notifier could correspond to its tip: For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b)). If the branch is external, the notifier could only correspond to a tip in its node's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c)). 
+Having a notifier as the branch's tip implies that the bottom part of the branch corresponds to the notifier. Having a notifier in the supertree implies that the top part of the branch corresponds to the partner. Hence if the branch is internal, the top part can only correspond to the partner, while the bottom part can only correspond to a standard state (unnotified non-notifier), as the bottom part of such a branch corresponds to the partner's recipient (who could not be notified as the partner is unobserved and could not be a notifier as the branch is not external). Finally, if the branch is external, and the only partner's notifier corresponds to its tip, then there are two possibilities for its top part: (1a) either it fully corresponds to a standard state (unnotified non-notifier); or (1b) there is another partners' notifier in its supertree, and this other partner is also hidden along the top part of the same branch, hence the top part of the branch is partner-standard (see Fig.~\ref{fig:pn-mixed}). If, on the other hand, the branch is external, and the partner's notifier(s) is(are) only found in its supertree, then there are two possibilities for its bottom part: (2a) either it fully corresponds to a standard state (unnotified non-notifier); or (2b) there is another partners' notifier at its tip, and this other partner is also hidden along the bottom part of the same branch, hence the bottom part of the branch is standard-notifier (see Fig.~\ref{fig:pn-mixed}). Note that (1b) and (2b) represent the same case but from the point of view of two different hidden partners (B and their notifier C for the former, and D and their notifier C for the latter in Fig.~\ref{fig:pn-mixed}).  
 
 
 \begin{figure*}[tbhp]
@@ -387,7 +387,7 @@ Having a notifier as the branch's tip implies that the bottom part of the branch
 
 %if the branch is external the bottom part of the branch can either correspond to a notifier (as in Fig~\ref{fig:pn-branches}(2b,3)), or to a standard branch, or to a mixed tip branch starting as a standard branch and finishing as a notifier. It cannot correspond to another partner branch as every partner has their notifier sampled, and notifiers only notify one partner (who is already hidden along this branch). The bottom branch part evolution can then be expressed with the previously defined equations:
 
-We will first describe the one-hidden-partner cases ($p_{m(s1,s2)}^{(i)}(t,t_r)$, where $s1 \in \{o, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case ($p_{m(o,-,i)}^{(i)}(t,t_{r1},t_{r2})$, where $t_{r1}$ is the first notification time for the hidden partner at the top of the branch (e.g. $t_C$ in Fig.~\ref{fig:pn-mixed}), $t_{r2}$ is the first notification time for the hidden partner at the top of the branch  (e.g. $t_A$ in Fig.~\ref{fig:pn-mixed}).
+We will first describe the one-hidden-partner cases ($p_{m(s1,s2)}^{(i)}(t,t_r)$, where $s1 \in \{o, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case ($p_{m(o,-,n)}^{(i)}(t,t_{r})$, where $t_{r}$ is the earliest notification time for the hidden partner at the top of the branch (e.g. $t_r=t_C$ in Fig.~\ref{fig:pn-mixed}), the only notification time for the hidden partner at the bottom of the branch being $t_i$  (e.g. $t_i=t_A$ in Fig.~\ref{fig:pn-mixed}).
 
 
 For the bottom branch part: 
@@ -426,17 +426,15 @@ p_{m(s1,s2)}^{(i)}(t,t_r) &\approx \Big(p_{s1}^{(h)}(t) -e^{-(\lambda + \psi)(t_
 Finally, we will treat the mixed case with two hidden partners using similar principals:
 \begin{equation}
 \begin{split}
-p_{m(o,-,n)}^{(i)}(t,t_{r1},t_{r2}) &\approx \Big(p_{o}^{(h1)}(t) -e^{-(\lambda + \psi)(t_{h1} - t)}\Big)\frac{U_p(t_{h1},t_{r1})}{U(t_{h1})}\cdot
+p_{m(o,-,n)}^{(i)}(t,t_r) &\approx \Big(p_{o}^{(h1)}(t) -e^{-(\lambda + \psi)(t_{h1} - t)}\Big)\frac{U_p(t_{h1},t_{r})}{U(t_{h1})}\cdot
 \\
-&~~~~\Big(p^{(h2)}(t_{h1}) -e^{-(\lambda + \psi)(t_{h2} - t_{h1})}\Big)\frac{U_p(t_{h2},t_{r2})}{U(t_{h2})}\cdot
+&~~~~\Big(p^{(h2)}(t_{h1}) -e^{-(\lambda + \psi)(t_{h2} - t_{h1})}\Big)\frac{U_p(t_{h2},t_{i})}{U(t_{h2})}\cdot
 \\
 &~~~~~p_n^{(i)}(t_{h2})\textit{\color{gray},}\\
-&\textit{\color{gray}where $t_{h1} \approx t + \frac{min(t_{r1}, t_i, t_{r2}) - t}{3}$,}\\
-&\textit{\color{gray}~~~~~~~~$t_{h2} \approx t + \frac{2(min(t_{r2}, t_i) - t)}{3}$,}\\
-&\textit{\color{gray}~~~~~~~~$t_{r1}$ is the earliest notification time of the }\\
-&\textit{\color{gray}~~~~~~~~~~~~hidden partner at the top of the branch (o,-),}\\
-&\textit{\color{gray}~~~~~~~~$t_{r2}$ is the earliest notification time of the }\\
-&\textit{\color{gray}~~~~~~~~~~~~hidden partner at the bottom of the branch (-,n).}\\
+&\textit{\color{gray}where $t_{h1} \approx t + \frac{1}{3}\Big(min(t_{r}, t_i) - t\Big)$,}\\
+&\textit{\color{gray}~~~~~~~~$t_{h2} \approx t + \frac{2}{3}\Big(min(t_{r}, t_i) - t\Big)$,}\\
+&\textit{\color{gray}~~~~~~~~$t_{r}$ is the earliest notification time of the }\\
+&\textit{\color{gray}~~~~~~~~~~~~hidden partner at the top of the branch (o,-).}\\
 \end{split}\label{eq:p_mixed_mixed}
 \end{equation}
 
@@ -482,7 +480,7 @@ p_o^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified a
  ~~~+p_{m(o,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
  \textit{\color{gray} ~~~(mixed oriented-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r,t_i)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
+~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
  \textit{\color{gray} ~~~(mixed oriented-standard-notifier branch evolution followed by sampling and notification)}
 \\
@@ -497,7 +495,7 @@ p_o^{(r)}(t_j) p_p^{(i)}(t_r) \phi (1-\upsilon) \textit{\color{gray} ~if $i$ got
  ~~~+p_{m(o,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
  \textit{\color{gray} ~~~(mixed oriented-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r,t_i)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
+~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
  \textit{\color{gray} ~~~(mixed oriented-standard-notifier branch evolution followed by sampling and notification)}
 \end{cases}\\
@@ -541,7 +539,7 @@ Secondly, let's assume that $i_0$ and $i_1$ are tips. Then each of them could ha
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(\not{n})}(i) = p^{i}(t_j) 2\lambda \cdot 
+l^{(\not{n})}(i) = p^{(i)}(t_j) 2\lambda \cdot 
 \Big(&~l^{(\not{n},\not{n})}(i_0)l^{(\not{n},\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ neigher $i_0$ nor $i_1$ notified} \\
 &+ l^{(\not{n},n)}(i_0)l^{(n,\not{n})}(i_1,i_0) \textit{\color{gray}~$\leftarrow$ $i_0$ notified $i_1$ and $i_1$ did not notify} \\
 &+ l^{(n,\not{n})}(i_0,i_1)l^{(\not{n},n)}(i_1) \textit{\color{gray}~$\leftarrow$ $i_0$ did not notify, but $i_1$ notified $i_0$} \\
@@ -556,7 +554,7 @@ Lastly, let's assume that $i_0$ is a tip and $i_1$ is internal (the scenario whe
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(\not{n})}(i) = p^{i}(t_j) 2\lambda \cdot 
+l^{(\not{n})}(i) = p^{(i)}(t_j) 2\lambda \cdot 
 \Big(&~l^{(\not{n},\not{n})}(i_0)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ $i_0$ did not notify $i_1$ } \\
 &+ l^{(\not{n},n)}(i_0)l^{(n)}(i_1,i_0)~\Big) \textit{\color{gray}~$\leftarrow$ $i_0$ notified $i_1$} \\
 \end{split}\label{eq:lu-int-tip}
@@ -742,11 +740,11 @@ We show the swarmplots (coloured by estimator) of relative errors for each test 
 \textbf{parameter} & \textbf{$\psi$ fixed} & & \textbf{$\rho$ fixed} &  \\
  & \% within CI & median CI width & \% within CI & median CI width  \\
 \toprule 
- $\lambda$ &  87\% & 14.2\% & 96\% & 11.6\%\\
- $\psi$ & -- & -- & 80\% & 28.6\% \\
- $\rho$ & 66\%  & 39.1\% & -- & -- \\
- $\phi$ & 93\% & 32.5\% & 94\% & 32.3\% \\
- $\upsilon$ & 69\% & 21\% & 65\% & 20.7 \% \\
+ $\lambda$ &  91\% & 14.2\% & 96\% & 11.6\%\\
+ $\psi$ & -- & -- & 88\% & 28.9\% \\
+ $\rho$ & 78\%  & 38.9\% & -- & -- \\
+ $\phi$ & 93\% & 32.3\% & 95\% & 32.2\% \\
+ $\upsilon$ & 74\% & 21.8\% & 70\% & 21.7\% \\
 \bottomrule
 \end{tabular}
 \label{tbl:ci}

@@ -13,7 +13,7 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'large_trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'trees')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 

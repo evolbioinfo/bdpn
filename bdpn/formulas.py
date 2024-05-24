@@ -97,16 +97,25 @@ def get_log_po_from_p_pn(log_p, log_pn):
 def get_log_pn(la, psi, t, ti):
     """
     Returns log(pn(t)), where
-    dpn(t)/dt = la + psi * pn(t)
+    dpn(t)/dt = (la + psi) * pn(t)
     pn(ti) = 1
     """
-    return (la + psi) * (t - ti)
+    return get_log_no_event(la + psi, t, ti)
 
 
-def get_log_pp(la, phi, t, ti):
+def get_log_no_event(rate, t, ti):
+    """
+    Returns log(pne(t)), where
+    dpne(t)/dt = rate * pne(t)
+    pne(ti) = 1
+    """
+    return -rate * (ti - t)
+
+
+def get_log_pp(phi, t, ti):
     """
     Returns log(pp(t)), where
     dpp(t)/dt = phi * pp(t)
     pp(ti) = 1
     """
-    return phi * (t - ti)
+    return get_log_no_event(phi, t, ti)
