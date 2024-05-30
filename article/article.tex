@@ -96,24 +96,24 @@ extension of the MTBD models that adds partner notification (PN).  In the simple
  \item $\psi$ -- constant removal rate: an infected individual stops being infectious at this rate. This corresponds to a tip in the transmission tree (observed or hidden);
  \item $\rho$ -- constant sampling probability: upon removal the individual's pathogen might get sampled with this probability, which corresponds to an observed tip in the transmission tree;
  \item $\upsilon$ -- constant notification probability: upon sampling, the sampled individual might notify their most recent partner with this probability;
- \item $\phi >> \psi$ -- constant notified sampling rate: a notified individual (if not yet removed via standard procedure) gets observed with this rate. This creates an observed tip in the transmission tree. 
+ \item $\phi >> \psi$ -- constant notified sampling rate: a notified individual (if not yet removed via standard procedure) gets removed \textit{and observed} with this rate. This creates an observed tip in the transmission tree. 
 \end{itemize}
 
 
-This model is a simplification of the notification process, in particular it makes 4 assumptions:
+This model is a simplification of the notification process, in particular it makes 3 assumptions:
 \begin{enumerate}
 \item only observed individuals can notify (instead of any removed individual);\\
 
 This is a realistic hypothesis in which an individual is ``observed'' because he or she enters a diagnostic and follow-up process that includes partner notification. Without entering this process, he or she is not observed and does not notify.
 
-\item notified individuals will eventually get sampled (i.e., their sampling is modeled with a rate $\upsilon$ instead of a combination of a removal rate $\psi$ and a sampling probability $\rho$);\\
+\item notified individuals will eventually get sampled (i.e., their pathogens are always observed upon removal, unlike the standard case where the observation happens with a sampling probability $\rho$);\\
 
 Realistically again, we assume here that the diagnosis and follow-up process works as expected, sampling notified patients.
 
 %\item notified individuals do not notify further;
-\item once notified, the partners do not transmit further;\\
-
-We assume here that once aware of the potential infection, the notified patients take care to avoid further transmission. Moreover, we assume that the diagnosis and follow-up process works as expected, so once the notified patients are sampled, they are either isolated or provided with treatment or other means of preventing further transmission.
+%\item once notified, the partners do not transmit further;\\
+%
+%We assume here that once aware of the potential infection, the notified patients take care to avoid further transmission. Moreover, we assume that the diagnosis and follow-up process works as expected, so once the notified patients are sampled, they are either isolated or provided with treatment or other means of preventing further transmission.
 
 \item only the most recent partner can get notified;\\
 
@@ -125,7 +125,7 @@ Note that the ``most recent partner'' relationship is not necessarily symmetrica
 These assumptions can be easily relaxed in a tree simulator (e.g., to be used with a deep learning estimator~\citep{Voznica2021}, which does not require likelihood calculation).
 
 
-The -PN extension can be generalized from BD to MTBD models: at the moment of sampling, an individual of any type can notify their last partner with the probability $\upsilon$, who will then stop transmitting and get removed at a constant removal rate $\phi >> \psi_k \; \forall k \in \{1, \ldots, m\}$. The -PN extension therefore adds two parameters to an MTBD model: $\phi$ and $\upsilon$.
+The -PN extension can be generalized from BD to MTBD models: at the moment of sampling, an individual of any type can notify their last partner with the probability $\upsilon$, whose removal rate will then get replaced by  a constant sampling rate $\phi >> \psi_k \; \forall k \in \{1, \ldots, m\}$. The -PN extension therefore adds two parameters to an MTBD model: $\phi$ and $\upsilon$.
 
 \subsection{MTBD-PN tree simulator}
 
@@ -213,8 +213,8 @@ U(T) = & 1\;  \textit{\color{gray} $\leftarrow$ the probability to stay unsample
 \end{equation}
 
 
-With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch that finishes at time $t_i$, starting on this branch at a time $t \leq t_i$. The master equations for the BD models were initially developed by ~\citet{Stadler2009}, however what we present here is their branch-specific formulation that we proposed in~\citep{zhukovaFastAccurateMaximumLikelihood2022}:
-In our formulation, ${p}^{(i)}(t)$ describes an evolution along a tree branch $i$, without taking into account the branch's subtree. % and provided that we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at time $t$. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. 
+With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch $i$, starting on this branch at a time $t \leq t_i$ till time $t_i$. The master equations for the BD models were initially developed by ~\citet{Stadler2009}, however what we present here is their branch-specific formulation that we proposed in~\citep{zhukovaFastAccurateMaximumLikelihood2022}:
+In our formulation, ${p}^{(i)}(t)$ describes an evolution along a tree branch $i$, without taking into account the branch's subtree. $t_i$ corresponds to the time of the equation's initial condition (typically at the end of the branch). % and provided that we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at time $t$. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. 
 
 \begin{equation}
 \scriptsize
@@ -259,15 +259,15 @@ Let us consider a person A who got sampled at time $t_A$ and successfully notifi
 \centering 
 %\includegraphics[width=0.8\textwidth]{Transmission_tree.png}
 \includegraphics[width=1\textwidth]{Fig_PNbranches}
-\caption{An example of partner notification in a transmission tree: an individual A got sampled at time $t_A$ (violet tip) and notified their most recent partner B (orange), where B is either observed (\textbf{1}) or hidden (\textbf{2-3}). \\
-The (observed as in \textbf{1-2} or hidden as in \textbf{3}) internal node AB corresponds to the transmission between A and B. The fact that A is the notifier of B implies that there is no hidden event along its branch AB-A (coloured violet), and that in any transmission on the path AB-B (coloured orange) the donor is B. Note, that since the most-recent-partner relationship is not always symmetric, B might be the most recent partner of more than one individual and hence might have got notified by someone else too (e.g. C in \textbf{b}, who in \textbf{1b,2b} was infected by B, and in \textbf{3b} could be infected by or infect B, who then infected A). Moreover, between the moment of B's first notification ($t_A$ for \textbf{a}, $t_C$ for \textbf{b}) and the moment of sampling  of B ($t_B$) there are no hidden events on the branch B (coloured dark red). Finally, B might have been removed via a standard procedure before getting notified by their partner(s) (\textbf{c}).\\ 
-In the panels \textbf{3} B's subtree is fully hidden, and hence the transmission node AB is also unobserved, therefore the A's branch is composed of two parts, where the bottom part (violet) corresponds to A and contains no hidden transmissions, while the top part could correspond or not to A (e.g in \textbf{3b} it corresponds to B) and might contain hidden transmissions. \\
+\caption{An example of partner notification in a transmission tree: an individual A got sampled at time $t_A$ (violet tip) and notified their most recent partner B (orange), where B is either observed (\textbf{1}) or hidden (\textbf{2-3}). 
+The (observed as in \textbf{1-2} or hidden as in \textbf{3}) internal node AB corresponds to the transmission between A and B. The fact that A is the notifier of B implies that there is no hidden event along its branch AB-A (coloured violet), and that in any transmission on the path AB-B (coloured orange) the donor is B. Note, that since the most-recent-partner relationship is not always symmetric, B might be the most recent partner of more than one individual and hence might have got notified by someone else too (e.g. C in \textbf{b}, who in \textbf{1b,2b} was infected by B, and in \textbf{3b} could have been infected by or have infected B, who have then infected A). Moreover, between the moment of B's first notification ($t_A$ for \textbf{a}, $t_C$ for \textbf{b}) and the moment of sampling  of B ($t_B$) the removal rate of B becomes $\phi$ instead of $\psi$ (coloured dark red). Finally, B might have been removed via a standard procedure before getting notified by their partner(s) (with rate $\psi$ and a probability $\rho$, \textbf{c}).
+In the panels \textbf{3} B's subtree is fully hidden, and hence the transmission node AB is also unobserved, therefore the A's branch is composed of two parts, where the bottom part (violet) corresponds to A and contains no hidden transmissions, while the top part could correspond to A or not  (e.g in \textbf{3b} it corresponds to B) and might contain hidden transmissions. 
 In the panels \textbf{2-3a-b} B is hidden as by the end of the sampling period ($T$) B is not yet sampled, while in \textbf{2-3c} B is hidden as B got removed via the standard procedure without sampling before any notification.}
 \label{fig:pn-branches} 
 \end{figure*}
 
 
-According to our model assumption 4, only the most recent partner can get notified. Hence, AB must be the parent node of A, and no hidden transmission is possible along the branch AB-A (as otherwise there would have been a partner of A who is more recent than B).
+According to our model assumption 3, only the most recent partner can get notified. Hence, AB must be the parent node of A, and no hidden transmission is possible along the branch AB-A (as otherwise there would have been a partner of A who is more recent than B).
 
 We will use a \textbf{notifier branch probability} $p_n^{(A)}(t)$ for such cases (when no hidden transmission occurred along the branch A, coloured violet in Fig~\ref{fig:pn-branches}):
 
@@ -275,33 +275,58 @@ We will use a \textbf{notifier branch probability} $p_n^{(A)}(t)$ for such cases
 \scriptsize
 \begin{cases}
 \dot{p}_n^{(A)}(t) &=  \Big(\lambda + \psi\Big) p_n^{(A)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
-p_n^{(A)}(t_A) &= 1\label{eq:p-nh}
+p_n^{(A)}(t_A) &= 1\label{eq:p-n}
 \end{cases}
 \end{equation}
 
-On the branch of B, no transmission is possible between the moment of notification $t_A$ and the moment of B's sampling $t_B$ as, according to assumption 3, once notified partners do not transmit further. We will use a \textbf{notified partner branch probability} $p_p^{(i)}(t)$ for cases when the individual at the end of the branch is the partner who got notified at time prior to $t$ (coloured dark red in Fig~\ref{fig:pn-branches}):
+As B corresponds to A's partner, the individual on the path between the transmission node AB and the tip B cannot change (is always B) and 
+%before the notification time $t_A$ 
+only transmissions from B to someone else are possible along the path leading from AB to B. These transmissions can be either hidden (where the recipient tree stayed unobserved) or observed: in such a case we know which subtree corresponds to the donor (the one that contains B). However, depending on whether B already got notified ($t \geq t_A$ in Fig.~\ref{fig:pn-branches}(1a)) or not yet (($t < t_A$ in Fig.~\ref{fig:pn-branches}(1a))) B's removal rate would be different (correspondingly $\phi$ or $\psi$). We will use an \textbf{partner branch probability before notification} $p_{pb}^{(x)}(t)$ for cases when the individual at the end of the branch (or considered time interval, here $t_x=t_A$) is the same as at time $t$, has not yet been notified, but might have transmitted to someone else (unobserved) along the way (coloured orange in Fig~\ref{fig:pn-branches}):
 
 \begin{equation}
 \scriptsize
 \begin{cases}
-\dot{p}_p^{(B)}(t) &=  \phi p_p^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no sampling in the next infinitesimal time $\Delta t$ }\\
-p_p^{(B)}(t_B) &=  1\label{eq:p-np}
+\dot{p}_{pb}^{(x)}(t) &=~~  \Big(\lambda + \psi\Big) p_{pb}^{(x)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
+    &~~~ - \lambda p_{pb}^{(x)}(t)U(t)\;  \textit{\color{gray} $\leftarrow$ transmission with hidden recipient subtree}\\
+p_{pb}^{(x)}(t_x) &=  1\label{eq:p-o}
 \end{cases}
 \end{equation}
 
-As B corresponds to A's partner, the individual on the path between the transmission node AB and the tip B cannot change (is always B) and before the notification time $t_A$ only transmissions from B to someone else are possible along the path leading from AB to B. These transmissions can be either hidden (where the recipient tree stayed unobserved) or observed: in such a case we know which subtree corresponds to the donor (the one that contains B). We will use an \textbf{oriented (partner) branch probability} $p_o^{(B)}(t)$ for cases when the individual at the end of the branch (or considered time interval, here $t_A$) is the same as at time $t$ but might have transmitted to someone else (unobserved) along the way (coloured orange in Fig~\ref{fig:pn-branches}):
+We will use a \textbf{partner branch probability after notification} $p_{pa}^{(i)}(t)$ for cases when the individual at the end of the branch is the same as at time $t$, by time $t$ has already been notified, and might have transmitted to someone else (unobserved) along the way (coloured dark red in Fig~\ref{fig:pn-branches}):
 
 \begin{equation}
 \scriptsize
 \begin{cases}
-\dot{p}_o^{(B)}(t, t_A) &=~~  \Big(\lambda + \psi\Big) p_o^{(B)}(t, t_A)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
-    &~~~ - \lambda p_o^{(B)}(t, t_A)U(t)\;  \textit{\color{gray} $\leftarrow$ transmission with hidden recipient subtree}\\
-p_o^{(B)}\Big(min(t_A, t_B), t_A\Big) &=  1\label{eq:p-o}
+\dot{p}_{pa}^{(B)}(t) &=~~  \Big(\lambda + \phi\Big) p_{pa}^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
+    &~~~ - \lambda p_{pa}^{(B)}(t)U(t)\;  \textit{\color{gray} $\leftarrow$ transmission with hidden recipient subtree}\\
+p_{pa}^{(B)}(t_B) &=  1\label{eq:p-p}
 \end{cases}
 \end{equation}
 
+Finally, once sampled, B could have notified their own most recent partner (represented by the most recent hidden subtree in Fig.~\ref{fig:pn-branches}(1a)). This would imply that between the moment of transmission between B and their most recent partner ($t_x$) and the moment of B's sampling ($t_B$) there was no event along the B's branch. Hence, if B is a notifier, the part of the B's branch after $t_x$ should be modeled with a notifier probability instead (no event along the branch). 
+Note that once B is notified, the removal rate becomes $\phi$, and hence a \textbf{both notified and notifier branch probability} $p_b^{(i)}(t)$ applies:
 
-The equations~\ref{eq:Us}, \ref{eq:p}, \ref{eq:p-nh}-\ref{eq:p-o} have the following closed form solutions:
+\begin{equation}
+\scriptsize
+\begin{cases}
+\dot{p}_b^{(B)}(t) &=  \Big(\lambda + \phi\Big) p_b^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
+p_b^{(B)}(t_B) &= 1\label{eq:p-b}
+\end{cases}
+\end{equation}
+
+%On the branch of B, no transmission is possible between the moment of notification $t_A$ and the moment of B's sampling $t_B$ as, according to assumption 3, once notified partners do not transmit further. We will use a \textbf{notified partner branch probability} $p_{pa}^{(i)}(t)$ for cases when the individual at the end of the branch is the partner who got notified at time prior to $t$ (coloured dark red in Fig~\ref{fig:pn-branches}):
+%
+%\begin{equation}
+%\scriptsize
+%\begin{cases}
+%\dot{p}_p^{(B)}(t) &=  \phi p_{pa}^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no sampling in the next infinitesimal time $\Delta t$ }\\
+%p_{pa}^{(B)}(t_B) &=  1\label{eq:p-np}
+%\end{cases}
+%\end{equation}
+
+
+
+The equations~\ref{eq:Us}, \ref{eq:p}, \ref{eq:p-n}-\ref{eq:p-b} have the following closed form solutions:
 \begin{equation}
 \scriptsize
 \begin{split}
@@ -310,14 +335,17 @@ U(t) = \frac{\lambda + \psi}{2\lambda} +  \frac{c_1}{2\lambda}\Big(\frac{E_1(t) 
 \\
 p^{(i)}(t) = \Big(\frac{E_2(t_i) + 1}{E_1(t) + 1}\Big)^2E_3(t, t_i) \\
 \\
-p_o^{(i)}(t, t_r) =  \frac{E_2\big(min(t_i, t_r)\big) + 1}{E_1(t) + 1}\sqrt{E_3\Big(t, min(t_i, t_r)\Big)E_4\Big(t, min(t_i, t_r)\Big)} \\
+p_n^{(i)}(t) =  e^{(\lambda + \psi) (t -t_i)}\\
 \\
-p_n^{(i)}(t) =  E_4(t, t_i)
+p_b^{(i)}(t) =  e^{(\lambda + \phi) (t -t_i)}
 \\
-p_p^{(i)}(t) =  e^{\phi (t -t_i)}
+\\
+p_{pb}^{(i)}(t) =  \sqrt{p^{(i)}(t)p_n^{(i)}(t)} \\
+\\
+p_{pa}^{(i)}(t) =  e^{(\phi-\psi) (t -t_i)} p_{pb}^{(i)}(t) 
 \end{cases},\\
 & \textit{where } c_1 = \sqrt{(\lambda - \psi)^2 + 4 \lambda\psi\rho},\; c_2 = \frac{c_1 + \lambda - \psi}{c_1 - \lambda + \psi},\\
-& ~~~~~~~~E_1(t) = c_2 e^{c_1 (t -T)},\; E_2(t_i) = c_2 e^{c_1 (t_i -T)},\; E_3(t, t_i) = e^{c_1 (t -t_i)}, \; E_4(t, t_i) =  e^{(\lambda + \psi) (t -t_i)}\\
+& ~~~~~~~~E_1(t) = c_2 e^{c_1 (t -T)},\; E_2(t_i) = c_2 e^{c_1 (t_i -T)},\; E_3(t, t_i) = e^{c_1 (t -t_i)}\\
 \end{split}\label{eq:ps}
 \end{equation}
 
@@ -325,7 +353,8 @@ Note that on top of the scenario we just described (shown in Fig.~\ref{fig:pn-br
 \begin{enumerate}
 
 \item[1b.] by the time $t_A$, B was already notified by someone else (at time $t_C < t_A$, see Fig.~\ref{fig:pn-branches}(1b)).
-Note, that once notified partners do not transmit further, hence $t_C > t_{AB}$. \\
+%Note, that once notified partners do not transmit further, hence $t_C > t_{AB}$. 
+\\
 
 This would lead to a shorter oriented part on the B branch (finishing at $t_C$), and a longer notified-partner part (between $t_C$ and $t_B$). 
  
@@ -346,27 +375,27 @@ In particular, we will use the probability of a \textbf{hidden partner subtree} 
 U_p(t, t_A) = U_p^{(1)}(t, t_A) + U_p^{(2)}(t, t_A).
 \end{equation} 
 
-The first part can be easily expressed via the previously defined equations: oriented (partner) branch evolution till time $t_A$ followed by notified partner branch evolution till time $T$. Note, that neither  $p_o^{(x)}(t, t_A)$ not $p_p^{(x)}(t)$ include an event at the end of the branch, and in this case the partner branch does not end at $t_x = T$:
+The first part can be easily expressed via the previously defined equations: partner branch evolution before notification till time $t_A$ followed by partner branch evolution after notification till time $T$. Note, that neither  $p_{pb}^{(x)}(t, t_A)$ not $p_{pa}^{(x)}(t)$ include an event at the end of the branch, and in this case the partner branch does not end at $t_x = T$:
 \begin{equation}
-U_p^{(1)}(t, t_A) = p_o^{(x)}(t, t_A) p_p^{(x)}(t_A)\textit{\color{gray}, where $t_x =T$}
+U_p^{(1)}(t, t_A) = p_{pb}^{(A)}(t) p_{pa}^{(x)}(t_A)\textit{\color{gray}, where $t_x =T$}
 \end{equation} 
 
-For the second part we would need to integrate over all possible partner removal times $t_B \in [t, t_A[$, provided that in the interval between $t$ and $t_B$ the partner might have transmitted to someone else (potentially multiple times), whose subtree(s) stayed unobserved till $T$. Note that $p_o^{(x)}(t, t_A)$ describes a partner branch evolution between $t$ and $t_A$ with any number of hidden transmissions, no removal along it, and no event at the end of the branch. What we need instead is a removal with no sampling at time $\tau$. To approximate $U_p^{(2)}(t, t_A)$ we will divide $p_o^{(x)}(t, t_A)$ by the probability of no removal during the time $(t_A - t)$ (i.e. $e^{-\psi(t_A - t)}$), multiply it by the probability of removal during that time ($1 - e^{-\psi(t_A - t)}$), and by the probability of not being sampled upon removal ($1 - \rho$):
+For the second part we would need to integrate over all possible partner removal times $t_B \in [t, t_A[$, provided that in the interval between $t$ and $t_B$ the partner might have transmitted to someone else (potentially multiple times), whose subtree(s) stayed unobserved till $T$. Note that $p_{pb}^{(A)}(t)$ describes a partner branch evolution between $t$ and $t_A$ with any number of hidden transmissions, no removal along it, and no event at the end of the branch. What we need instead is a removal with no sampling at time $\tau$. To approximate $U_p^{(2)}(t, t_A)$ we will divide $p_{pb}^{(A)}(t)$ by the probability of no removal during the time $(t_A - t)$ (i.e. $e^{-\psi(t_A - t)}$), multiply it by the probability of removal during that time ($1 - e^{-\psi(t_A - t)}$), and by the probability of not being sampled upon removal ($1 - \rho$):
 
 \begin{equation}
-U_p^{(2)}(t, t_A) \approx p_o^{(x)}(t, t_A) \frac{1 - e^{-\psi(t_A - t)}}{e^{-\psi(t_A - t)}} (1 - \rho)\textit{\color{gray}, where $t_x =T$}
+U_p^{(2)}(t, t_A) \approx p_{pb}^{(A)}(t) \frac{1 - e^{-\psi(t_A - t)}}{e^{-\psi(t_A - t)}} (1 - \rho)
 \end{equation}
 
 It is an approximation as instead of integrating over all possible intervals $[t, t_B[$ for potential hidden transmissions from the partner branch, we use the interval $[t, t_A[$.
  
 
-We will also need to describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branch in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g. between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g. between AB and A in Fig.~\ref{fig:pn-branches}(3), index). $t_r$ denotes the first notification time of the hidden partner. Moreover, let's denote the time of the hidden partner subtree start $t_h$.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
+We will also need to describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branch in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g. between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g. between AB and A in Fig.~\ref{fig:pn-branches}(3), notifier). $t_r$ denotes the first notification time of the hidden partner. Moreover, let's denote the time of the hidden partner subtree start $t_h$.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
 
 $p_{m(s1,s2)}^{(i)}(t,t_r)$ combines three elements: the probability of the top part of the branch, which finishes with a transmission to or from the hidden partner, the probability of the bottom part of the branch (without taking into account the event at its end) and the probability of the hidden partner subtree:
 
 \begin{equation}
 \begin{split}
-p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t)p_{bottom=s2}^{(i)}(t_h)U_p(t_h,t_r)\textit{\color{gray},}\\
+p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t)U_p(t_h,t_r)p_{bottom=s2}^{(i)}(t_h)\textit{\color{gray},}\\
 &\textit{\color{gray}where $t_h$ is the time of the hidden partner subtree start,}\\
 &\textit{\color{gray}~~~~~~~~$t_r$ is the first notification time of the hidden partner.}\\
 \end{split}
@@ -374,7 +403,7 @@ p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t)p_{bottom=s2}^{(i)}(t_h)U_p(t_h,
 
 
 Note that since the branch contains a hidden partner, this partner must have at least one notifier (who is observed as all the notifiers). If the branch is external, the notifier could correspond to its tip: For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b)). If the branch is external, the notifier could only correspond to a tip in its node's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c)). 
-Having a notifier as the branch's tip implies that the bottom part of the branch corresponds to the notifier. Having a notifier in the supertree implies that the top part of the branch corresponds to the partner. Hence if the branch is internal, the top part can only correspond to the partner, while the bottom part can only correspond to a standard state (unnotified non-notifier), as the bottom part of such a branch corresponds to the partner's recipient (who could not be notified as the partner is unobserved and could not be a notifier as the branch is not external). Finally, if the branch is external, and the only partner's notifier corresponds to its tip, then there are two possibilities for its top part: (1a) either it fully corresponds to a standard state (unnotified non-notifier); or (1b) there is another partners' notifier in its supertree, and this other partner is also hidden along the top part of the same branch, hence the top part of the branch is partner-standard (see Fig.~\ref{fig:pn-mixed}). If, on the other hand, the branch is external, and the partner's notifier(s) is(are) only found in its supertree, then there are two possibilities for its bottom part: (2a) either it fully corresponds to a standard state (unnotified non-notifier); or (2b) there is another partners' notifier at its tip, and this other partner is also hidden along the bottom part of the same branch, hence the bottom part of the branch is standard-notifier (see Fig.~\ref{fig:pn-mixed}). Note that (1b) and (2b) represent the same case but from the point of view of two different hidden partners (B and their notifier C for the former, and D and their notifier C for the latter in Fig.~\ref{fig:pn-mixed}).  
+Having a notifier as the branch's tip implies that the bottom part of the branch corresponds to the notifier. Having a notifier in the supertree implies that the top part of the branch corresponds to the partner (already notified or not yet). Hence if the branch is internal, the top part can only correspond to the partner, while the bottom part can only correspond to a standard state (unnotified non-notifier), as the bottom part of such a branch corresponds to the partner's recipient (who could not be notified as the partner is unobserved and could not be a notifier as the branch is not external). Finally, if the branch is external, and the only partner's notifier corresponds to its tip, then there are two possibilities for its top part: (1a) either it fully corresponds to a standard state (unnotified non-notifier); or (1b) there is another partners' notifier in its supertree, and this other partner is also hidden along the top part of the same branch, hence the top part of the branch is partner-standard (see Fig.~\ref{fig:pn-mixed}). If, on the other hand, the branch is external, and the partner's notifier(s) is(are) only found in its supertree, then there are two possibilities for its bottom part: (2a) either it fully corresponds to a standard state (unnotified non-notifier); or (2b) there is another partners' notifier at its tip, and this other partner is also hidden along the bottom part of the same branch, hence the bottom part of the branch is standard-notifier (see Fig.~\ref{fig:pn-mixed}). Note that (1b) and (2b) represent the same case but from the point of view of two different hidden partners (B and their notifier A for the former, and D and their notifier C for the latter in Fig.~\ref{fig:pn-mixed}).  
 
 
 \begin{figure*}[tbhp]
@@ -387,7 +416,7 @@ Having a notifier as the branch's tip implies that the bottom part of the branch
 
 %if the branch is external the bottom part of the branch can either correspond to a notifier (as in Fig~\ref{fig:pn-branches}(2b,3)), or to a standard branch, or to a mixed tip branch starting as a standard branch and finishing as a notifier. It cannot correspond to another partner branch as every partner has their notifier sampled, and notifiers only notify one partner (who is already hidden along this branch). The bottom branch part evolution can then be expressed with the previously defined equations:
 
-We will first describe the one-hidden-partner cases ($p_{m(s1,s2)}^{(i)}(t,t_r)$, where $s1 \in \{o, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case ($p_{m(o,-,n)}^{(i)}(t,t_{r})$, where $t_{r}$ is the earliest notification time for the hidden partner at the top of the branch (e.g. $t_r=t_C$ in Fig.~\ref{fig:pn-mixed}), the only notification time for the hidden partner at the bottom of the branch being $t_i$  (e.g. $t_i=t_A$ in Fig.~\ref{fig:pn-mixed}).
+We will first describe the one-hidden-partner cases ($p_{m(s1,s2)}^{(i)}(t,t_r)$, where $s1 \in \{p, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case ($p_{m(p,-,n)}^{(i)}(t,t_{r})$, where $t_{r}$ is the earliest notification time for the hidden partner at the top of the branch (e.g. $t_r=t_C$ in Fig.~\ref{fig:pn-mixed}), the only notification time for the hidden partner at the bottom of the branch being $t_i$  (e.g. $t_i=t_A$ in Fig.~\ref{fig:pn-mixed}).
 
 
 For the bottom branch part: 
@@ -401,25 +430,29 @@ p^{(i)}(t)&\textit{\color{gray} otherwise ($s2=-$, the standard state)}\\
 \end{equation}
 
 %Finally, the top part of the branch can be in three possible states. The first possibility is that it corresponds to the hidden partner's individual. This happens if (one of) the hidden partner's notifier(s) does not correspond to the branch's end (as in Fig~\ref{fig:pn-branches}(2,3b)). As this notifier is observed, the transmission between them and the partner is also observed and is ancestral to the node at the end of the current branch. All the branches on the way connecting this notifier and the partner (including the top part of the current branch) must then correspond to the partner. The other possibility is that the only partner's notifier corresponds to the tip at the end of the current branch (as in Fig~\ref{fig:pn-branches}(3a,c)). Then the branch can either be in a standard state (unnotifier non-notifier), or a mix between another, partially hidden, partner branch and a standard state (corresponding to that other partner's recipient). 
-We will approximate $p_{top=s1}^{(h)}(t)$ using the branch evolution probability of the type corresponding to $s1$  in the following way. For example, let us assume that $s1=o$ (observed (partner) branch). $p_o^{(h)}(t)$ expresses a probability of a partner evolving along the branch between the times $t$ and $t_h$ with no or any number of oriented hidden transmissions, without taking into account the event at the end of it. In our case there must be at least one hidden transmission: from the partner at time $t_h$ (where the donor tree stayed unsampled). If we remove the probability of no event during this time ($e^{-(\lambda + \psi)(t_h - t)}$) from $p_o^{(h)}(t)$, we will obtain a probability of a partner branch with at least one oriented hidden transmission somewhere between $t$ and $t_h$ (the probability of the corresponding hidden tree being included). $p_{top=o}^{(h)}(t)$ expresses almost the same thing, with the difference being that the last hidden transmission must have happened at time $t_h$ and the probability of the hidden partner tree corresponding to it is not included. We will hence approximate $p_{top=o}^{(h)}(t)$ as follows: 
-\begin{equation}
-p_{top=o}^{(h)}(t) \approx \frac{p_o^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}
-\end{equation}
-
-We will treat the case when the branch is in the standard state in a similar way (using the standard branch probability $p^{(h)}(t)$ instead of the partner one $p_o^{(h)}(t)$):
+We will approximate $p_{top=s1}^{(h)}(t)$ using the branch evolution probability of the type corresponding to $s1$  in the following way. For example, let us assume that $s1=-$ (standard branch). $p^{(h)}(t)$ expresses a probability of evolving along this branch between the times $t$ and $t_h$ with no or any number of hidden transmissions, without taking into account the event at the end of it. In our case there must be at least one hidden transmission: to/from the partner at time $t_h$ (where the partner tree stayed unsampled). If we remove the probability of no event during this time ($e^{-(\lambda + \psi)(t_h - t)}$) from $p^{(h)}(t)$, we will obtain a probability of a branch with at least one oriented hidden transmission somewhere between $t$ and $t_h$ (the probability of the corresponding hidden tree being included). $p_{top=-}^{(h)}(t)$ expresses almost the same thing, with the difference being that the last hidden transmission must have happened at time $t_h$ and the probability of the hidden partner tree corresponding to it is not included. We will hence approximate $p_{top=-}^{(h)}(t)$ as follows: 
 \begin{equation}
 p_{top=-}^{(h)}(t) \approx \frac{p^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}
 \end{equation}
 
-
-Note that we wrote down equation~(\ref{eq:mixed}) as if the start of the hidden partner tree $t_h$ was known. In practice, it is not the case as we need to integrate over all the possible times between the branch start $t_{parent(i)}$ and either its end or the first partner's notification (if it was before): $min(t_r,t_i)$. To simplify the calculations, we will simply take the time in the middle of this interval instead: 
-
+We will treat the case when the branch is in the partner state ($s1=p$) in a similar way:
 \begin{equation}
 \begin{split}
-p_{m(s1,s2)}^{(i)}(t,t_r) &\approx \Big(p_{s1}^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}\Big)\frac{U_p(t_h,t_r)}{U(t_{h})}p_{s2}^{(i)}(t_h)\textit{\color{gray},}\\
-&\textit{\color{gray}where $t_h \approx t + \frac{min(t_r, t_i) - t}{2}$,}\\
-&\textit{\color{gray}~~~~~~~~$t_r$ is the first notification time of the hidden partner.}\\
-\end{split}\label{eq:p_mixed}
+p_{top=p}^{(h)}(t, t_r) &\approx 
+\begin{cases}
+\frac{p_{pb}^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}&\textit{\color{gray} if $t_h \leq t_r$}\\
+p_{pb}^{(r)}(t)\frac{p_{pa}^{(h)}(t_r) -e^{-(\lambda + \psi)(t_{h} - t_r)}}{U(t_{h})}&\textit{\color{gray} if $t \leq t_r \leq t_h$}\\
+\frac{p_{pa}^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}&\textit{\color{gray} if $t > t_r$}\\
+\end{cases}\\
+&\textit{\color{gray}where $t_r$ is the first notification time of the hidden partner.}\\
+\end{split}
+\end{equation}
+
+
+Note that we wrote down equation~(\ref{eq:mixed}) as if the start of the hidden partner tree $t_h$ was known. In practice, it is not the case as we need to integrate over all the possible times between the branch start $t_{parent(i)}$ and its end $t_i)$. To simplify the calculations, we will take the time in the middle of this interval instead: 
+
+\begin{equation}
+t_h \approx t + \frac{t_i - t}{2}
 \end{equation}
 
 
@@ -471,7 +504,7 @@ l^{(n,\not{n})}(i,r) &= \begin{cases}
 \textit{\color{gray} (not possible as once notified partners do not transmit)}
 \\
 \\
-p_o^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and did not notify}\\
+p_{pb}^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and did not notify}\\
 \textit{\color{gray} (oriented (partner) branch evolution followed by standard sampling and no notification)}
 \\
 ~~~+p_{m(o,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
@@ -485,7 +518,7 @@ p_o^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified a
  \textit{\color{gray} ~~~(mixed oriented-standard-notifier branch evolution followed by sampling and notification)}
 \\
 \\
-p_o^{(r)}(t_j) p_p^{(i)}(t_r) \phi (1-\upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and did not notify}\\
+p_{pb}^{(r)}(t_j) p_{pa}^{(i)}(t_r) \phi (1-\upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and did not notify}\\
 \textit{\color{gray} (oriented (partner) branch evolution followed by} \\
 \textit{\color{gray}~notified partner branch evolution, notification-provoked sampling and no notification)}
 \\
@@ -506,7 +539,7 @@ l^{(n,n)}(i,r) &= \begin{cases}0 \textit{\color{gray} ~if $t_r < t_j$}\\
 p_n^{(i)}(t_j)\psi\rho\upsilon \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and notified their most recent patner}\\
 \textit{\color{gray} (notifier branch evolution followed by standard sampling and  notification)}\\
 \\
-p_n^{(r)}(t_j) p_p^{(i)}(t_r) \phi \upsilon \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and notified}\\
+p_n^{(r)}(t_j) p_{pa}^{(i)}(t_r) \phi \upsilon \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and notified}\\
 \textit{\color{gray} (notifier branch evolution followed by} \\
 \textit{\color{gray}~notified partner branch evolution,} \\
 \textit{\color{gray}~notification-provoked sampling and notification)}\\
@@ -563,7 +596,7 @@ l^{(\not{n})}(i) = p^{(i)}(t_j) 2\lambda \cdot
 \subsubsection*{Case 2.2: $i$'s branch is internal and (at least initially) corresponds to an (eventually notified) partner} 
 
 In the other case the internal node $i$'s branch starts as a partner who will eventually get notified by a tip $r$.
-There are two possibilities: either the node $i$ corresponds to the partner or the partner is hidden along the $i$'s branch and $i$ corresponds to someone within $i$'s recipient subtree (e.g., if $i=C$ in Fig.~\ref{fig:pn-branches}(2a)). In the first case, the $i$'s branch evolution is represented by $p_o^{(i)}(t_j)$ with a transmission event at the end of it, where the donor is known (probability density of $\lambda$): The donor corresponds to the subtree containing the tip representing the sampling of the individual $i$.
+There are two possibilities: either the node $i$ corresponds to the partner or the partner is hidden along the $i$'s branch and $i$ corresponds to someone within $i$'s recipient subtree (e.g., if $i=C$ in Fig.~\ref{fig:pn-branches}(2a)). In the first case, the $i$'s branch evolution is represented by $p_{pb}^{(i)}(t_j)$ with a transmission event at the end of it, where the donor is known (probability density of $\lambda$): The donor corresponds to the subtree containing the tip representing the sampling of the individual $i$.
 
 In the second case, the $i$'s branch evolution is represented by $p_{m(o,-)}^{(i)}(t_j,t_r)$ with a transmission event at the end of it, where the donor is unknown (probability density of $2\lambda$): any of the subtrees can be the donor.
  %Moreover, this recipient's branch cannot be notified by our partner (as in our model notified partners do not notify further):
@@ -583,7 +616,7 @@ First, let's assume that $i_0$ and $i_1$ are internal. Then none of them can be 
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_o^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
 \Big(~l^{(n)}(i_0,r)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ $i_0$ is notified by $r$} \\
 & ~~~~~~~~~~~~~~~+ l^{(\not{n})}(i_0)l^{(n)}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $i_1$ is notified by $r$} \\
 & + p_{m(o,-)}^{(i)}(t_j,t_r) 2 \lambda l^{(\not{n})}(i_0)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ hidden partner}\\
@@ -598,7 +631,7 @@ Secondly, let's assume that $i_0$ and $i_1$ are tips. Then each of them could ha
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_o^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
 \Big(~l^{(n,\not{n})}(i_0,first(r,i_1))l^{(\not{n},n)}(i_1) \textit{\color{gray}~$\leftarrow$ $r$ and $i_1$ notified $i_0$, $i_0$ did not notify} \\
 &~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0,first(r,i_1))l^{(n,n)}(i_1, i_0) \textit{\color{gray}~$\leftarrow$ $r$ and $i_1$ notified $i_0$, $i_0$ notified $i_1$} \\
 &~~~~~~~~~~~~~~~+l^{(\not{n},n)}(i_0)l^{(n,\not{n})}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ $r$ and $i_0$ notified $i_1$, $i_1$ did not notify} \\
@@ -635,7 +668,7 @@ Lastly, let's assume that $i_0$ is a tip and $i_1$ is internal (the scenario whe
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_o^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
 \Big(~l^{(n,n)}(i_0,r)l^{(n)}(i_1,i_0) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$  notified $i_1$} \\
 &~~~~~~~~~~~~~~~+ l^{(n,\not{n})}(i_0,r)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$  $r$ notified $i_0$, $i_0$ did not notify} \\
 &~~~~~~~~~~~~~~~+l^{(\not{n}, n)}(i_0)l^{(n)}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ both $r$ and $i_0$ notified $i_1$} \\
@@ -836,7 +869,7 @@ At step 3, we randomly draw an individual $i$ of type $k$ (selected at step 2) f
 For transmission and sampling events we also record their time and ids of the involved individuals. These values are used to reconstruct the sampled parts of the tree once the simulation is finished.
 
 
-For the PN version of this simulator, we add an additional $m+1^{th}$ state for notified partners. $m + 1$'s state-change and transmission rates are set to zero: $\mu_{k,m+1} = \mu_{m+1,k} = \lambda_{k,m+1} = \lambda_{m+1,k} = 0\; \forall 1 \leq k \leq m$, while its removal rate is set to the notification removal rate: $\psi_{m+1} = \phi >> \psi_k\; \forall 1 \leq k \leq m$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, we check whether the individual $i$ is a notified partner (i.e. in state $m+1$). If yes, we put them into $N[m+1]$ without performing the sampling probability draw. If not, and if $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \upsilon$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$), we change $j$'s state to $m + 1$ as in a state-change event.
+For the PN version of this simulator, we add additional $m$ states for notified-partner versions of each state. $m + k$'s state-change and transmission rates are set to the $k$'s state-change and transmission rates : $\mu_{m+k,m+l} = \mu_{k,l}$; $\lambda_{m+k,m+l} = \lambda_{k,l}$ $\forall 1 \leq  k,l \leq m$. The rates between initial and notified states set to zero: ;  $\mu_{m+k,l} = \mu_{k,m+l} = \lambda_{m+k,l} = \lambda_{k,m+l} = 0$. The removal rates of notified states are set to $\phi$: $\psi_{m+k} = \phi >> \psi_k$, while their sampling probabilities are set to $1$: $\rho_{m+k} = 1$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, if the removed individual $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \upsilon$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$) and not yet notified ($J \leq m$), we change $j$'s state to $m + j$ as in a state-change event.
 
 \subsubsection*{Code availability}
 The simulator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\citep{Huerta-Cepas2016} and NumPy package for array operations~\citep{harris_array_2020}. 
