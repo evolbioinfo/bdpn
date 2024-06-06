@@ -18,9 +18,8 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
-        os.path.join(data_dir, 'estimates.tab'),
-        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'),
-            i=REPETITIONS, min_date=[2012], max_date=[2015])
+        expand(os.path.join(data_dir, 'estimates_{model}.tab'), model=['bd', 'bdpn']),
+        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
 
 
 rule estimate_params_p_fixed_bdpn:
@@ -98,7 +97,7 @@ rule combine_estimates_bdpn:
         name = 'estimates',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
     shell:
         """
         python3 py/summary_table.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
@@ -114,13 +113,13 @@ rule combine_estimates_bd:
         est = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est_bd'), i=REPETITIONS,
             p=[0.58], min_date=[2012], max_date=[2015]),
     output:
-        tab = os.path.join(data_dir, 'estimates.tab'),
+        tab = os.path.join(data_dir, 'estimates_bd.tab'),
     params:
         mem = 2000,
         name = 'estimates',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
     shell:
         """
         python3 py/summary_table_bd.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
