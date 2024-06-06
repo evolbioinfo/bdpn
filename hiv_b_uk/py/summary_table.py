@@ -3,7 +3,32 @@ import re
 
 import pandas as pd
 
-from bdpn.tree_manager import read_forest
+
+def read_forest(tree_path, columns=None):
+    with open(tree_path, 'r') as f:
+        nwks = f.read().replace('\n', '').split(';')
+    if not nwks:
+        raise ValueError('Could not find any trees (in newick format) in the file {}.'.format(tree_path))
+    return [read_tree(nwk + ';', columns) for nwk in nwks[:-1]]
+
+
+def read_tree(tree_path, columns=None):
+    tree = None
+    for f in (3, 2, 5, 0, 1, 4, 6, 7, 8, 9):
+        try:
+            tree = Tree(tree_path, format=f)
+            break
+        except:
+            continue
+    if not tree:
+        raise ValueError('Could not read the tree {}. Is it a valid newick?'.format(tree_path))
+    if columns:
+        for n in tree.traverse():
+            for c in columns:
+                vs = set(getattr(n, c).split('|')) if hasattr(n, c) else set()
+                if vs:
+                    n.add_feature(c, vs)
+    return tree
 
 
 def latexify_values(ci=True):
