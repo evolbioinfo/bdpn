@@ -1,0 +1,80 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_estimate --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To run on bioevo (change shakemake activation below if you are not Anna ;) :
+# source ~/.bashrc && conda activate snakemake && module load apptainer && cd /pasteur/zeus/projets/p01/Evolbioinfo/users/azhukova/projects/bdei/simulations
+# snakemake --snakefile Snakefile_estimate --keep-going --cores 1 --use-singularity --singularity-prefix $HOME/.singularity --singularity-args "-B /pasteur" --cluster "sbatch -c {threads} -o logs/{params.name}.log -e logs/{params.name}.log --mem {params.mem} -p bioevo --qos={params.qos}  -A bioevo -J {params.name}" --jobs 300
+
+
+localrules: all
+
+os.makedirs('logs', exist_ok=True)
+
+data_dir = os.path.abspath(config.get("data", '.'))
+
+rule all:
+    input:
+        expand(os.path.join(data_dir, 'Zurich.p={p}.est_{model}'), p=[0.25], model=['bd', 'bdpn']),
+        os.path.join(data_dir, 'Zurich.cherry_test')
+
+
+rule estimate_params_p_fixed_bdpn:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(data_dir, 'Zurich.trees')
+    output:
+        est = os.path.join(data_dir, 'Zurich.p={p}.est_bdpn')
+    params:
+        mem = 2000,
+        name = 'est_p',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
+    shell:
+        """
+        bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
+        """
+
+rule estimate_params_p_fixed_bd:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(data_dir, 'Zurich.trees')
+    output:
+        est = os.path.join(data_dir, 'Zurich.p={p}.est_bd')
+    params:
+        mem = 2000,
+        name = 'est_p',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
+    shell:
+        """
+        bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
+        """
+
+
+rule cherry_test:
+    '''
+    PN-test on a given tree.
+    '''
+    input:
+        nwk = os.path.join(data_dir, 'Zurich.trees')
+    output:
+        log = os.path.join(data_dir, 'Zurich.cherry_test')
+    params:
+        mem=2000,
+        name='pn_test',
+        qos='fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
+    shell:
+        """
+        pn_test --nwk {input.nwk} --log {output.log}
+        """
+

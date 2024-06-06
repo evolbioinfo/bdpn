@@ -19,47 +19,46 @@ REPETITIONS = list(range(n))
 rule all:
     input:
         os.path.join(data_dir, 'estimates.tab'),
-        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
+        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'),
+            i=REPETITIONS, min_date=[2012], max_date=[2015])
 
 
-rule estimate_params_p_fixed:
+rule estimate_params_p_fixed_bdpn:
     '''
     Estimate parameters.
     '''
     input:
         nwk = os.path.join(data_dir, '{forest}.nwk')
     output:
-        est = os.path.join(data_dir, '{forest}.p={p}.est')
+        est = os.path.join(data_dir, '{forest}.p={p}.est_bdpn')
     params:
         mem = 2000,
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
     shell:
         """
-        # bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
         bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
         """
 
-rule estimate_params_psi_fixed:
+rule estimate_params_p_fixed_bd:
     '''
     Estimate parameters.
     '''
     input:
         nwk = os.path.join(data_dir, '{forest}.nwk')
     output:
-        est = os.path.join(data_dir, '{forest}.psi={psi}.est')
+        est = os.path.join(data_dir, '{forest}.p={p}.est_bd')
     params:
         mem = 2000,
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
     shell:
         """
-        # bdpn_infer --psi {wildcards.psi}  --nwk {input.nwk} --log {output.est} --upper_bounds 12 1 365 0.9 0.9 --lower_bounds 0.1 0.05 0.5 0.1 0.001 --ci
-        bdpn_infer --psi {wildcards.psi}  --nwk {input.nwk} --log {output.est} --ci
+        bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
         """
 
 
@@ -76,21 +75,43 @@ rule cherry_test:
         name='pn_test',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}
         """
 
 
-rule combine_estimates:
+rule combine_estimates_bdpn:
     '''
     Combine estimates.
     '''
     input:
         nwk = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.nwk'), i=REPETITIONS,
             min_date=[2012], max_date=[2015]),
-        est = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est'), i=REPETITIONS,
+        est = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est_bdpn'), i=REPETITIONS,
+            p=[0.58], min_date=[2012], max_date=[2015]),
+    output:
+        tab = os.path.join(data_dir, 'estimates_bdpn.tab'),
+    params:
+        mem = 2000,
+        name = 'estimates',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
+    shell:
+        """
+        python3 py/summary_table.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
+        """
+
+rule combine_estimates_bd:
+    '''
+    Combine estimates.
+    '''
+    input:
+        nwk = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.nwk'), i=REPETITIONS,
+            min_date=[2012], max_date=[2015]),
+        est = expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.p={p}.est_bd'), i=REPETITIONS,
             p=[0.58], min_date=[2012], max_date=[2015]),
     output:
         tab = os.path.join(data_dir, 'estimates.tab'),
@@ -99,8 +120,8 @@ rule combine_estimates:
         name = 'estimates',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.1"
     shell:
         """
-        python3 py/summary_table.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
+        python3 py/summary_table_bd.py --forests {input.nwk} --estimates {input.est} --tab {output.tab} 
         """
