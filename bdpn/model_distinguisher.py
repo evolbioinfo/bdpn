@@ -2,9 +2,6 @@ import logging
 
 import numpy as np
 import scipy
-from matplotlib import pyplot as plt
-from matplotlib.pyplot import show
-import seaborn as sns
 
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
 
@@ -120,12 +117,18 @@ def sign_test(forest):
 def cherry_diff_plot(forest, outfile=None):
     """
     Plots cherry tip time differences against cherry root times.
+    Requires matplotlib and seaborn installed.
 
     :param forest: list of trees
     :param outfile: (optional) output file where the plot should be saved.
         If not specified, the plot will be shown instead.
     :return: void
     """
+
+    from matplotlib import pyplot as plt
+    from matplotlib.pyplot import show
+    import seaborn as sns
+
     annotate_forest_with_time(forest)
 
     all_cherries = []
