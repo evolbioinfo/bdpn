@@ -40,7 +40,7 @@ rule estimate_params_p_fixed:
     params:
         mem = 2000,
         name = 'est_p_{i}',
-        qos = 'fast'
+        qos = 'normal'
     threads: 1
     singularity: "docker://evolbioinfo/bdpn:v0.1.2"
     shell:
@@ -88,7 +88,7 @@ rule estimate_params_psi_fixed:
     params:
         mem = 2000,
         name = 'est_psi_{i}',
-        qos = 'fast'
+        qos = 'normal'
     threads: 1
     singularity: "docker://evolbioinfo/bdpn:v0.1.2"
     shell:
