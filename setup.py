@@ -13,13 +13,13 @@ setup(
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    version='0.1',
+    version='0.1.1',
     description='Estimation of BDPN parameters from phylogenetic trees.',
     author='Anna Zhukova',
     author_email='anna.zhukova@pasteur.fr',
     url='https://github.com/evolbioinfo/bdpn',
     keywords=['phylogenetics', 'birth-death model', 'partner notification'],
-    install_requires=['six', 'ete3', 'numpy', 'scipy', 'wquantiles'],
+    install_requires=['six', 'ete3', 'numpy', 'scipy', 'biopython'],
     entry_points={
             'console_scripts': [
                 'bdpn_infer = bdpn.bdpn_model:main',
