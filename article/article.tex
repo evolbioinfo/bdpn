@@ -331,9 +331,9 @@ The equations~\ref{eq:Us}, \ref{eq:p}, \ref{eq:p-n}-\ref{eq:p-b} have the follow
 \scriptsize
 \begin{split}
 &\begin{cases}
-U(t) = \frac{\lambda + \psi}{2\lambda} +  \frac{c_1}{2\lambda}\Big(\frac{E_1(t) - 1}{E_1(t) + 1}\Big)\\
+U(t) = \frac{\lambda + \psi}{2\lambda} +  \frac{c_1}{2\lambda}\Big(\frac{E(t) - 1}{E(t) + 1}\Big)\\
 \\
-p^{(i)}(t) = \Big(\frac{E_2(t_i) + 1}{E_1(t) + 1}\Big)^2E_3(t, t_i) \\
+p^{(i)}(t) = \Big(\frac{E(t_i) + 1}{E(t) + 1}\Big)^2 e^{c_1 (t -t_i)} \\
 \\
 p_n^{(i)}(t) =  e^{(\lambda + \psi) (t -t_i)}\\
 \\
@@ -345,7 +345,7 @@ p_{pb}^{(i)}(t) =  \sqrt{p^{(i)}(t)p_n^{(i)}(t)} \\
 p_{pa}^{(i)}(t) =  e^{(\phi-\psi) (t -t_i)} p_{pb}^{(i)}(t) 
 \end{cases},\\
 & \textit{where } c_1 = \sqrt{(\lambda - \psi)^2 + 4 \lambda\psi\rho},\; c_2 = \frac{c_1 + \lambda - \psi}{c_1 - \lambda + \psi},\\
-& ~~~~~~~~E_1(t) = c_2 e^{c_1 (t -T)},\; E_2(t_i) = c_2 e^{c_1 (t_i -T)},\; E_3(t, t_i) = e^{c_1 (t -t_i)}\\
+& ~~~~~~~~E(t) = c_2 e^{c_1 (t -T)} \\
 \end{split}\label{eq:ps}
 \end{equation}
 
@@ -398,8 +398,8 @@ $p_{m(s1,s2)}^{(i)}(t,t_r)$ combines three elements: the probability of the top 
 p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t)U_p(t_h,t_r)p_{bottom=s2}^{(i)}(t_h)\textit{\color{gray},}\\
 &\textit{\color{gray}where $t_h$ is the time of the hidden partner subtree start,}\\
 &\textit{\color{gray}~~~~~~~~$t_r$ is the first notification time of the hidden partner.}\\
-\end{split}
-\end{equation}\label{eq:mixed}
+\end{split}\label{eq:p_mixed}
+\end{equation}
 
 
 Note that since the branch contains a hidden partner, this partner must have at least one notifier (who is observed as all the notifiers). If the branch is external, the notifier could correspond to its tip: For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b)). If the branch is external, the notifier could only correspond to a tip in its node's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c)). 
@@ -424,8 +424,8 @@ For the bottom branch part:
 \begin{equation}
 p_{bottom=s2}^{(i)}(t_h) = 
 \begin{cases}
-p_n^{(i)}(t)&\textit{\color{gray} if $i$ is a notifier tip ($s2=n$),}\\
-p^{(i)}(t)&\textit{\color{gray} otherwise ($s2=-$, the standard state)}\\
+p_n^{(i)}(t_h)&\textit{\color{gray} if $i$ is a notifier tip ($s2=n$),}\\
+p^{(i)}(t_h)&\textit{\color{gray} otherwise ($s2=-$, the standard state)}\\
 \end{cases}
 \end{equation}
 
@@ -441,15 +441,15 @@ We will treat the case when the branch is in the partner state ($s1=p$) in a sim
 p_{top=p}^{(h)}(t, t_r) &\approx 
 \begin{cases}
 \frac{p_{pb}^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}&\textit{\color{gray} if $t_h \leq t_r$}\\
-p_{pb}^{(r)}(t)\frac{p_{pa}^{(h)}(t_r) -e^{-(\lambda + \psi)(t_{h} - t_r)}}{U(t_{h})}&\textit{\color{gray} if $t \leq t_r \leq t_h$}\\
-\frac{p_{pa}^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}}{U(t_{h})}&\textit{\color{gray} if $t > t_r$}\\
+p_{pb}^{(r)}(t)\frac{p_{pa}^{(h)}(t_r) -e^{-(\lambda + \phi)(t_{h} - t_r)}}{U(t_{h})}&\textit{\color{gray} if $t \leq t_r \leq t_h$}\\
+\frac{p_{pa}^{(h)}(t) -e^{-(\lambda + \phi)(t_{h} - t)}}{U(t_{h})}&\textit{\color{gray} if $t > t_r$}\\
 \end{cases}\\
 &\textit{\color{gray}where $t_r$ is the first notification time of the hidden partner.}\\
 \end{split}
 \end{equation}
 
 
-Note that we wrote down equation~(\ref{eq:mixed}) as if the start of the hidden partner tree $t_h$ was known. In practice, it is not the case as we need to integrate over all the possible times between the branch start $t_{parent(i)}$ and its end $t_i)$. To simplify the calculations, we will take the time in the middle of this interval instead: 
+Note that we wrote down equation~(\ref{eq:p_mixed}) as if the start of the hidden partner tree $t_h$ was known. In practice, it is not the case as we need to integrate over all the possible times between the branch start $t_{parent(i)}$ and its end $t_i)$. To simplify the calculations, we will take the time in the middle of this interval instead: 
 
 \begin{equation}
 t_h \approx t + \frac{t_i - t}{2}
@@ -459,15 +459,11 @@ t_h \approx t + \frac{t_i - t}{2}
 Finally, we will treat the mixed case with two hidden partners using similar principals:
 \begin{equation}
 \begin{split}
-p_{m(o,-,n)}^{(i)}(t,t_r) &\approx \Big(p_{o}^{(h1)}(t) -e^{-(\lambda + \psi)(t_{h1} - t)}\Big)\frac{U_p(t_{h1},t_{r})}{U(t_{h1})}\cdot
-\\
-&~~~~\Big(p^{(h2)}(t_{h1}) -e^{-(\lambda + \psi)(t_{h2} - t_{h1})}\Big)\frac{U_p(t_{h2},t_{i})}{U(t_{h2})}\cdot
-\\
-&~~~~~p_n^{(i)}(t_{h2})\textit{\color{gray},}\\
-&\textit{\color{gray}where $t_{h1} \approx t + \frac{1}{3}\Big(min(t_{r}, t_i) - t\Big)$,}\\
-&\textit{\color{gray}~~~~~~~~$t_{h2} \approx t + \frac{2}{3}\Big(min(t_{r}, t_i) - t\Big)$,}\\
-&\textit{\color{gray}~~~~~~~~$t_{r}$ is the earliest notification time of the }\\
-&\textit{\color{gray}~~~~~~~~~~~~hidden partner at the top of the branch (o,-).}\\
+p_{m(p,-,n)}^{(i)}(t,t_r) &\approx p_{top=p}^{(h1)}(t, t_r)U_p(t_{h1},t_{r}) p_{top=-}^{(h2)}(t_{h1}, t_i)U_p(t_{h2},t_{i}) p_n^{(i)}(t_{h2})\textit{\color{gray},}\\
+&\textit{\color{gray}where $t_{h1} \approx t + \frac{1}{3}(t_i - t)$,}\\
+&\textit{\color{gray}~~~~~~~~$t_{h2} \approx t + \frac{2}{3}(t_i - t)$,}\\
+&\textit{\color{gray}~~~~~~~~$t_{r}$ is the earliest notification time of the partner }\\
+&\textit{\color{gray}~~~~~~~~~~~~~~~~~~hidden at the top of the branch.}\\
 \end{split}\label{eq:p_mixed_mixed}
 \end{equation}
 
@@ -500,48 +496,62 @@ l^{(\not{n},n)}(i) &= p_n^{(i)}(t_j)\psi\rho
 &~~\\
 \\
 l^{(n,\not{n})}(i,r) &= \begin{cases}
-0 \textit{\color{gray} ~if $t_r < t_j$}\\
-\textit{\color{gray} (not possible as once notified partners do not transmit)}
+%0 \textit{\color{gray} ~if $t_r < t_j$}\\
+%\textit{\color{gray} (not possible as once notified partners do not transmit)}
+%\\
+%\\
+p_{pa}^{(i)}(t_j)\phi(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r < t_j$ and did not notify}\\
+\textit{\color{gray} (notified partner branch evolution followed by notification-provoked sampling and no notification)}
+\\
+~~~+p_{m(pa,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r < t_j$, }\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
+ \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
+ ~~~+p_{m(pa,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
+\\
+~~~+p_{m(pa,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r < t_j$, }\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
 \\
 \\
 p_{pb}^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and did not notify}\\
-\textit{\color{gray} (oriented (partner) branch evolution followed by standard sampling and no notification)}
+\textit{\color{gray} (partner-before-notification branch evolution followed by standard sampling and no notification)}
 \\
-~~~+p_{m(o,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
+~~~+p_{m(pb,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
- \textit{\color{gray} ~~~(mixed oriented-standard branch evolution followed by sampling and no notification)}\\
- ~~~+p_{m(o,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
- \textit{\color{gray} ~~~(mixed oriented-notifier branch evolution followed by sampling and notification)}
+ \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
+ ~~~+p_{m(pb,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
+~~~+p_{m(pb,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
- \textit{\color{gray} ~~~(mixed oriented-standard-notifier branch evolution followed by sampling and notification)}
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
 \\
 \\
 p_{pb}^{(r)}(t_j) p_{pa}^{(i)}(t_r) \phi (1-\upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and did not notify}\\
-\textit{\color{gray} (oriented (partner) branch evolution followed by} \\
+\textit{\color{gray} (partner-before-notification branch evolution followed by} \\
 \textit{\color{gray}~notified partner branch evolution, notification-provoked sampling and no notification)}
 \\
-~~~+p_{m(o,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
+~~~+p_{m(p,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
- \textit{\color{gray} ~~~(mixed oriented-standard branch evolution followed by sampling and no notification)}\\
- ~~~+p_{m(o,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
- \textit{\color{gray} ~~~(mixed oriented-notifier branch evolution followed by sampling and notification)}
+ \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
+ ~~~+p_{m(p,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(o,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
+~~~+p_{m(p,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
- \textit{\color{gray} ~~~(mixed oriented-standard-notifier branch evolution followed by sampling and notification)}
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
 \end{cases}\\
 \\
-l^{(n,n)}(i,r) &= \begin{cases}0 \textit{\color{gray} ~if $t_r < t_j$}\\
-\textit{\color{gray} (not possible as once notified partners do not transmit)}\\
+l^{(n,n)}(i,r) &= \begin{cases}
+p_b^{(i)}(t_j)\phi\upsilon \textit{\color{gray} ~if $i$ got notified at time $t_r < t_j$ and notified their most recent patner}\\
+\textit{\color{gray} (notified notifier branch evolution followed by notification-provoked sampling and  notification)}\\
 \\
 p_n^{(i)}(t_j)\psi\rho\upsilon \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and notified their most recent patner}\\
 \textit{\color{gray} (notifier branch evolution followed by standard sampling and  notification)}\\
 \\
-p_n^{(r)}(t_j) p_{pa}^{(i)}(t_r) \phi \upsilon \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and notified}\\
-\textit{\color{gray} (notifier branch evolution followed by} \\
-\textit{\color{gray}~notified partner branch evolution,} \\
+p_n^{(r)}(t_j) p_b^{(i)}(t_r) \phi \upsilon \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and notified}\\
+\textit{\color{gray} (notifier branch evolution followed by notified notifier branch evolution,} \\
 \textit{\color{gray}~notification-provoked sampling and notification)}\\
 \end{cases}\\
 \end{array}
@@ -596,18 +606,30 @@ l^{(\not{n})}(i) = p^{(i)}(t_j) 2\lambda \cdot
 \subsubsection*{Case 2.2: $i$'s branch is internal and (at least initially) corresponds to an (eventually notified) partner} 
 
 In the other case the internal node $i$'s branch starts as a partner who will eventually get notified by a tip $r$.
-There are two possibilities: either the node $i$ corresponds to the partner or the partner is hidden along the $i$'s branch and $i$ corresponds to someone within $i$'s recipient subtree (e.g., if $i=C$ in Fig.~\ref{fig:pn-branches}(2a)). In the first case, the $i$'s branch evolution is represented by $p_{pb}^{(i)}(t_j)$ with a transmission event at the end of it, where the donor is known (probability density of $\lambda$): The donor corresponds to the subtree containing the tip representing the sampling of the individual $i$.
+There are two possibilities: either the node $i$ corresponds to the partner or the partner is hidden along the $i$'s branch and $i$ corresponds to someone within $i$'s recipient subtree (e.g., if $i=C$ in Fig.~\ref{fig:pn-branches}(2a)). In the first case, the $i$'s branch evolution is represented by the partner branch evolution $p_{p}^{(i)}(t_j, t_r)$:
 
-In the second case, the $i$'s branch evolution is represented by $p_{m(o,-)}^{(i)}(t_j,t_r)$ with a transmission event at the end of it, where the donor is unknown (probability density of $2\lambda$): any of the subtrees can be the donor.
- %Moreover, this recipient's branch cannot be notified by our partner (as in our model notified partners do not notify further):
-Again, we will consider three possibilities for $i$'s child nodes: (2.2.1) when both $i_0$ and $i_1$ are internal nodes; (2.2.2) when both $i_0$ and $i_1$ are tips; and (2.2.3) when one of them is an internal node and the other one is a tip.
-
-In any of these scenarios, the notification must have happened after the partner tip branch start (as one of the model assumptions is that partners do not transmit after notification). Hence:
 \begin{equation}
 \scriptsize
-l^{(n)}(i, r) = 0 \textit{\color{gray}~if $t_i > t_r$} \\
-\label{eq:lp-zero}
+p_{p}^{(i)}(t_j, t_r) =
+\begin{cases}
+p_{pa}^{(i)}(t_j) &\textit{\color{gray} if $t_r < t_j$,}\\
+p_{pb}^{(i)}(t_j) &\textit{\color{gray} if $t_r > t_i$,}\\
+p_{pb}^{(r)}(t_j)p_{pa}^{(i)}(t_r) &\textit{\color{gray} if $t_j \leq t_r \leq t_i$.}\\
+\end{cases}\label{eq:p-p}
 \end{equation}
+This branch has a transmission event at the end of it, where the donor is known (probability density of $\lambda$): The donor corresponds to the subtree containing the tip representing the sampling of the individual $i$.
+
+In the second case, the $i$'s branch evolution is represented by $p_{m(p,-)}^{(i)}(t_j,t_r)$ with a transmission event at the end of it, where the donor is unknown (probability density of $2\lambda$): any of the subtrees can be the donor.
+ %Moreover, this recipient's branch cannot be notified by our partner (as in our model notified partners do not notify further):
+ 
+Again, we will consider three possibilities for $i$'s child nodes: (2.2.1) when both $i_0$ and $i_1$ are internal nodes; (2.2.2) when both $i_0$ and $i_1$ are tips; and (2.2.3) when one of them is an internal node and the other one is a tip.
+
+%In any of these scenarios, the notification must have happened after the partner tip branch start (as one of the model assumptions is that partners do not transmit after notification). Hence:
+%\begin{equation}
+%\scriptsize
+%l^{(n)}(i, r) = 0 \textit{\color{gray}~if $t_i > t_r$} \\
+%\label{eq:lp-zero}
+%\end{equation}
 
 \subsubsection*{Case 2.2.1: $i$'s branch is internal and (at least initially) corresponds to a partner with internal-node children $i0$ and $i1$} 
 
@@ -616,10 +638,10 @@ First, let's assume that $i_0$ and $i_1$ are internal. Then none of them can be 
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{p}^{(i)}(t_j, t_r) \lambda \cdot
 \Big(~l^{(n)}(i_0,r)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ $i_0$ is notified by $r$} \\
-& ~~~~~~~~~~~~~~~+ l^{(\not{n})}(i_0)l^{(n)}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $i_1$ is notified by $r$} \\
-& + p_{m(o,-)}^{(i)}(t_j,t_r) 2 \lambda l^{(\not{n})}(i_0)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ hidden partner}\\
+& ~~~~~~~~~~~~~~~~~~~+ l^{(\not{n})}(i_0)l^{(n)}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $i_1$ is notified by $r$} \\
+& + p_{m(p,-)}^{(i)}(t_j,t_r) 2 \lambda l^{(\not{n})}(i_0)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ hidden partner}\\
  \end{split}
 \label{eq:lp-int-int}
 \end{equation}
@@ -631,17 +653,17 @@ Secondly, let's assume that $i_0$ and $i_1$ are tips. Then each of them could ha
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{p}^{(i)}(t_j,t_r) \lambda \cdot
 \Big(~l^{(n,\not{n})}(i_0,first(r,i_1))l^{(\not{n},n)}(i_1) \textit{\color{gray}~$\leftarrow$ $r$ and $i_1$ notified $i_0$, $i_0$ did not notify} \\
-&~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0,first(r,i_1))l^{(n,n)}(i_1, i_0) \textit{\color{gray}~$\leftarrow$ $r$ and $i_1$ notified $i_0$, $i_0$ notified $i_1$} \\
-&~~~~~~~~~~~~~~~+l^{(\not{n},n)}(i_0)l^{(n,\not{n})}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ $r$ and $i_0$ notified $i_1$, $i_1$ did not notify} \\
-&~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0, i_1)l^{(n,n)}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ $r$ and $i_0$ notified $i_1$, $i_1$ notified $i_0$} \\
-&~~~~~~~~~~~~~~~+l^{(n,n)}(i_0,r)l^{(n,\not{n})}(i_1, i_0) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$ notified $i_1$, $i_1$ did not notify} \\
-&~~~~~~~~~~~~~~~+ l^{(n,\not{n})}(i_0, i_1)l^{(n,n)}(i_1,r) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_1$ notified $i_0$, $i_0$ did not notify} \\
-&~~~~~~~~~~~~~~~+l^{(n,\not{n})}(i_0,r)l^{(\not{n},\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$ and $i_1$ did not notify} \\
-&~~~~~~~~~~~~~~~+ l^{(\not{n},\not{n})}(i_0)l^{(n,\not{n})}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_0$ and $i_1$ did not notify} 
+&~~~~~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0,first(r,i_1))l^{(n,n)}(i_1, i_0) \textit{\color{gray}~$\leftarrow$ $r$ and $i_1$ notified $i_0$, $i_0$ notified $i_1$} \\
+&~~~~~~~~~~~~~~~~~~~+l^{(\not{n},n)}(i_0)l^{(n,\not{n})}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ $r$ and $i_0$ notified $i_1$, $i_1$ did not notify} \\
+&~~~~~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0, i_1)l^{(n,n)}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ $r$ and $i_0$ notified $i_1$, $i_1$ notified $i_0$} \\
+&~~~~~~~~~~~~~~~~~~~+l^{(n,n)}(i_0,r)l^{(n,\not{n})}(i_1, i_0) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$ notified $i_1$, $i_1$ did not notify} \\
+&~~~~~~~~~~~~~~~~~~~+ l^{(n,\not{n})}(i_0, i_1)l^{(n,n)}(i_1,r) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_1$ notified $i_0$, $i_0$ did not notify} \\
+&~~~~~~~~~~~~~~~~~~~+l^{(n,\not{n})}(i_0,r)l^{(\not{n},\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$ and $i_1$ did not notify} \\
+&~~~~~~~~~~~~~~~~~~~+ l^{(\not{n},\not{n})}(i_0)l^{(n,\not{n})}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_0$ and $i_1$ did not notify} 
 \\
-&+ p_{m(o,-)}^{(i)}(t_j,t_r) 2 \lambda \cdot
+&+ p_{m(p,-)}^{(i)}(t_j,t_r) 2 \lambda \cdot
 \Big(~l^{(n,\not{n})}(i_0,i_1)l^{(\not{n},n)}(i_1) \textit{\color{gray}~$\leftarrow$ $r$ notified a hidden partner,} \\
 &\textit{\color{gray}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i_1$ notified $i_0$, $i_0$ did not notify} \\
 &~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+ l^{(n,n)}(i_0,i_1)l^{(n,n)}(i_1, i_0)\textit{\color{gray}~$\leftarrow$ $r$ notified a hidden partner,} \\
@@ -668,13 +690,13 @@ Lastly, let's assume that $i_0$ is a tip and $i_1$ is internal (the scenario whe
 \begin{equation}
 \scriptsize
 \begin{split}
-l^{(n)}(i, r) = &p_{pb}^{(i)}(t_j) \lambda \cdot
+l^{(n)}(i, r) = &p_{p}^{(i)}(t_j,t_r) \lambda \cdot
 \Big(~l^{(n,n)}(i_0,r)l^{(n)}(i_1,i_0) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_0$, $i_0$  notified $i_1$} \\
-&~~~~~~~~~~~~~~~+ l^{(n,\not{n})}(i_0,r)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$  $r$ notified $i_0$, $i_0$ did not notify} \\
-&~~~~~~~~~~~~~~~+l^{(\not{n}, n)}(i_0)l^{(n)}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ both $r$ and $i_0$ notified $i_1$} \\
-&~~~~~~~~~~~~~~~+ l^{(\not{n},\not{n})}(i_0)l^{(n)}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_0$ did not notify} 
+&~~~~~~~~~~~~~~~~~~~+ l^{(n,\not{n})}(i_0,r)l^{(\not{n})}(i_1) \textit{\color{gray}~$\leftarrow$  $r$ notified $i_0$, $i_0$ did not notify} \\
+&~~~~~~~~~~~~~~~~~~~+l^{(\not{n}, n)}(i_0)l^{(n)}(i_1,first(r,i_0)) \textit{\color{gray}~$\leftarrow$ both $r$ and $i_0$ notified $i_1$} \\
+&~~~~~~~~~~~~~~~~~~~+ l^{(\not{n},\not{n})}(i_0)l^{(n)}(i_1,r)~\Big) \textit{\color{gray}~$\leftarrow$ $r$ notified $i_1$, $i_0$ did not notify} 
 \\
-&+ p_{m(o,-)}^{(i)}(t_j,t_r) 2\lambda \cdot
+&+ p_{m(p,-)}^{(i)}(t_j,t_r) 2\lambda \cdot
 \Big(~l^{(\not{n},n)}(i_0)l^{(n)}(i_1,i_0) \textit{\color{gray}~$\leftarrow$ $r$ notified a hidden partner,} \\
 &\textit{\color{gray}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i_0$ notified $i_1$} \\
 &~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+ l^{(\not{n},\not{n})}(i_0)l^{(\not{n})}(i_1)~\Big) \textit{\color{gray}~$\leftarrow$ $r$ notified a hidden partner,} \\
@@ -688,8 +710,8 @@ b \textit{~if $t_a > t_b$.}
 \label{eq:lp-tip-int}
 \end{equation}
 
-
-Note that $l^{(n)}(i, r)$ and $p_{m(o,-)}^{(i)}(t_j,t_r)$ depends on the notifier $r$ and can only be calculated once the notification time $t_r$ is known, i.e. once we have climbed to an internal node corresponding to the transmission between the notifier $r$ (corresponding to one of its children, must be a tip) and the partner (the other child). The calculation is done recursively by descending into the subtree. However, as all the unotified equation parts, $l^{(\not{n})}(i)$, only depend on the corresponding node $i$, they can be pre-calculated and reused to speed up the recursive steps.
+\bigskip 
+Note that $l^{(n)}(i, r)$, $l^{(n,n)}(i, r)$ and $l^{(n,\not{n})}(i, r)$ depends on the notifier $r$ and can only be calculated once the notification time $t_r$ is known, i.e. once we have climbed to an internal node corresponding to the transmission between the notifier $r$ (corresponding to one of its children, must be a tip) and the partner (the other child). The calculation is done recursively by descending into the subtree. The tree likelihood calculation hence can take $O(n^2)$ steps in the worst case (ladder tree), where $n$ is the number of tips in the tree. However, as all the unotified equation parts ($l^{(\not{n})}(i)$, $l^{(\not{n},n)}(i)$ and $l^{(\not{n},\not{n})}(i)$) only depend on the corresponding node $i$, they can be pre-calculated and reused to speed up the recursive steps.
 
 
 

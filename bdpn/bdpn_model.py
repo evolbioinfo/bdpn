@@ -2,11 +2,10 @@ import os
 from multiprocessing.pool import ThreadPool
 
 import numpy as np
-import pandas as pd
 
 from bdpn import bd_model
-from bdpn.formulas import get_log_p, get_c1, get_c2, get_E2, get_E1, get_log_po, get_log_pn, get_log_po_from_p_pn, \
-    get_u, get_log_pp, get_log_no_event
+from bdpn.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
+    get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb
 from bdpn.parameter_estimator import optimize_likelihood_params, rescale_log
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
 
@@ -40,11 +39,14 @@ def log_subtraction(log_minuend, log_subtrahend):
     :param log_subtrahend: logX2 in the formula above
     :return: log of the difference
     """
+    # print(log_subtrahend, log_minuend)
+    # assert (log_subtrahend < log_minuend)
     result = np.array([log_minuend, log_subtrahend], dtype=np.float64)
     factors = rescale_log(result)
     return np.log(np.sum(np.exp(result) * [1, -1])) - factors
 
-def log_u_p(t, tr, T, la, psi, rho, phi, c1, E1, E2_tr):
+
+def log_u_p(t, tr, T, la, psi, rho, phi, c1, c2, E_t, E_tr):
     """
     Calculates a log probability of a partner subtree evolving between the time t and T unobserved,
     provided the first partner notification happened at time tr.
@@ -56,70 +58,53 @@ def log_u_p(t, tr, T, la, psi, rho, phi, c1, E1, E2_tr):
     :param t: start time of the hidden partner subtree evolution
     :param tr: moment of the earliest partner notification
     :param T: end of sampling time
-    :param E1: E1 = c2 * exp(c1 * (t - T)), where c2 = (c1 + la - psi) / (c1 - la + psi)
-    :param E2_tr: E2_tr = c2 * exp(c1 * (tr - T))
+    :param E_t: E_t = c2 * exp(c1 * (t - T)), where c2 = (c1 + la - psi) / (c1 - la + psi)
+    :param E_tr: E_tr = c2 * exp(c1 * (tr - T))
     :return: log of the hidden partner subtree probability (approximation)
     """
-    branch_len = tr - t
+    E_T = get_E(c1, c2, T, T)
+    if tr > t:
+        branch_len = tr - t
 
-    # Oriented (partner) branch evolution from t till the moment of notification (tr)
-    log_po = get_log_po(la=la, psi=psi, c1=c1, t=t, ti=tr,
-                        E1=E1, E2=E2_tr)
-    # Hidden partner branch not yet sampled between the notification and T:
-    # oriented branch between t and tr, then notified-partner branch evolution with no event
-    log_hidden_partner_not_sampled = log_po + get_log_pp(phi, tr, T)
+        # Partner branch evolution from t till the moment of notification (tr)
+        log_ppb = get_log_ppb(la=la, psi=psi, c1=c1, t=t, ti=tr, E_t=E_t, E_ti=E_tr)
+        # Notified-partner branch evolution after tr
+        log_ppa = get_log_ppa(la, psi, phi, c1, tr, T, E_t=E_tr, E_ti=E_T)
+        log_hidden_partner_not_sampled = log_ppb + log_ppa
 
-    # Hidden partner branch removed before the notification:
-    # divide the oriented branch evolution
-    # by no-removal-event-along-the-branch probability (e^{-psi * half_branch_len})
-    # and multiply by the removal-event-along-the-branch probability (1 - e^{-psi * half_branch_len})
-    # with no sampling, in a log form
-    log_hidden_partner_sampled_before = log_po \
-                                        + psi * branch_len + np.log(1 - np.exp(-psi * branch_len)) \
-                                        + np.log(1 - rho)
+        # Hidden partner branch removed before the notification:
+        # divide the oriented branch evolution
+        # by no-removal-event-along-the-branch probability (e^{-psi * branch_len})
+        # and multiply by the removal-event-along-the-branch probability (1 - e^{-psi * branch_len})
+        # with no sampling, in a log form
+        log_hidden_partner_sampled_before = log_ppb \
+                                            + psi * branch_len + np.log(1 - np.exp(-psi * branch_len)) \
+                                            + np.log(1 - rho)
 
-    return log_sum([log_hidden_partner_not_sampled, log_hidden_partner_sampled_before])
+        return log_sum([log_hidden_partner_not_sampled, log_hidden_partner_sampled_before])
+    else:
+        return get_log_ppa(la, psi, phi, c1, t, T, E_t=E_t, E_ti=E_T)
 
 
-def log_observed_partner_non_partner_branch(node, tr, T, la, psi, rho, phi, c1, c2):
-    """
-    Log probability of the case where the node's branch corresponds to a partner
-    who transmitted to someone else before notification,
-    then the partner stayed unobserved
-    (either because they got removed before notification (without sampling),
-    or haven't yet got removed after notification (before T)),
-    while the someone else (or someone in their subtree) got sampled.
-    Therefore, we model a transmission from a hidden partner along the node's branch.
+def get_log_pp(la, psi, phi, c1, c2, tr, T, node=None, tj=None, ti=None):
+    if ti is None:
+        ti = getattr(node, TIME)
+    if tj is None:
+        tj = ti - node.dist
 
-    :param node: the node, who's branch corresponds to the situation described above
-    :param tr: notification time
-    :param T: time of the end of the sampling period
-    :return: log probability of the node's branch + subtree under this case
-    """
-    ti = getattr(node, TIME)
-    tj = ti - node.dist
-
-    # The case where notification happened before the branch start is impossible
-    # as partners do not transmit once notified
+    E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
+    E_ti = get_E(c1, c2, ti, T)
     if tr < tj:
-        return -np.inf
+        return getattr(node, 'log_ppa') if node is not None \
+            else get_log_ppa(la, psi, phi, c1, t=tj, ti=ti, E_t=E_tj, E_ti=E_ti)
+    if tr > ti:
+        return getattr(node, 'log_ppb') if node is not None \
+            else get_log_ppb(la, psi, c1, t=tj, ti=ti, E_t=E_tj, E_ti=E_ti)
 
-    # Let's assume the partner-to-someone-else transmission happened at the middle of the node's branch
-    # (unless the notification happened before)
-    observed_partner_branch_len = min((ti - tj) / 2, (tr - tj) * 0.99)
-    hidden_transmission_moment = tj + observed_partner_branch_len
+    E_tr = get_E(c1, c2, tr, T)
+    return get_log_ppb(la, psi, c1, t=tj, ti=tr, E_t=E_tj, E_ti=E_tr) \
+        + get_log_ppa(la, psi, phi, c1, t=tr, ti=ti, E_t=E_tr, E_ti=E_ti)
 
-    # no removal, but at least one transmission along the oriented branch
-    log_observed_partner_branch = log_subtraction(get_log_po(la, psi, c1, t=tj, ti=hidden_transmission_moment,
-                                                             E1=get_E1(c1=c1, c2=c2, t=tj, T=T),
-                                                             E2=get_E2(c1=c1, c2=c2, ti=hidden_transmission_moment, T=T)),
-                                                  get_log_no_event(la + psi, tj, hidden_transmission_moment))
-    log_hidden_pb = log_u_p(hidden_transmission_moment, tr, T, la, psi, rho, phi, c1, c2)
-    log_someone_else_branch = getattr(node, 'lx' if not node.is_leaf() else 'lxx') - getattr(node, 'logp') \
-                              + get_log_p(c1=c1, t=hidden_transmission_moment, ti=ti,
-                                          E1=get_E1(c1=c1, c2=c2, t=hidden_transmission_moment, T=T),
-                                          E2=get_E2(c1=c1, c2=c2, ti=ti, T=T))
-    return log_observed_partner_branch + log_someone_else_branch + log_hidden_pb
 
 def log_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2, s1, s2):
     """
@@ -128,37 +113,46 @@ def log_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2, s1, s2):
     :param node: the node, who's branch corresponds to the situation described above
     :param tr: hidden partner notification time
     :param T: time of the end of the sampling period
-    :param s1: state for the beginning of the branch (can be 'o' (oriented partner branch) or '-' (standard branch))
+    :param s1: state for the beginning of the branch (can be 'o' (oriented partner branch) or '-' (standard branch) or 'p' (notified partner))
     :param s2: state for the end of the branch (can be 'n' (notifier branch) or '-' (standard branch))
     :return: log probability of the node's branch in this case
     """
     ti = getattr(node, TIME)
     tj = ti - node.dist
+    if s1 == 'p':
+        if s2 == 'n':
+            if tr < tj:
+                return getattr(node, 'log_pa-n')
+            if tr > ti:
+                return getattr(node, 'log_pb-n')
+        elif s2 == '-' and tr < tj:
+            return getattr(node, 'log_pa--')
+    elif s1 == '-' and s2 == 'n':
+        return getattr(node, 'log_--n')
 
-    # The case where notification happened before the branch start is impossible
-    # as partners do not transmit once notified
-    if tr < tj:
-        return -np.inf
+    th = tj + (ti - tj) / 2
 
-    th = tj + (min(tr, ti) - tj) / 2
+    def get_mixed_top(node):
+        E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
+        E_th = get_E(c1, c2, th, T)
+        E_tr = get_E(c1, c2, tr, T)
+        return get_log_ppb(la, psi, c1, t=tj, ti=tr, E_t=E_tj, E_ti=E_tr) \
+            + log_subtraction(get_log_ppa(la, psi, phi, c1, t=tr, ti=th, E_t=E_tr, E_ti=E_th),
+                              get_log_no_event(la + phi, tr, th)) \
+            - getattr(node, 'log_u_th')
 
-    log_no_event = get_log_no_event(la + psi, tj, th)
-    E1_tj = get_E1(c1=c1, c2=c2, t=tj, T=T)
-    E1_th = get_E1(c1=c1, c2=c2, t=th, T=T)
-    E2_th = get_E2(c1=c1, c2=c2, ti=th, T=T)
-    E2_ti = get_E2(c1=c1, c2=c2, ti=ti, T=T)
-    log_any_events_top = get_log_po(la, psi, c1, t=tj, ti=th, E1=E1_tj, E2=E2_th) if s1 == 'o' \
-        else get_log_p(c1, t=tj, ti=th, E1=E1_tj, E2=E2_th)
-    log_U = np.log(get_u(la, psi, c1, E1_th))
-    log_Up = log_u_p(th, tr, T, la, psi, rho, phi, c1, E1_th, E2_ti)
-    log_any_events_bottom = get_log_pn(la, psi, t=th, ti=ti) if s2 == 'n' \
-        else get_log_p(c1, t=th, ti=ti, E1=E1_th, E2=E2_ti)
-    return log_subtraction(log_any_events_top, log_no_event) + (log_Up - log_U) + log_any_events_bottom
+    log_one_transmission_top = getattr(node, 'log_top_-') if s1 == '-' \
+        else (getattr(node, 'log_top_pa') if tr < tj
+              else (getattr(node, 'log_top_pb') if tr > th else get_mixed_top(node)))
+    log_Up = log_u_p(th, tr, T, la, psi, rho, phi, c1, c2,
+                     E_t=get_E(c1=c1, c2=c2, t=th, T=T), E_tr=get_E(c1, c2, tr, T))
+    log_any_events_bottom = getattr(node, 'log_bottom_n' if s2 == 'n' else 'log_bottom_-')
+    return log_one_transmission_top + log_Up + log_any_events_bottom
 
 
 def log_double_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2):
     """
-    Log probability of branch containing two hidden partners (o,-,n).
+    Log probability of branch containing two hidden partners (p,-,n).
 
     :param node: the node, who's branch corresponds to the situation described above
     :param tr: top hidden partner notification time
@@ -168,35 +162,25 @@ def log_double_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2):
     ti = getattr(node, TIME)
     tj = ti - node.dist
 
-    # The case where notification happened before the branch start is impossible
-    # as partners do not transmit once notified;
-    # Also the case where node is not a tip is impossible, as only tips can be notifiers
-    if tr < tj or not node.is_leaf():
-        return -np.inf
+    th1 = tj + (ti - tj) / 3
 
-    branch_len_with_hidden_partners = (min(tr, ti) - tj)
-    th1 = tj + branch_len_with_hidden_partners / 3
-    th2 = tj + 2 / 3 * branch_len_with_hidden_partners
+    if tr < tj:
+        return getattr(node, 'log_pa---n')
 
-    log_no_event_top = get_log_no_event(la + psi, tj, th1)
-    log_no_event_mid = get_log_no_event(la + psi, th1, th2)
-    E1_tj = get_E1(c1=c1, c2=c2, t=tj, T=T)
-    E1_th1 = get_E1(c1=c1, c2=c2, t=th1, T=T)
-    E1_th2 = get_E1(c1=c1, c2=c2, t=th2, T=T)
-    E2_th1 = get_E2(c1=c1, c2=c2, ti=th1, T=T)
-    E2_th2 = get_E2(c1=c1, c2=c2, ti=th2, T=T)
-    E2_tr = get_E2(c1=c1, c2=c2, ti=tr, T=T)
-    E2_ti = get_E2(c1=c1, c2=c2, ti=ti, T=T)
-    log_any_events_top = get_log_po(la, psi, c1, t=tj, ti=th1, E1=E1_tj, E2=E2_th1)
-    log_any_events_mid = get_log_p(c1, t=th1, ti=th2, E1=E1_th1, E2=E2_th2)
-    log_any_events_bottom = get_log_pn(la, psi, t=th2, ti=ti)
-    log_U_top = np.log(get_u(la, psi, c1, E1_th1))
-    log_U_mid = np.log(get_u(la, psi, c1, E1_th2))
-    log_Up_top = log_u_p(th1, tr, T, la, psi, rho, phi, c1, E1_th1, E2_tr)
-    log_Up_mid = log_u_p(th2, ti, T, la, psi, rho, phi, c1, E1_th2, E2_ti)
-    return log_subtraction(log_any_events_top, log_no_event_top) + (log_Up_top - log_U_top) \
-        + log_subtraction(log_any_events_mid, log_no_event_mid) + (log_Up_mid - log_U_mid)\
-        + log_any_events_bottom
+    def get_mixed_top(node):
+        E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
+        E_th1 = get_E(c1, c2, th1, T)
+        E_tr = get_E(c1, c2, tr, T)
+        return get_log_ppb(la, psi, c1, t=tj, ti=tr, E_t=E_tj, E_ti=E_tr) \
+            + log_subtraction(get_log_ppa(la, psi, phi, c1, t=tr, ti=th1, E_t=E_tr, E_ti=E_th1),
+                              get_log_no_event(la + phi, tr, th1)) \
+            - getattr(node, 'log_u_th1')
+
+    log_one_transmission_top = getattr(node, 'log_top1_pa') if tr < tj \
+        else (getattr(node, 'log_top1_pb') if tr > th1 else get_mixed_top(node))
+    log_Up = log_u_p(th1, tr, T, la, psi, rho, phi, c1, c2,
+                     E_t=get_E(c1=c1, c2=c2, t=th1, T=T), E_tr=get_E(c1, c2, tr, T))
+    return log_one_transmission_top + log_Up + getattr(node, 'log_bottom_--n')
 
 
 def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
@@ -212,6 +196,8 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
     log_2_la = log_2 + log_la
     log_psi_rho_ups = log_psi + log_rho + log_ups
     log_psi_rho_not_ups = log_psi + log_rho + log_not_ups
+    log_phi_ups = log_phi + log_ups
+    log_phi_not_ups = log_phi + log_not_ups
 
     def process_node(node):
         """
@@ -225,28 +211,84 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
         ti = getattr(node, TIME)
         tj = ti - node.dist
 
-        E1 = get_E1(c1=c1, c2=c2, t=tj, T=T)
-        E2 = get_E2(c1=c1, c2=c2, ti=ti, T=T)
+        E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
+        E_ti = get_E(c1, c2, ti, T)
 
-        log_p = get_log_p(c1=c1, t=tj, ti=ti, E1=E1, E2=E2)
+        log_p = get_log_p(c1=c1, t=tj, ti=ti, E_t=E_tj, E_ti=E_ti)
         log_pn = get_log_pn(la=la, psi=psi, t=tj, ti=ti)
-        log_po = get_log_po_from_p_pn(log_p=log_p, log_pn=log_pn)
+        log_ppb = get_log_ppb_from_p_pn(log_p=log_p, log_pn=log_pn)
+        log_ppa = get_log_ppa_from_ppb(log_ppb=log_ppb, psi=psi, phi=phi, t=tj, ti=ti)
 
-        node.add_feature('logp', log_p)
-        node.add_feature('logpo', log_po)
+        node.add_feature('log_ppb', log_ppb)
+        node.add_feature('log_ppa', log_ppa)
+
+        th = tj + (ti - tj) / 2
+        E_th = get_E(c1, c2, th, T)
+        E_T = get_E(c1, c2, T, T)
+        log_u_th = np.log(get_u(la, psi, c1, E_th))
+        log_no_event_th = get_log_no_event(la + psi, tj, th)
+        node.add_feature('log_u_th', log_u_th)
+        log_top_ppb = log_subtraction(get_log_ppb(la, psi, c1, tj, th, E_tj, E_th), log_no_event_th) - log_u_th
+        node.add_feature('log_top_pb', log_top_ppb)
+        log_top_pa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th, E_tj, E_th),
+                                     get_log_no_event(la + phi, tj, th)) - log_u_th
+        node.add_feature('log_top_pa', log_top_pa)
+        log_top_pa_hidden_partner = \
+            getattr(node, 'log_top_pa') + get_log_ppa(la, psi, phi, c1, th, T, E_th, E_T)
+        log_top_ = log_subtraction(get_log_p(c1, tj, th, E_tj, E_th), log_no_event_th) - log_u_th
+        node.add_feature('log_top_-', log_top_)
+        log_bottom_ = get_log_p(c1, th, ti, E_th, E_ti)
+        node.add_feature('log_bottom_-', log_bottom_)
+        node.add_feature('log_pa--', log_top_pa_hidden_partner + log_bottom_)
 
         if node.is_leaf():
+            log_bottom_n = get_log_pn(la, psi, th, ti)
+            node.add_feature('log_bottom_n', log_bottom_n)
+            node.add_feature('log_pa-n', log_top_pa_hidden_partner + log_bottom_n)
+            log_u_p_ti_bottom_n = log_u_p(th, ti, T, la, psi, rho, phi, c1, c2, E_th, E_ti) + log_bottom_n
+            node.add_feature('log_pb-n', log_top_ppb + log_u_p_ti_bottom_n)
+            node.add_feature('log_--n', log_top_ + log_u_p_ti_bottom_n)
+            th1 = tj + (ti - tj) / 3
+            th2 = tj + 2 * (ti - tj) / 3
+            E_th1 = get_E(c1, c2, th1, T)
+            E_th2 = get_E(c1, c2, th2, T)
+
+            log_u_th1 = np.log(get_u(la, psi, c1, E_th1))
+            log_u_th2 = np.log(get_u(la, psi, c1, E_th2))
+            node.add_feature('log_u_th1', log_u_th1)
+            log_top1_pb = log_subtraction(get_log_ppb(la, psi, c1, tj, th1, E_tj, E_th1),
+                                          get_log_no_event(la + psi, tj, th1)) - log_u_th1
+            node.add_feature('log_top1_pb', log_top1_pb)
+            log_top1_pa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th1, E_tj, E_th1),
+                                          get_log_no_event(la + phi, tj, th1)) - log_u_th1
+            node.add_feature('log_top1_pa', log_top1_pa)
+            log_bottom__n = log_subtraction(get_log_p(c1, th1, th2, E_th1, E_th2),
+                                            get_log_no_event(la + psi, th1, th2)) - log_u_th2 \
+                            + log_u_p(th2, ti, T, la, psi, rho, phi, c1, c2, E_th2, E_ti) \
+                            + get_log_pn(la, psi, th2, ti)
+            node.add_feature('log_bottom_--n', log_bottom__n)
+            log_pa__n = log_top1_pa + get_log_ppa(la, psi, phi, c1, th, T, E_th1, E_T) + log_bottom__n
+            node.add_feature('log_pa---n', log_pa__n)
+
             node.add_feature(
                 'lxx',
                 log_sum([log_p + log_psi_rho_not_ups,
-                         log_mixed_branch(node, ti, T, la, psi, rho, phi, c1, c2, s1='-', s2='n') + log_psi_rho_ups
+                         getattr(node, 'log_--n') + log_psi_rho_ups
                          ])
             )
             node.add_feature('lxn', log_pn + log_psi_rho_ups)
             node.add_feature(
+                'lnx_early',
+                log_sum([log_ppa + log_phi_not_ups,
+                         getattr(node, 'log_pa--') + log_psi_rho_not_ups,
+                         getattr(node, 'log_pa-n') + log_psi_rho_ups,
+                         getattr(node, 'log_pa---n') + log_psi_rho_ups]))
+            node.add_feature(
                 'lnx_late',
-                log_sum([log_po + log_psi_rho_not_ups,
-                         log_mixed_branch(node, ti, T, la, psi, rho, phi, c1, c2, s1='o', s2='n') + log_psi_rho_ups]))
+                log_sum([log_ppb + log_psi_rho_not_ups,
+                         getattr(node, 'log_pb-n') + log_psi_rho_ups]))
+
+            node.add_feature('lnn_early', get_log_pb(la=la, phi=phi, t=tj, ti=ti) + log_phi_ups)
             node.add_feature('lnn_late', log_pn + log_psi_rho_ups)
             return
 
@@ -288,27 +330,19 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
         tj = ti - tip.dist
 
         if tr < tj:
-            return -np.inf, -np.inf
-
-        log_mixed_o_standard = log_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2, s1='o', s2='-') \
-                               + log_psi_rho_not_ups
-        log_mixed_o_standard_n = log_double_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2) \
-                                 + log_psi_rho_ups
+            return getattr(tip, 'lnx_early'), getattr(tip, 'lnn_early')
         if tr > ti:
             return log_sum([getattr(tip, 'lnx_late'),
-                            log_mixed_o_standard,
-                            log_mixed_o_standard_n]), \
+                            log_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2, s1='p', s2='-')
+                            + log_psi_rho_not_ups,
+                            log_double_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2) + log_psi_rho_ups]), \
                 getattr(tip, 'lnn_late')
-        else:
-            log_po = get_log_po(la=la, psi=psi, c1=c1, t=tj, ti=tr, E1=get_E1(c1=c1, c2=c2, t=tj, T=T),
-                                E2=get_E2(c1=c1, c2=c2, ti=tr, T=T))
-            log_pn = get_log_pn(la=la, psi=psi, t=tj, ti=tr)
-            log_pp = get_log_pp(phi=phi, t=tr, ti=ti)
-            return log_sum([log_po + log_pp + log_phi + log_not_ups,
-                            log_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2, s1='o', s2='n') + log_psi_rho_ups,
-                            log_mixed_o_standard,
-                            log_mixed_o_standard_n]), \
-                log_pn + log_pp + log_phi + log_ups
+
+        return log_sum([get_log_pp(la, psi, phi, c1, c2, tr, T, tip) + log_phi_not_ups,
+                        log_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2, s1='p', s2='-') + log_psi_rho_not_ups,
+                        log_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2, s1='p', s2='n') + log_psi_rho_ups,
+                        log_double_mixed_branch(tip, tr, T, la, psi, rho, phi, c1, c2) + log_psi_rho_ups]), \
+            get_log_pn(la=la, psi=psi, t=tj, ti=tr) + get_log_pb(la=la, phi=phi, t=tr, ti=ti) + log_phi_ups
 
     def get_log_ln_internal(node, notifier):
         """
@@ -318,15 +352,10 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
         :param notifier: tip node corresponding to the node's notifier
         :return: loglikelihood density
         """
-        ti = getattr(node, TIME)
         tr = getattr(notifier, TIME)
 
-        # if the partner is notified they stop transmitting, hence must be notified after ti
-        if tr < ti:
-            return -np.inf
-
-        observed_branch = getattr(node, 'logpo') + log_la
-        mixed_branch = log_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2, 'o', '-') + log_2_la
+        observed_branch = get_log_pp(la, psi, phi, c1, c2, tr, T, node=node) + log_la
+        mixed_branch = log_mixed_branch(node, tr, T, la, psi, rho, phi, c1, c2, 'p', '-') + log_2_la
 
         i0, i1 = node.children
         is_tip0, is_tip1 = i0.is_leaf(), i1.is_leaf()
@@ -349,8 +378,8 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
             log_lnx_1_by_both, log_lnn_1_by_both = (log_lnx_1_by_0, log_lnn_1_by_0) if ti0 < tr \
                 else (log_lnx_1_by_r, log_lnn_1_by_r)
 
-            log_lxn_0,  log_lxn_1 = getattr(i0, 'lxn'), getattr(i1, 'lxn')
-            log_lxx_0,  log_lxx_1 = getattr(i0, 'lxx'), getattr(i1, 'lxx')
+            log_lxn_0, log_lxn_1 = getattr(i0, 'lxn'), getattr(i1, 'lxn')
+            log_lxx_0, log_lxx_1 = getattr(i0, 'lxx'), getattr(i1, 'lxx')
             return log_sum([observed_branch + log_sum([log_lnx_0_by_both + log_lxn_1,
                                                        log_lnn_0_by_both + log_lnn_1_by_0,
                                                        log_lxn_0 + log_lnx_1_by_both,
@@ -393,7 +422,7 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
     else:
         result = sum(process_tree(tree) for tree in forest)
 
-    u = get_u(la, psi, c1, E1=get_E1(c1=c1, c2=c2, t=0, T=T))
+    u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
     result += len(forest) * u / (1 - u) * np.log(u)
     # print(la, psi, phi, rho, upsilon, '-->', result)
     return result

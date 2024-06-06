@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from bdpn.formulas import get_c1, get_c2, get_E2, get_E1, get_log_p, get_u
+from bdpn.formulas import get_c1, get_c2, get_E, get_log_p, get_u
 from bdpn.parameter_estimator import optimize_likelihood_params
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
 
@@ -68,13 +68,13 @@ def loglikelihood(forest, la, psi, rho, T=None, threads=1):
         for n in tree.traverse('preorder'):
             if not n.is_leaf():
                 t = getattr(n, TIME)
-                E1 = get_E1(c1=c1, c2=c2, t=t, T=T)
+                E1 = get_E(c1=c1, c2=c2, t=t, T=T)
                 child1, child2 = n.children
                 ti_1 = getattr(child1, TIME)
                 ti_2 = getattr(child2, TIME)
-                res += get_log_p(c1, t, ti=ti_1, E1=E1, E2=get_E2(c1=c1, c2=c2, ti=ti_1, T=T)) \
-                       + get_log_p(c1, t, ti=ti_2, E1=E1, E2=get_E2(c1=c1, c2=c2, ti=ti_2, T=T))
-    u = get_u(la, psi, c1, E1=get_E1(c1=c1, c2=c2, t=0, T=T))
+                res += get_log_p(c1, t, ti=ti_1, E_t=E1, E_ti=get_E(c1, c2, ti_1, T)) \
+                       + get_log_p(c1, t, ti=ti_2, E_t=E1, E_ti=get_E(c1, c2, ti_2, T))
+    u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
     return res + len(forest) * u / (1 - u) * np.log(u)
 
 
