@@ -191,8 +191,8 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
     c2 = get_c2(la=la, psi=psi, c1=c1)
 
     log_la, log_psi, log_phi, log_rho, log_not_rho, log_ups, log_not_ups, log_2 = \
-        np.log(la), np.log(psi), np.log(phi), np.log(rho), np.log(1 - rho), np.log(upsilon), np.log(
-            1 - upsilon), np.log(2)
+        np.log(la), np.log(psi), np.log(phi), np.log(rho), np.log(1 - rho), np.log(upsilon), \
+            np.log(1 - upsilon), np.log(2)
     log_2_la = log_2 + log_la
     log_psi_rho_ups = log_psi + log_rho + log_ups
     log_psi_rho_not_ups = log_psi + log_rho + log_not_ups
@@ -270,24 +270,15 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
             log_pa__n = log_top1_pa + get_log_ppa(la, psi, phi, c1, th, T, E_th1, E_T) + log_bottom__n
             node.add_feature('log_pa---n', log_pa__n)
 
-            node.add_feature(
-                'lxx',
-                log_sum([log_p + log_psi_rho_not_ups,
-                         getattr(node, 'log_--n') + log_psi_rho_ups
-                         ])
-            )
+            node.add_feature('lxx', log_sum([log_p + log_psi_rho_not_ups,
+                                             getattr(node, 'log_--n') + log_psi_rho_ups]))
             node.add_feature('lxn', log_pn + log_psi_rho_ups)
-            node.add_feature(
-                'lnx_early',
-                log_sum([log_ppa + log_phi_not_ups,
-                         getattr(node, 'log_pa--') + log_psi_rho_not_ups,
-                         getattr(node, 'log_pa-n') + log_psi_rho_ups,
-                         getattr(node, 'log_pa---n') + log_psi_rho_ups]))
-            node.add_feature(
-                'lnx_late',
-                log_sum([log_ppb + log_psi_rho_not_ups,
-                         getattr(node, 'log_pb-n') + log_psi_rho_ups]))
-
+            node.add_feature('lnx_early', log_sum([log_ppa + log_phi_not_ups,
+                                                   getattr(node, 'log_pa--') + log_psi_rho_not_ups,
+                                                   getattr(node, 'log_pa-n') + log_psi_rho_ups,
+                                                   getattr(node, 'log_pa---n') + log_psi_rho_ups]))
+            node.add_feature('lnx_late', log_sum([log_ppb + log_psi_rho_not_ups,
+                                                  getattr(node, 'log_pb-n') + log_psi_rho_ups]))
             node.add_feature('lnn_early', get_log_pb(la=la, phi=phi, t=tj, ti=ti) + log_phi_ups)
             node.add_feature('lnn_late', log_pn + log_psi_rho_ups)
             return
