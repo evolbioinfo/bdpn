@@ -31,7 +31,7 @@ rule estimate_params_p_fixed_bdpn:
     params:
         mem = 2000,
         name = 'est_p',
-        qos = 'fast'
+        qos = 'normal'
     threads: 1
     singularity: "docker://evolbioinfo/bdpn:v0.1.2"
     shell:
