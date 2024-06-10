@@ -492,6 +492,28 @@ def main():
     save_results(vs, cis, params.log, ci=params.ci)
 
 
+def loglikelihood_main():
+    """
+    Entry point for tree likelihood estimation with the BDPN model with command-line arguments.
+    :return: void
+    """
+    import argparse
+
+    parser = \
+        argparse.ArgumentParser(description="Calculate BDPN likelihood on a given forest for given parameter values.")
+    parser.add_argument('--la', required=True, type=float, help="transmission rate")
+    parser.add_argument('--psi', required=True, type=float, help="removal rate")
+    parser.add_argument('--rho', required=True, type=float, help='sampling probability')
+    parser.add_argument('--upsilon', required=True, type=float, help='notification probability')
+    parser.add_argument('--phi', required=True, type=float, help='partner removal rate')
+    parser.add_argument('--nwk', required=True, type=str, help="input tree file")
+    params = parser.parse_args()
+
+    forest = read_forest(params.nwk)
+    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.rho, phi=params.phi, upsilon=params.upsilon)
+    print(lk)
+
+
 def infer(forest, la=None, psi=None, phi=None, p=None, pn=None,
           lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, **kwargs):
     """

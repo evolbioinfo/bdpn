@@ -24,6 +24,8 @@ setup(
             'console_scripts': [
                 'bdpn_infer = bdpn.bdpn_model:main',
                 'bd_infer = bdpn.bd_model:main',
+                'bdpn_loglikelihood = bdpn.bdpn_model:loglikelihood_main',
+                'bd_loglikelihood = bdpn.bd_model:loglikelihood_main',
                 'pn_test = bdpn.model_distinguisher:main',
             ]
     },

@@ -163,5 +163,27 @@ def main():
     save_results(vs, cis, params.log, ci=params.ci)
 
 
+def loglikelihood_main():
+    """
+    Entry point for tree likelihood estimation with the BD model with command-line arguments.
+    :return: void
+    """
+    import argparse
+
+    parser = \
+        argparse.ArgumentParser(description="Calculate BD likelihood on a given forest for given parameter values.")
+    parser.add_argument('--la', required=True, type=float, help="transmission rate")
+    parser.add_argument('--psi', required=True, type=float, help="removal rate")
+    parser.add_argument('--rho', required=True, type=float, help='sampling probability')
+    parser.add_argument('--nwk', required=True, type=str, help="input tree file")
+    params = parser.parse_args()
+
+    forest = read_forest(params.nwk)
+    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.rho)
+    print(lk)
+
+
 if '__main__' == __name__:
     main()
+
+
