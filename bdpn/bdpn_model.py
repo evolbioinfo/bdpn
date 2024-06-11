@@ -503,14 +503,14 @@ def loglikelihood_main():
         argparse.ArgumentParser(description="Calculate BDPN likelihood on a given forest for given parameter values.")
     parser.add_argument('--la', required=True, type=float, help="transmission rate")
     parser.add_argument('--psi', required=True, type=float, help="removal rate")
-    parser.add_argument('--rho', required=True, type=float, help='sampling probability')
+    parser.add_argument('--p', required=True, type=float, help='sampling probability')
     parser.add_argument('--upsilon', required=True, type=float, help='notification probability')
     parser.add_argument('--phi', required=True, type=float, help='partner removal rate')
     parser.add_argument('--nwk', required=True, type=str, help="input tree file")
     params = parser.parse_args()
 
     forest = read_forest(params.nwk)
-    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.rho, phi=params.phi, upsilon=params.upsilon)
+    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, phi=params.phi, upsilon=params.upsilon)
     print(lk)
 
 
