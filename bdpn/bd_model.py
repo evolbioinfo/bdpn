@@ -68,12 +68,12 @@ def loglikelihood(forest, la, psi, rho, T=None, threads=1):
         for n in tree.traverse('preorder'):
             if not n.is_leaf():
                 t = getattr(n, TIME)
-                E1 = get_E(c1=c1, c2=c2, t=t, T=T)
+                E_t = get_E(c1=c1, c2=c2, t=t, T=T)
                 child1, child2 = n.children
                 ti_1 = getattr(child1, TIME)
                 ti_2 = getattr(child2, TIME)
-                res += get_log_p(c1, t, ti=ti_1, E_t=E1, E_ti=get_E(c1, c2, ti_1, T)) \
-                       + get_log_p(c1, t, ti=ti_2, E_t=E1, E_ti=get_E(c1, c2, ti_2, T))
+                res += get_log_p(c1, t, ti=ti_1, E_t=E_t, E_ti=get_E(c1, c2, ti_1, T)) \
+                       + get_log_p(c1, t, ti=ti_2, E_t=E_t, E_ti=get_E(c1, c2, ti_2, T))
     u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
     return res + len(forest) * u / (1 - u) * np.log(u)
 
