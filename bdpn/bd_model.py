@@ -14,7 +14,7 @@ DEFAULT_MAX_RATE = 1e3
 DEFAULT_LOWER_BOUNDS = [DEFAULT_MIN_RATE, DEFAULT_MIN_RATE, DEFAULT_MIN_PROB]
 DEFAULT_UPPER_BOUNDS = [DEFAULT_MAX_RATE, DEFAULT_MAX_RATE, DEFAULT_MAX_PROB]
 
-PARAMETER_NAMES = np.array(['la', 'psi', 'p'])
+PARAMETER_NAMES = np.array(['la', 'psi', 'rho'])
 
 
 def get_start_parameters(forest, la=None, psi=None, rho=None):
