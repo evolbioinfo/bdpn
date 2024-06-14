@@ -95,8 +95,12 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
 
     n = len(optimised_parameters)
     optimised_cis = np.zeros((n, 2))
-    optimised_cis[:, 0] = np.array(optimised_parameters)
-    optimised_cis[:, 1] = np.array(optimised_parameters)
+    bound_iterator = iter(bounds)
+    for bs_i in range(n):
+        if input_parameters[bs_i] is not None:
+            optimised_cis[bs_i, :] = input_parameters[bs_i], input_parameters[bs_i]
+        else:
+            optimised_cis[bs_i, :] = next(bound_iterator)
 
     if cis:
         print('Estimated parameters:', optimised_parameters)
@@ -120,12 +124,12 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
             return binary_search(v, v_max, get_lk, lower)
 
         def get_ci(args):
-            (i, optimised_value), (b_min, b_max) = args
+            (i, optimised_value) = args
             # print('---------')
             # print(i, optimised_value, (b_min, b_max))
 
             bs = []
-            bound_iterator = iter(bounds)
+            bound_iterator = iter(optimised_cis)
             for bs_i in range(n):
                 if input_parameters[bs_i] is not None:
                     continue
@@ -145,17 +149,8 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
                 return optimize_likelihood_params(forest, ip, loglikelihood, bounds=bs, start_parameters=rps,
                                                   cis=False, threads=threads)[-1]
 
-            # Try to narrow down the bounds a bit
-            v = max(b_min, optimised_value / 2)
-            if get_lk(v) < lk_threshold:
-                b_min = v
-
-            v = min(b_max, 1.5 * optimised_value)
-            if get_lk(v) < lk_threshold:
-                b_max = v
-
-            optimised_cis[i, 0] = binary_search(b_min, optimised_value, get_lk, True)
-            optimised_cis[i, 1] = binary_search(optimised_value, b_max, get_lk, False)
+            optimised_cis[i, 0] = binary_search(optimised_cis[i, 0], optimised_value, get_lk, True)
+            optimised_cis[i, 1] = binary_search(optimised_value, optimised_cis[i, 1], get_lk, False)
             # print(i, optimised_cis[i, :])
             # print('---------')
 
@@ -165,8 +160,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
         #                  iterable=zip(((i, v) for (i, v) in enumerate(optimised_parameters)
         #                                if input_parameters[i] is not None), bounds), chunksize=1)
         # else:
-        for _ in zip(((i, v) for (i, v) in enumerate(optimised_parameters) if input_parameters[i] is None),
-                     bounds):
+        for _ in ((i, v) for (i, v) in enumerate(optimised_parameters) if input_parameters[i] is None):
             get_ci(_)
 
     return optimised_parameters, optimised_cis, best_log_lh

@@ -25,15 +25,15 @@ rule estimate_params_p_fixed_bdpn:
     Estimate parameters.
     '''
     input:
-        nwk = os.path.join(data_dir, 'Zurich.trees')
+        nwk = os.path.join(data_dir, '{tree}.nwk')
     output:
-        est = os.path.join(data_dir, 'Zurich.p={p}.est_bdpn')
+        est = os.path.join(data_dir, '{tree}.p={p}.est_bdpn')
     params:
         mem = 2000,
         name = 'est_p',
         qos = 'normal'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.3"
     shell:
         """
         bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -44,15 +44,15 @@ rule estimate_params_p_fixed_bd:
     Estimate parameters.
     '''
     input:
-        nwk = os.path.join(data_dir, 'Zurich.trees')
+        nwk = os.path.join(data_dir, '{tree}.nwk')
     output:
-        est = os.path.join(data_dir, 'Zurich.p={p}.est_bd')
+        est = os.path.join(data_dir, '{tree}.p={p}.est_bd')
     params:
         mem = 2000,
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.3"
     shell:
         """
         bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -64,15 +64,15 @@ rule cherry_test:
     PN-test on a given tree.
     '''
     input:
-        nwk = os.path.join(data_dir, 'Zurich.trees')
+        nwk = os.path.join(data_dir, '{tree}.nwk')
     output:
-        log = os.path.join(data_dir, 'Zurich.cherry_test')
+        log = os.path.join(data_dir, '{tree}.cherry_test')
     params:
         mem=2000,
         name='pn_test',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.2"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.3"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}

@@ -110,6 +110,8 @@ def infer(forest, la=None, psi=None, p=None,
                                              loglikelihood=loglikelihood, bounds=bounds[input_params == None],
                                              start_parameters=start_parameters, cis=ci)
     print('Estimated BD parameters: {}'.format(vs))
+    if ci:
+        print('Estimated CIs:\n{}'.format(cis))
     return vs, cis
 
 
