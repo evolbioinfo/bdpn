@@ -4,7 +4,7 @@ import numpy as np
 
 from bdpn.formulas import get_c1, get_c2, get_E, get_log_p, get_u
 from bdpn.parameter_estimator import optimize_likelihood_params
-from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
+from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
 
 DEFAULT_MIN_PROB = 1e-3
 DEFAULT_MAX_PROB = 1 - 1e-6
@@ -48,13 +48,7 @@ def get_start_parameters(forest, la=None, psi=None, rho=None):
     return np.array([la_est, psi_est, rho_est], dtype=np.float64)
 
 
-def loglikelihood(forest, la, psi, rho, T=None, threads=1):
-    annotate_forest_with_time(forest)
-    if T is None:
-        T = 0
-        for tree in forest:
-            T = max(T, max(getattr(_, TIME) for _ in tree))
-
+def loglikelihood(forest, la, psi, rho, T, threads=1):
     c1 = get_c1(la=la, psi=psi, rho=rho)
     c2 = get_c2(la=la, psi=psi, c1=c1)
 
@@ -78,7 +72,7 @@ def loglikelihood(forest, la, psi, rho, T=None, threads=1):
     return res + len(forest) * u / (1 - u) * np.log(u)
 
 
-def infer(forest, la=None, psi=None, p=None,
+def infer(forest, T, la=None, psi=None, p=None,
           lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, **kwargs):
     """
     Infers BD model parameters from a given forest.
@@ -106,7 +100,7 @@ def infer(forest, la=None, psi=None, p=None,
           .format(', '.join('{}={:g}'.format(*_)
                             for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
     print('Starting BD parameters: {}'.format(start_parameters))
-    vs, cis, lk = optimize_likelihood_params(forest, input_parameters=input_params,
+    vs, cis, lk = optimize_likelihood_params(forest, T, input_parameters=input_params,
                                              loglikelihood=loglikelihood, bounds=bounds[input_params == None],
                                              start_parameters=start_parameters, cis=ci)
     print('Estimated BD parameters: {}'.format(vs))
@@ -159,9 +153,12 @@ def main():
         raise ValueError('At least one of the model parameters needs to be specified for identifiability')
 
     forest = read_forest(params.nwk)
-    print('Read a forest of {} trees with {} tips in total'.format(len(forest), sum(len(_) for _ in forest)))
+    annotate_forest_with_time(forest)
+    T = get_T(T=None, forest=forest)
+    print('Read a forest of {} trees with {} tips in total, evolving over time {}'
+          .format(len(forest), sum(len(_) for _ in forest), T))
 
-    vs, cis = infer(forest, **vars(params))
+    vs, cis = infer(forest, T, **vars(params))
     save_results(vs, cis, params.log, ci=params.ci)
 
 
@@ -181,7 +178,9 @@ def loglikelihood_main():
     params = parser.parse_args()
 
     forest = read_forest(params.nwk)
-    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p)
+    annotate_forest_with_time(forest)
+    T = get_T(T=None, forest=forest)
+    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, T=T)
     print(lk)
 
 

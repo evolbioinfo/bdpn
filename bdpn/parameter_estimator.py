@@ -33,7 +33,7 @@ def rescale_log(loglikelihood_array):
     return factors
 
 
-def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, start_parameters, cis=False, threads=1):
+def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bounds, start_parameters, cis=False, threads=1):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -41,11 +41,6 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
     :param forest: a list of ete3.Tree trees
     :return: tuple: (the values of optimized parameters, CIs)
     """
-    # print('Bounds are set to {}'.format(bounds))
-    annotate_forest_with_time(forest)
-    T = 0
-    for tree in forest:
-        T = max(T, max(getattr(_, TIME) for _ in tree))
 
     def get_real_params_from_optimised(ps):
         ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
@@ -100,7 +95,9 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
         if input_parameters[bs_i] is not None:
             optimised_cis[bs_i, :] = input_parameters[bs_i], input_parameters[bs_i]
         else:
-            optimised_cis[bs_i, :] = next(bound_iterator)
+            min_bound, max_bound = next(bound_iterator)
+            optimised_cis[bs_i, :] = max(min_bound, optimised_parameters[bs_i] / 2), \
+                min(max_bound, optimised_parameters[bs_i] * 2)
 
     if cis:
         print('Estimated parameters:', optimised_parameters)
@@ -131,9 +128,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
             bs = []
             bound_iterator = iter(optimised_cis)
             for bs_i in range(n):
-                if input_parameters[bs_i] is not None:
-                    continue
-                if bs_i == i:
+                if input_parameters[bs_i] is not None or bs_i == i:
                     # skip these bounds
                     next(bound_iterator)
                     continue
@@ -146,7 +141,7 @@ def optimize_likelihood_params(forest, input_parameters, loglikelihood, bounds, 
             def get_lk(v):
                 rps[i] = v
                 ip[i] = v
-                return optimize_likelihood_params(forest, ip, loglikelihood, bounds=bs, start_parameters=rps,
+                return optimize_likelihood_params(forest, T, ip, loglikelihood, bounds=bs, start_parameters=rps,
                                                   cis=False, threads=threads)[-1]
 
             optimised_cis[i, 0] = binary_search(optimised_cis[i, 0], optimised_value, get_lk, True)

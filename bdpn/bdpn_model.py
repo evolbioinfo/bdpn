@@ -7,7 +7,7 @@ from bdpn import bd_model
 from bdpn.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
     get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb
 from bdpn.parameter_estimator import optimize_likelihood_params, rescale_log
-from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time
+from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
 
 PARAMETER_NAMES = np.array(['la', 'psi', 'phi', 'rho', 'upsilon'])
 
@@ -44,272 +44,284 @@ def log_subtraction(log_minuend, log_subtrahend):
     return np.log(np.sum(np.exp(result) * [1, -1])) - factors
 
 
-def loglikelihood(forest, la, psi, phi, rho, upsilon, T=None, threads=1):
-    annotate_forest_with_time(forest)
-    T = get_T(T, forest)
+def preprocess_node(params):
+    """
+    Precalculates different branch .
 
-    c1 = get_c1(la=la, psi=psi, rho=rho)
-    c2 = get_c2(la=la, psi=psi, c1=c1)
+    :param node: tree node whose children (if any) are already processed
+    :return: void, add a node annotation
+    """
+    node, T, c1, c2, la, psi, phi, \
+        log_not_rho, log_psi_rho_ups, log_psi_rho_not_ups, log_phi_not_ups, log_phi_ups, log_la, log_2_la = params
 
-    log_la, log_psi, log_phi, log_rho, log_not_rho, log_ups, log_not_ups, log_2 = \
-        np.log(la), np.log(psi), np.log(phi), np.log(rho), np.log(1 - rho), np.log(upsilon), \
-            np.log(1 - upsilon), np.log(2)
-    log_2_la = log_2 + log_la
-    log_psi_rho_ups = log_psi + log_rho + log_ups
-    log_psi_rho_not_ups = log_psi + log_rho + log_not_ups
-    log_phi_ups = log_phi + log_ups
-    log_phi_not_ups = log_phi + log_not_ups
+    ti = getattr(node, TIME)
+    tj = ti - node.dist
 
-    def process_node(node):
-        """
-        Calculate the loglikelihood density of this branch being unnotified, including the subtree
-        and put it into node's annotation: 'lx' for internal nodes,
-        'lxx' and 'lxn' (depending on whether the node notified) for tips.
+    E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
+    E_ti = get_E(c1, c2, ti, T)
 
-        :param node: tree node whose children (if any) are already processed
-        :return: void, add a node annotation
-        """
-        ti = getattr(node, TIME)
-        tj = ti - node.dist
+    log_p = get_log_p(c1=c1, t=tj, ti=ti, E_t=E_tj, E_ti=E_ti)
+    log_pn = get_log_pn(la=la, psi=psi, t=tj, ti=ti)
+    log_ppb = get_log_ppb_from_p_pn(log_p=log_p, log_pn=log_pn)
+    log_ppa = get_log_ppa_from_ppb(log_ppb=log_ppb, psi=psi, phi=phi, t=tj, ti=ti)
 
-        E_tj = get_E(c1=c1, c2=c2, t=tj, T=T)
-        E_ti = get_E(c1, c2, ti, T)
+    th = tj + (ti - tj) / 2
+    E_th = get_E(c1, c2, th, T)
+    E_T = get_E(c1, c2, T, T)
 
-        log_p = get_log_p(c1=c1, t=tj, ti=ti, E_t=E_tj, E_ti=E_ti)
-        log_pn = get_log_pn(la=la, psi=psi, t=tj, ti=ti)
-        log_ppb = get_log_ppb_from_p_pn(log_p=log_p, log_pn=log_pn)
-        log_ppa = get_log_ppa_from_ppb(log_ppb=log_ppb, psi=psi, phi=phi, t=tj, ti=ti)
+    log_bottom_standard = get_log_p(c1, th, ti, E_th, E_ti)
+    log_no_event_th = get_log_no_event(la + psi, tj, th)
+    log_top_ppb = log_subtraction(get_log_ppb(la, psi, c1, tj, th, E_tj, E_th), log_no_event_th)
+    log_top_ppa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th, E_tj, E_th),
+                                  get_log_no_event(la + phi, tj, th))
 
-        th = tj + (ti - tj) / 2
-        E_th = get_E(c1, c2, th, T)
-        E_T = get_E(c1, c2, T, T)
+    notifiers = getattr(node, 'notifiers')
+    notifier2precalculated_values = {}
+    for notifier in notifiers:
+        tr = getattr(notifier, TIME)
+        E_tr = get_E(c1, c2, tr, T)
+        log_ppa_tr_T = get_log_ppa(la, psi, phi, c1, tr, T, E_tr, E_T)
+        log_pp_tj_ti = get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr) + get_log_ppa(la, psi, phi, c1, tr, ti, E_tr, E_ti)
+        notifier2precalculated_values[notifier] = tr, E_tr, log_pp_tj_ti, log_ppa_tr_T
 
-        log_bottom_standard = get_log_p(c1, th, ti, E_th, E_ti)
-        log_no_event_th = get_log_no_event(la + psi, tj, th)
-        log_top_ppb = log_subtraction(get_log_ppb(la, psi, c1, tj, th, E_tj, E_th), log_no_event_th)
-        log_top_ppa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th, E_tj, E_th),
-                                      get_log_no_event(la + phi, tj, th))
+    notifier2log_top_pp_u_p = {}
+    log_u_ppa_th = get_log_ppa(la, psi, phi, c1, th, T, E_th, E_T)
+    for notifier in notifiers:
+        tr, E_tr, log_pp_tj_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
+        if th <= tr:
+            notifier2log_top_pp_u_p[notifier] = \
+                log_top_ppb, \
+                    get_log_ppb(la, psi, c1, th, tr, E_th, E_tr) \
+                    + log_sum([np.log(1 - np.exp(-psi * (tr - th))) + psi * (tr - th) + log_not_rho,
+                               log_ppa_tr_T])
+        elif tj >= tr:
+            notifier2log_top_pp_u_p[notifier] = log_top_ppa, log_u_ppa_th
+        else:
+            notifier2log_top_pp_u_p[notifier] = \
+                get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr) + \
+                log_subtraction(get_log_ppa(la, psi, phi, c1, tr, th, E_tr, E_th),
+                                get_log_no_event(la + phi, tr, th)), log_u_ppa_th
 
-        notifiers = getattr(node, 'notifiers')
-        notifier2precalculated_values = {}
-        for notifier in notifiers:
-            tr = getattr(notifier, TIME)
-            E_tr = get_E(c1, c2, tr, T)
-            log_ppa_tr_ti = get_log_ppa(la, psi, phi, c1, tr, ti, E_tr, E_ti)
-            log_ppa_tr_T = get_log_ppa(la, psi, phi, c1, tr, T, E_tr, E_T)
-            log_ppb_tj_tr = get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr)
-            notifier2precalculated_values[notifier] = tr, E_tr, log_ppb_tj_tr, log_ppa_tr_ti, log_ppa_tr_T
+    log_u_th = np.log(get_u(la, psi, c1, E_th))
 
-        notifier2log_top_pp_u_p = {}
-        log_u_ppa_th = get_log_ppa(la, psi, phi, c1, th, T, E_th, E_T)
-        for notifier in notifiers:
-            tr, E_tr, log_ppb_tj_tr, log_ppa_tr_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
-            if th <= tr:
-                notifier2log_top_pp_u_p[notifier] = \
-                    log_top_ppb, \
-                        get_log_ppb(la, psi, c1, th, tr, E_th, E_tr) \
-                        + log_sum([np.log(1 - np.exp(-psi * (tr - th))) + psi * (tr - th) + log_not_rho,
-                                   log_ppa_tr_T])
-            elif tj >= tr:
-                notifier2log_top_pp_u_p[notifier] = log_top_ppa, log_u_ppa_th
-            else:
-                notifier2log_top_pp_u_p[notifier] = \
-                    get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr) + \
-                    log_subtraction(get_log_ppa(la, psi, phi, c1, tr, th, E_tr, E_th),
-                                    get_log_no_event(la + phi, tr, th)), log_u_ppa_th
+    notifier2log_p_standard \
+        = {notifier: log_top_pp + (log_u_p_th_tr - log_u_th) + log_bottom_standard
+           for (notifier, (log_top_pp, log_u_p_th_tr)) in notifier2log_top_pp_u_p.items()}
 
-        log_u_th = np.log(get_u(la, psi, c1, E_th))
-
-        notifier2log_p_standard \
-            = {notifier: log_top_pp + (log_u_p_th_tr - log_u_th) + log_bottom_standard
-               for (notifier, (log_top_pp, log_u_p_th_tr)) in notifier2log_top_pp_u_p.items()}
-
-        if node.is_leaf():
-            node.add_feature('lxn', log_pn + log_psi_rho_ups)
-
-            log_ppa_ti_T = get_log_ppa(la, psi, phi, c1, ti, T, E_ti, E_T)
-            log_bottom_n = get_log_pn(la, psi, th, ti)
-            psi_ti_minus_th = psi * (ti - th)
-            log_u_p_th_ti = get_log_ppb(la, psi, c1, th, ti, E_th, E_ti) \
-                            + log_sum([np.log(1 - np.exp(-psi_ti_minus_th)) + psi_ti_minus_th + log_not_rho,
-                                       log_ppa_ti_T])
-            log_top_standard = log_subtraction(get_log_p(c1, tj, th, E_tj, E_th), log_no_event_th)
-            log_standard_n = log_top_standard + (log_u_p_th_ti - log_u_th) + log_bottom_n
-
-            node.add_feature('lxx', log_sum([log_p + log_psi_rho_not_ups,
-                                             log_standard_n + log_psi_rho_ups]))
-
-            th1 = tj + (ti - tj) / 3
-            th2 = tj + 2 * (ti - tj) / 3
-            E_th1 = get_E(c1, c2, th1, T)
-            E_th2 = get_E(c1, c2, th2, T)
-            log_top1_ppb = log_subtraction(get_log_ppb(la, psi, c1, tj, th1, E_tj, E_th1),
-                                           get_log_no_event(la + psi, tj, th1))
-            log_top1_ppa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th1, E_tj, E_th1),
-                                           get_log_no_event(la + phi, tj, th1))
-
-            log_u_th1 = np.log(get_u(la, psi, c1, E_th1))
-            log_u_th2 = np.log(get_u(la, psi, c1, E_th2))
-            psi_ti_minus_th2 = psi * (ti - th2)
-            log_u_p_th2_ti = get_log_ppb(la, psi, c1, th2, ti, E_th2, E_ti) \
-                             + log_sum([np.log(1 - np.exp(-psi_ti_minus_th2)) + psi_ti_minus_th2 + log_not_rho,
-                                        log_ppa_ti_T])
-
-            log_top2_standard = log_subtraction(get_log_p(c1, th1, th2, E_th1, E_th2),
-                                                get_log_no_event(la + psi, th1, th2))
-
-            notifier2lnx = {}
-            lnx_ppa = log_ppa + log_phi_not_ups
-            lnx_ppb = log_ppb + log_psi_rho_not_ups
-            log_u_ppa_th1 = get_log_ppa(la, psi, phi, c1, th1, T, E_th1, E_T)
-            for notifier in notifiers:
-                tr, E_tr, log_ppb_tj_tr, log_ppa_tr_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
-                log_top_pp, log_u_p_th_tr = notifier2log_top_pp_u_p[notifier]
-                log_mixed_p_n = log_top_pp \
-                                + ((log_u_p_th_tr if tr < ti else log_u_p_th_ti) - log_u_th) \
-                                + log_bottom_n
-                if th1 <= tr:
-                    log_top1_pp = log_top1_ppb
-                    psi_tr_minus_th1 = psi * (tr - th1)
-                    log_u_p_th1 = get_log_ppb(la, psi, c1, th1, tr, E_th1, E_tr) \
-                                  + log_sum([np.log(1 - np.exp(-psi_tr_minus_th1)) + psi_tr_minus_th1 + log_not_rho,
-                                             log_ppa_tr_T])
-                else:
-                    log_u_p_th1 = log_u_ppa_th1
-                    if tj >= tr:
-                        log_top1_pp = log_top1_ppa
-                    else:
-                        log_top1_pp = get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr) \
-                                      + log_subtraction(get_log_ppa(la, psi, phi, c1, tr, th1, E_tr, E_th1),
-                                                        get_log_no_event(la + phi, tr, th1))
-                log_mixed_p_standard_n = log_top1_pp + (log_u_p_th1 - log_u_th1) \
-                                         + log_top2_standard + (log_u_p_th2_ti - log_u_th2) \
-                                         + get_log_pn(la, psi, th2, ti)
-                notifier2lnx[notifier] = log_sum([lnx_ppa if tr <= tj \
-                                                      else (lnx_ppb if tr >= ti else
-                                                            (log_ppb_tj_tr + log_ppa_tr_ti + log_phi_not_ups)),
-                                                  notifier2log_p_standard[notifier] + log_psi_rho_not_ups,
-                                                  log_mixed_p_n + log_psi_rho_ups,
-                                                  log_mixed_p_standard_n + log_psi_rho_ups])
-            node.add_feature('lnx', notifier2lnx)
-
-            notifier2lnn = {}
-            lnn_ppa = get_log_pb(la, phi, tj, ti) + log_phi_ups
-            lnn_ppb = log_pn + log_psi_rho_ups
-            for notifier in notifiers:
-                tr = getattr(notifier, TIME)
-                notifier2lnn[notifier] = lnn_ppa if tr <= tj \
-                    else (lnn_ppb if tr >= ti
-                          else (get_log_pn(la, psi, tj, tr) + get_log_pb(la, phi, tr, ti) + log_phi_ups))
-            node.add_feature('lnn', notifier2lnn)
-            return
-
+    if not node.is_leaf():
         standard_br = log_p + log_2_la
-
-        i0, i1 = node.children
-        is_tip0, is_tip1 = i0.is_leaf(), i1.is_leaf()
+        node.add_feature('standard_br', standard_br)
 
         notifier2branches = {}
         for notifier in notifiers:
-            tr, E_tr, log_ppb_tj_tr, log_ppa_tr_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
-            observed_branch = log_ppa if tr <= tj else (log_ppb if tr >= ti else (log_ppb_tj_tr + log_ppa_tr_ti))
+            tr, E_tr, log_pp_tj_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
+            observed_branch = log_ppa if tr <= tj else (log_ppb if tr >= ti else log_pp_tj_ti)
             notifier2branches[notifier] = tr, observed_branch + log_la, notifier2log_p_standard[notifier] + log_2_la
+        node.add_feature('r2br', notifier2branches)
 
-        if not is_tip0 and not is_tip1:
-            node.add_feature('lx', standard_br + getattr(i0, 'lx') + getattr(i1, 'lx'))
+        return True
 
-            notifier2ln = {}
-            for notifier in notifiers:
-                tr, observed_br, mixed_br = notifier2branches[notifier]
-                notifier2ln[notifier] = \
-                    log_sum([observed_br + log_sum([getattr(i0, 'ln')[notifier] + getattr(i1, 'lx'),
-                                                    getattr(i0, 'lx') + getattr(i1, 'ln')[notifier]]),
-                             mixed_br + getattr(i0, 'lx') + getattr(i1, 'lx')])
+    node.add_feature('lxn', log_pn + log_psi_rho_ups)
 
-            node.add_feature('ln', notifier2ln)
-            return
+    log_ppa_ti_T = get_log_ppa(la, psi, phi, c1, ti, T, E_ti, E_T)
+    log_bottom_n = get_log_pn(la, psi, th, ti)
+    psi_ti_minus_th = psi * (ti - th)
+    log_u_p_th_ti = get_log_ppb(la, psi, c1, th, ti, E_th, E_ti) \
+                    + log_sum([np.log(1 - np.exp(-psi_ti_minus_th)) + psi_ti_minus_th + log_not_rho,
+                               log_ppa_ti_T])
+    log_top_standard = log_subtraction(get_log_p(c1, tj, th, E_tj, E_th), log_no_event_th)
+    log_standard_n = log_top_standard + (log_u_p_th_ti - log_u_th) + log_bottom_n
 
-        ti0, ti1 = getattr(i0, TIME), getattr(i1, TIME)
-        if is_tip0 and is_tip1:
-            node.add_feature('lx', standard_br + log_sum([getattr(i0, 'lxx') + getattr(i1, 'lxx'),
-                                                          getattr(i0, 'lxn') + getattr(i1, 'lnx')[i0],
-                                                          getattr(i0, 'lnx')[i1] + getattr(i1, 'lxn'),
-                                                          getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[i0]]))
+    node.add_feature('lxx', log_sum([log_p + log_psi_rho_not_ups,
+                                     log_standard_n + log_psi_rho_ups]))
 
-            notifier2ln = {}
-            for notifier in notifiers:
-                tr, observed_br, mixed_br = notifier2branches[notifier]
-                first_i0_r = i0 if ti0 < tr else notifier
-                first_i1_r = i1 if ti1 < tr else notifier
-                notifier2ln[notifier] = \
-                    log_sum([observed_br + log_sum([getattr(i0, 'lnx')[first_i1_r] + getattr(i1, 'lxn'),
-                                                    getattr(i0, 'lnn')[first_i1_r] + getattr(i1, 'lnn')[i0],
-                                                    getattr(i0, 'lxn') + getattr(i1, 'lnx')[first_i0_r],
-                                                    getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[first_i0_r],
-                                                    getattr(i0, 'lnn')[notifier] + getattr(i1, 'lnx')[i0],
-                                                    getattr(i0, 'lnx')[i1] + getattr(i1, 'lnn')[notifier],
-                                                    getattr(i0, 'lnx')[notifier] + getattr(i1, 'lxx'),
-                                                    getattr(i0, 'lxx') + getattr(i1, 'lnx')[notifier]]
-                                                   ),
-                             mixed_br + log_sum([getattr(i0, 'lnx')[i1] + getattr(i1, 'lxn'),
-                                                 getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[i0],
-                                                 getattr(i0, 'lxn') + getattr(i1, 'lnx')[i0],
-                                                 getattr(i0, 'lxx') + getattr(i1, 'lxx')])
-                             ])
-            node.add_feature('ln', notifier2ln)
-            return
+    th1 = tj + (ti - tj) / 3
+    th2 = tj + 2 * (ti - tj) / 3
+    E_th1 = get_E(c1, c2, th1, T)
+    E_th2 = get_E(c1, c2, th2, T)
+    log_top1_ppb = log_subtraction(get_log_ppb(la, psi, c1, tj, th1, E_tj, E_th1),
+                                   get_log_no_event(la + psi, tj, th1))
+    log_top1_ppa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th1, E_tj, E_th1),
+                                   get_log_no_event(la + phi, tj, th1))
 
-        # i0 is a tip and i1 is internal
-        if is_tip1:
-            i0, i1 = i1, i0
-            ti0, ti1 = ti1, ti0
-        node.add_feature('lx', standard_br + log_sum([getattr(i0, 'lxx') + getattr(i1, 'lx'),
-                                                      getattr(i0, 'lxn') + getattr(i1, 'ln')[i0]]))
+    log_u_th1 = np.log(get_u(la, psi, c1, E_th1))
+    log_u_th2 = np.log(get_u(la, psi, c1, E_th2))
+    psi_ti_minus_th2 = psi * (ti - th2)
+    log_u_p_th2_ti = get_log_ppb(la, psi, c1, th2, ti, E_th2, E_ti) \
+                     + log_sum([np.log(1 - np.exp(-psi_ti_minus_th2)) + psi_ti_minus_th2 + log_not_rho,
+                                log_ppa_ti_T])
 
-        notifier2ln = {}
-        for notifier in notifiers:
-            tr, observed_br, mixed_br = notifier2branches[notifier]
-            first_i0_r = i0 if ti0 < tr else notifier
-            notifier2ln[notifier] = \
-                log_sum([observed_br + log_sum([getattr(i0, 'lnn')[notifier] + getattr(i1, 'ln')[i0],
-                                                getattr(i0, 'lnx')[notifier] + getattr(i1, 'lx'),
-                                                getattr(i0, 'lxn') + getattr(i1, 'ln')[first_i0_r],
-                                                getattr(i0, 'lxx') + getattr(i1, 'ln')[notifier]]
-                                               ),
-                         mixed_br + log_sum([getattr(i0, 'lxn') + getattr(i1, 'ln')[i0],
-                                             getattr(i0, 'lxx') + getattr(i1, 'lx')])
-                         ])
+    log_top2_standard = log_subtraction(get_log_p(c1, th1, th2, E_th1, E_th2),
+                                        get_log_no_event(la + psi, th1, th2))
 
-        node.add_feature('ln', notifier2ln)
+    notifier2lnx = {}
+    lnx_ppa = log_ppa + log_phi_not_ups
+    lnx_ppb = log_ppb + log_psi_rho_not_ups
+    log_u_ppa_th1 = get_log_ppa(la, psi, phi, c1, th1, T, E_th1, E_T)
+    for notifier in notifiers:
+        tr, E_tr, log_pp_tj_ti, log_ppa_tr_T = notifier2precalculated_values[notifier]
+        log_top_pp, log_u_p_th_tr = notifier2log_top_pp_u_p[notifier]
+        log_mixed_p_n = log_top_pp \
+                        + ((log_u_p_th_tr if tr < ti else log_u_p_th_ti) - log_u_th) \
+                        + log_bottom_n
+        if th1 <= tr:
+            log_top1_pp = log_top1_ppb
+            psi_tr_minus_th1 = psi * (tr - th1)
+            log_u_p_th1 = get_log_ppb(la, psi, c1, th1, tr, E_th1, E_tr) \
+                          + log_sum([np.log(1 - np.exp(-psi_tr_minus_th1)) + psi_tr_minus_th1 + log_not_rho,
+                                     log_ppa_tr_T])
+        else:
+            log_u_p_th1 = log_u_ppa_th1
+            if tj >= tr:
+                log_top1_pp = log_top1_ppa
+            else:
+                log_top1_pp = get_log_ppb(la, psi, c1, tj, tr, E_tj, E_tr) \
+                              + log_subtraction(get_log_ppa(la, psi, phi, c1, tr, th1, E_tr, E_th1),
+                                                get_log_no_event(la + phi, tr, th1))
+        log_mixed_p_standard_n = log_top1_pp + (log_u_p_th1 - log_u_th1) \
+                                 + log_top2_standard + (log_u_p_th2_ti - log_u_th2) \
+                                 + get_log_pn(la, psi, th2, ti)
+        notifier2lnx[notifier] = log_sum([lnx_ppa if tr <= tj \
+                                              else (lnx_ppb if tr >= ti else
+                                                    (log_pp_tj_ti + log_phi_not_ups)),
+                                          notifier2log_p_standard[notifier] + log_psi_rho_not_ups,
+                                          log_mixed_p_n + log_psi_rho_ups,
+                                          log_mixed_p_standard_n + log_psi_rho_ups])
+    node.add_feature('lnx', notifier2lnx)
 
-    def process_tree(tree):
+    notifier2lnn = {}
+    lnn_ppa = get_log_pb(la, phi, tj, ti) + log_phi_ups
+    lnn_ppb = log_pn + log_psi_rho_ups
+    for notifier in notifiers:
+        tr = getattr(notifier, TIME)
+        notifier2lnn[notifier] = lnn_ppa if tr <= tj \
+            else (lnn_ppb if tr >= ti
+                  else (get_log_pn(la, psi, tj, tr) + get_log_pb(la, phi, tr, ti) + log_phi_ups))
+    node.add_feature('lnn', notifier2lnn)
+    return True
+
+
+def preprocess_forest(forest):
+    annotate_forest_with_time(forest)
+
+    for tree in forest:
         all_tips = set(tree.iter_leaves())
 
         for node in tree.traverse('postorder'):
             ext_tips = (all_tips - {node}) if node.is_leaf() \
                 else set.intersection(*(getattr(_, 'notifiers') for _ in node.children))
             node.add_feature('notifiers', ext_tips)
-            process_node(node)
-        return getattr(tree, 'lx' if not tree.is_leaf() else 'lxx')
 
-    if threads > 1 and len(forest) > 1:
+
+def loglikelihood(forest, la, psi, phi, rho, upsilon, T, threads=1):
+    c1 = get_c1(la=la, psi=psi, rho=rho)
+    c2 = get_c2(la=la, psi=psi, c1=c1)
+    log_la, log_psi, log_phi, log_rho, log_not_rho, log_ups, log_not_ups, log_2 = \
+        np.log([la, psi, phi, rho, 1 - rho, upsilon, 1 - upsilon, 2])
+    log_2_la = log_2 + log_la
+    log_psi_rho = log_psi + log_rho
+    log_psi_rho_ups = log_psi_rho + log_ups
+    log_psi_rho_not_ups = log_psi_rho + log_not_ups
+    log_phi_ups = log_phi + log_ups
+    log_phi_not_ups = log_phi + log_not_ups
+
+    all_nodes = []
+    for tree in forest:
+        for node in tree.traverse():
+            all_nodes.append((node, T, c1, c2, la, psi, phi,
+                              log_not_rho, log_psi_rho_ups, log_psi_rho_not_ups, log_phi_not_ups, log_phi_ups,
+                              log_la, log_2_la))
+
+    if threads > 1:
         with ThreadPool(processes=threads) as pool:
-            result = sum(pool.map(func=process_tree, iterable=forest, chunksize=max(1, len(forest) // threads + 1)))
+            pool.map(func=preprocess_node, iterable=all_nodes, chunksize=max(1, len(all_nodes) // threads + 1))
     else:
-        result = sum(process_tree(tree) for tree in forest)
+        for node in all_nodes:
+            preprocess_node(node)
 
     u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
-    result += len(forest) * u / (1 - u) * np.log(u)
-    # print(la, psi, phi, rho, upsilon, '-->', result)
-    return result
+    log_likelihood = len(forest) * u / (1 - u) * np.log(u)
 
+    for tree in forest:
+        for node in tree.traverse('postorder'):
+            if node.is_leaf():
+                continue
 
-def get_T(T, forest):
-    if T is None:
-        T = 0
-        for tree in forest:
-            T = max(T, max(getattr(_, TIME) for _ in tree))
-    return T
+            i0, i1 = node.children
+            is_tip0, is_tip1 = i0.is_leaf(), i1.is_leaf()
+
+            standard_br = getattr(node, 'standard_br')
+            notifiers = getattr(node, 'notifiers')
+            notifier2branches = getattr(node, 'r2br')
+
+            if not is_tip0 and not is_tip1:
+                node.add_feature('lx', standard_br + getattr(i0, 'lx') + getattr(i1, 'lx'))
+
+                notifier2ln = {}
+                for notifier in notifiers:
+                    tr, observed_br, mixed_br = notifier2branches[notifier]
+                    notifier2ln[notifier] = \
+                        log_sum([observed_br + log_sum([getattr(i0, 'ln')[notifier] + getattr(i1, 'lx'),
+                                                        getattr(i0, 'lx') + getattr(i1, 'ln')[notifier]]),
+                                 mixed_br + getattr(i0, 'lx') + getattr(i1, 'lx')])
+
+                node.add_feature('ln', notifier2ln)
+                continue
+
+            ti0, ti1 = getattr(i0, TIME), getattr(i1, TIME)
+            if is_tip0 and is_tip1:
+                node.add_feature('lx', standard_br + log_sum([getattr(i0, 'lxx') + getattr(i1, 'lxx'),
+                                                              getattr(i0, 'lxn') + getattr(i1, 'lnx')[i0],
+                                                              getattr(i0, 'lnx')[i1] + getattr(i1, 'lxn'),
+                                                              getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[i0]]))
+
+                notifier2ln = {}
+                for notifier in notifiers:
+                    tr, observed_br, mixed_br = notifier2branches[notifier]
+                    first_i0_r = i0 if ti0 < tr else notifier
+                    first_i1_r = i1 if ti1 < tr else notifier
+                    notifier2ln[notifier] = \
+                        log_sum([observed_br + log_sum([getattr(i0, 'lnx')[first_i1_r] + getattr(i1, 'lxn'),
+                                                        getattr(i0, 'lnn')[first_i1_r] + getattr(i1, 'lnn')[i0],
+                                                        getattr(i0, 'lxn') + getattr(i1, 'lnx')[first_i0_r],
+                                                        getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[first_i0_r],
+                                                        getattr(i0, 'lnn')[notifier] + getattr(i1, 'lnx')[i0],
+                                                        getattr(i0, 'lnx')[i1] + getattr(i1, 'lnn')[notifier],
+                                                        getattr(i0, 'lnx')[notifier] + getattr(i1, 'lxx'),
+                                                        getattr(i0, 'lxx') + getattr(i1, 'lnx')[notifier]]
+                                                       ),
+                                 mixed_br + log_sum([getattr(i0, 'lnx')[i1] + getattr(i1, 'lxn'),
+                                                     getattr(i0, 'lnn')[i1] + getattr(i1, 'lnn')[i0],
+                                                     getattr(i0, 'lxn') + getattr(i1, 'lnx')[i0],
+                                                     getattr(i0, 'lxx') + getattr(i1, 'lxx')])
+                                 ])
+                node.add_feature('ln', notifier2ln)
+                continue
+
+            # i0 is a tip and i1 is internal
+            if is_tip1:
+                i0, i1 = i1, i0
+                ti0, ti1 = ti1, ti0
+            node.add_feature('lx', standard_br + log_sum([getattr(i0, 'lxx') + getattr(i1, 'lx'),
+                                                          getattr(i0, 'lxn') + getattr(i1, 'ln')[i0]]))
+
+            notifier2ln = {}
+            for notifier in notifiers:
+                tr, observed_br, mixed_br = notifier2branches[notifier]
+                first_i0_r = i0 if ti0 < tr else notifier
+                notifier2ln[notifier] = \
+                    log_sum([observed_br + log_sum([getattr(i0, 'lnn')[notifier] + getattr(i1, 'ln')[i0],
+                                                    getattr(i0, 'lnx')[notifier] + getattr(i1, 'lx'),
+                                                    getattr(i0, 'lxn') + getattr(i1, 'ln')[first_i0_r],
+                                                    getattr(i0, 'lxx') + getattr(i1, 'ln')[notifier]]
+                                                   ),
+                             mixed_br + log_sum([getattr(i0, 'lxn') + getattr(i1, 'ln')[i0],
+                                                 getattr(i0, 'lxx') + getattr(i1, 'lx')])
+                             ])
+
+            node.add_feature('ln', notifier2ln)
+        log_likelihood += getattr(tree, 'lx' if not tree.is_leaf() else 'lxx')
+    return log_likelihood
 
 
 def save_results(vs, cis, log, ci=False):
@@ -355,6 +367,7 @@ def main():
     parser.add_argument('--lower_bounds', required=False, type=float, nargs=5,
                         help="lower bounds for parameters (la, psi, phi, p, pn)", default=DEFAULT_LOWER_BOUNDS)
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
+    parser.add_argument('--threads', required=False, type=int, default=1, help="number of threads for parallelization")
     params = parser.parse_args()
 
     # if os.path.exists(params.nwk.replace('.nwk', '.log')):
@@ -371,8 +384,11 @@ def main():
                          'for identifiability')
 
     forest = read_forest(params.nwk)
-    print('Read a forest of {} trees with {} tips in total'.format(len(forest), sum(len(_) for _ in forest)))
-    vs, cis = infer(forest, **vars(params))
+    preprocess_forest(forest)
+    T = get_T(T=None, forest=forest)
+    print('Read a forest of {} trees with {} tips in total, evolving over time {}'
+          .format(len(forest), sum(len(_) for _ in forest), T))
+    vs, cis = infer(forest, T, **vars(params))
 
     save_results(vs, cis, params.log, ci=params.ci)
 
@@ -395,12 +411,14 @@ def loglikelihood_main():
     params = parser.parse_args()
 
     forest = read_forest(params.nwk)
-    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, phi=params.phi, upsilon=params.upsilon)
+    preprocess_forest(forest)
+    T = get_T(T=None, forest=forest)
+    lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, phi=params.phi, upsilon=params.upsilon, T=T)
     print(lk)
 
 
-def infer(forest, la=None, psi=None, phi=None, p=None, pn=None,
-          lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, **kwargs):
+def infer(forest, T, la=None, psi=None, phi=None, p=None, pn=None,
+          lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, threads=1, **kwargs):
     """
     Infers BDPN model parameters from a given forest.
 
@@ -420,10 +438,11 @@ def infer(forest, la=None, psi=None, phi=None, p=None, pn=None,
     if la is None and psi is None and p is None:
         raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
                          'for identifiability')
+
     bounds = np.zeros((5, 2), dtype=np.float64)
     bounds[:, 0] = lower_bounds
     bounds[:, 1] = upper_bounds
-    vs, _ = bd_model.infer(forest, la=la, psi=psi, p=p,
+    vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
     start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
                                  vs[-1], 0.5 if pn is None or pn <= 0 or pn > 1 else pn])
@@ -432,9 +451,9 @@ def infer(forest, la=None, psi=None, phi=None, p=None, pn=None,
           .format(', '.join('{}={:g}'.format(*_)
                             for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
     print('Starting BDPN parameters: {}'.format(start_parameters))
-    vs, cis, lk = optimize_likelihood_params(forest, input_parameters=input_params,
+    vs, cis, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
                                              loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                             start_parameters=start_parameters, cis=ci)
+                                             start_parameters=start_parameters, cis=ci, threads=threads)
     print('Estimated BDPN parameters: {}'.format(vs))
     if ci:
         print('Estimated CIs:\n{}'.format(cis))

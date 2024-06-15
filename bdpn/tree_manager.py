@@ -90,6 +90,14 @@ def annotate_forest_with_time(forest):
             annotate_tree(tree)
 
 
+def get_T(T, forest):
+    if T is None:
+        T = 0
+        for tree in forest:
+            T = max(T, max(getattr(_, TIME) for _ in tree))
+    return T
+
+
 def sort_tree(tree):
     """
     Reorganise the tree in such a way that the oldest tip (with the minimal time) is always on the left.

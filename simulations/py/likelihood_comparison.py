@@ -2,9 +2,11 @@ import pandas as pd
 from ete3 import Tree
 
 from bdpn import bd_model
-from bdpn.bdpn_model import loglikelihood
+from bdpn.bdpn_model import loglikelihood, preprocess_forest
 import numpy as np
 from scipy.stats import binomtest
+
+from bdpn.tree_manager import get_T, annotate_forest_with_time
 
 PYBDEI = 'PyBDEI'
 
@@ -28,15 +30,17 @@ if __name__ == "__main__":
     df.index = df['type'] + '_' + df.index.map(str)
     lk_df, index = [], []
     for i in range(len(df) // len(ALL_TYPES)):
-        tree = Tree(params.tree_pattern.format(i))
+        forest = [Tree(params.tree_pattern.format(i))]
         p = df.loc['real_{}'.format(i), 'p']
         type2lk = {}
         for type in ALL_TYPES:
             la, psi, psi_n, rho, rho_n = df.loc['{}_{}'.format(type, i), ['lambda', 'psi', 'psi_p', 'p', 'pn']]
             if 'BDPN' in type:
-                type2lk[type] = loglikelihood([tree], la, psi, psi_n, rho, rho_n)
+                preprocess_forest(forest)
+                type2lk[type] = loglikelihood(forest, la, psi, psi_n, rho, rho_n, T=get_T(None, forest))
             else:
-                type2lk[type] = bd_model.loglikelihood([tree], la, psi, rho)
+                annotate_forest_with_time(forest)
+                type2lk[type] = bd_model.loglikelihood(forest, la, psi, rho, T=get_T(None, forest))
             index.append(i)
         best_lk = max(type2lk.values())
         for _ in ALL_TYPES:
