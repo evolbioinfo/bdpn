@@ -18,31 +18,139 @@ rule all:
     input:
         expand(os.path.join(sim_folder,'errors_{par}.svg'), par=['p']),
         expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=['p'], model=['BDPN', 'BD']),
-        os.path.join(sim_folder,'BDPN','likelihood_stats.txt'),
+        expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=['p']),
+        expand(os.path.join(sim_folder,'BD','likelihood_stats_bd.{par}.txt'), par=['p']),
         # expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
 
+rule likelihood_bdpn:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_bdpn'),
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+    output:
+        lk = os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.lk_bdpn'),
+    params:
+        mem = 2000,
+        name = 'lk_{i}_bdpn',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        pn=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $5 }}'`
+        rt=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $6 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+        
+        bdpn_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p --upsilon ${{pn}} --phi ${{phi}} > {output.lk}
+        """
+
+rule likelihood_real_bdpn:
+    '''
+    Calculate likelihood value for real parameters.
+    '''
+    input:
+        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
+    output:
+        lk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.lk_real'),
+    params:
+        mem = 2000,
+        name = 'lk_{i}_bdpn',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    shell:
+        """
+        R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
+        it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        pn=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+        
+        bdpn_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p --upsilon ${{pn}} --phi ${{phi}} > {output.lk}
+        """
+
+rule likelihood_real_bd:
+    '''
+    Calculate likelihood value for real parameters.
+    '''
+    input:
+        log = os.path.join(sim_folder, 'BD', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BD', 'tree.{i}.nwk'),
+    output:
+        lk = os.path.join(sim_folder, 'BD', 'tree.{i}.lk_real'),
+    params:
+        mem = 2000,
+        name = 'lk_{i}_bd',
+        qos = 'fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    shell:
+        """
+        R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
+        it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+        
+        bd_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p  > {output.lk}
+        """
+
+
+rule likelihood_bd:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log=os.path.join(sim_folder,'{model}','tree.{i}.{p}.est_bd'),
+        nwk=os.path.join(sim_folder,'{model}','tree.{i}.nwk'),
+    output:
+        lk=os.path.join(sim_folder,'{model}','tree.{i}.{p}.lk_bd'),
+    params:
+        mem=2000,
+        name='lk_{i}_bd',
+        qos='fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+
+        bd_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p > {output.lk}
+        """
 
 rule likelihood_stats:
     '''
     Calculate likelihood values for estimated parameters.
     '''
     input:
-        tab = os.path.join(sim_folder, 'BDPN', 'estimates.tab'),
-        nwk = expand(os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'), i=REPETITIONS),
+        lk = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.{{p}}.lk_{{type}}'), i=REPETITIONS),
+        lk_real = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.lk_real'), i=REPETITIONS),
     output:
-        tab = os.path.join(sim_folder, 'BDPN', 'loglikelihoods.tab'),
-        stats = os.path.join(sim_folder, 'BDPN', 'likelihood_stats.txt'),
+        stats = os.path.join(sim_folder, '{model}', 'likelihood_stats_{type}.{p}.txt'),
     params:
         mem = 2000,
         name = 'likelihoods',
-        qos = 'fast',
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{}.nwk')
+        qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
     shell:
         """
-        python3 py/likelihood_comparison.py --estimates {input.tab} \
-        --tree_pattern {params.nwk} --likelihoods {output.tab} --log {output.stats}
+        python3 py/likelihood_stats.py --likelihoods_est {input.lk} --likelihoods_real {input.lk_real} --log {output.stats}
         """
 
 rule CI_stats:
@@ -58,7 +166,7 @@ rule CI_stats:
         name = 'CIs',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
     shell:
         """
         python3 py/assess_CIs.py --estimates {input.tab} --log {output.stats}
