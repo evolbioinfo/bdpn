@@ -147,7 +147,7 @@ rule likelihood_stats:
         name = 'likelihoods',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
     shell:
         """
         python3 py/likelihood_stats.py --likelihoods_est {input.lk} --likelihoods_real {input.lk_real} --log {output.stats}
@@ -191,7 +191,7 @@ rule combine_estimates:
         name = 'estimates',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
     shell:
         """
         python3 py/summary_table.py --real {input.log} \
