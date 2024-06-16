@@ -110,7 +110,7 @@ rule plot_errors:
         name = 'errors',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
     shell:
         """
         python3 py/plot_error.py --estimates {input.tab} --tab {output.tab} --pdf {output.pdf} --fixed {wildcards.p}
