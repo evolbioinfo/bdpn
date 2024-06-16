@@ -1,8 +1,14 @@
+
 import logging
 import re
 
 import pandas as pd
 
+# import glob
+# real = glob.glob("/home/azhukova/Evolbioinfo/users/azhukova/projects/bdpn/simulations/medium/BD/tree.*.log")
+# est_p = glob.glob("/home/azhukova/Evolbioinfo/users/azhukova/projects/bdpn/simulations/medium/BD/tree.*.p.est_bdpn")
+# est_p_bd = glob.glob("/home/azhukova/Evolbioinfo/users/azhukova/projects/bdpn/simulations/medium/BD/tree.*.p.est_bd")
+# tab = '/home/azhukova/projects/bdpn/simulations/medium/BD/estimates.tab'
 
 if __name__ == "__main__":
     import argparse
@@ -14,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--estimated_p_bd', nargs='*', default=[], type=str, help="estimated parameters")
     parser.add_argument('--estimated_psi_bd', nargs='*', default=[], type=str, help="estimated parameters")
     parser.add_argument('--estimated_la_bd', nargs='*', default=[], type=str, help="estimated parameters")
-    parser.add_argument('--real', nargs='+', type=str, help="real parameters")
+    parser.add_argument('--real', nargs='*', type=str, help="real parameters")
     parser.add_argument('--tab', type=str, help="estimate table")
     params = parser.parse_args()
 

@@ -19,7 +19,7 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p', 'psi'],
             model=['BDPN', 'BD'], estimator=['bd', 'bdpn'])
     shell:
         """
