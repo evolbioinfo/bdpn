@@ -38,7 +38,7 @@ rule likelihood_stats:
         qos = 'fast',
         nwk = os.path.join(sim_folder, 'BDPN', 'tree.{}.nwk')
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.4"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
     shell:
         """
         python3 py/likelihood_comparison.py --estimates {input.tab} \
