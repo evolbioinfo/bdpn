@@ -51,7 +51,6 @@ if __name__ == "__main__":
                     'lambda', 'psi', 'p', 'sampled_tips', 'type']] \
                 = [R0, it, R0 / it, 1 / it, p, tips, 'real']
 
-
     estimate_list = []
     if params.estimated_la:
         estimate_list.append((params.estimated_la, 'lambda'))
@@ -72,16 +71,17 @@ if __name__ == "__main__":
             ['R_naught', 'infectious_time', 'partner_removal_time',
              'lambda', 'psi', 'psi_p', 'p', 'pn', 'type']] \
                 = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
-            R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_min', :]
-            df.loc['{}.{}'.format(i, est_label),
-            ['R_naught_min', 'infectious_time_min', 'partner_removal_time_min',
-             'lambda_min', 'psi_min', 'psi_p_min', 'p_min', 'pn_min', 'type']] \
-                = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
-            R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_max', :]
-            df.loc['{}.{}'.format(i, est_label),
-            ['R_naught_max', 'infectious_time_max', 'partner_removal_time_max',
-             'lambda_max', 'psi_max', 'psi_p_max', 'p_max', 'pn_max', 'type']] \
-                = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
+            if 'CI_min' in ddf.index:
+                R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_min', :]
+                df.loc['{}.{}'.format(i, est_label),
+                ['R_naught_min', 'infectious_time_min', 'partner_removal_time_min',
+                 'lambda_min', 'psi_min', 'psi_p_min', 'p_min', 'pn_min', 'type']] \
+                    = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
+                R0, rt, rho, rho_p, prt, la, psi, psi_p = ddf.loc['CI_max', :]
+                df.loc['{}.{}'.format(i, est_label),
+                ['R_naught_max', 'infectious_time_max', 'partner_removal_time_max',
+                 'lambda_max', 'psi_max', 'psi_p_max', 'p_max', 'pn_max', 'type']] \
+                    = [R0, rt, prt, la, psi, psi_p, rho, rho_p, est_label]
 
     estimate_list = []
     if params.estimated_la_bd:
