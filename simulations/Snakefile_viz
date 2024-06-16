@@ -131,7 +131,7 @@ rule plot_error_boths:
         name = 'errors',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    singularity: "docker://evolbioinfo/python-evol:v3.6richer.2"
     shell:
         """
         python3 py/plot_error_both.py --estimates_bdpn {input.tab1} --estimates_bd {input.tab2} --pdf {output.pdf} --fixed {wildcards.p}
