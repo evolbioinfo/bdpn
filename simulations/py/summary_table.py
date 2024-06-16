@@ -103,16 +103,17 @@ if __name__ == "__main__":
             ['R_naught', 'infectious_time',
              'lambda', 'psi', 'p', 'type']] \
                 = [R0, rt, la, psi, rho, est_label]
-            R0, rt, rho, la, psi = ddf.loc['CI_min', :]
-            df.loc['{}.{}'.format(i, est_label),
-            ['R_naught_min', 'infectious_time_min',
-             'lambda_min', 'psi_min', 'p_min', 'type']] \
-                = [R0, rt, la, psi, rho, est_label]
-            R0, rt, rho, la, psi = ddf.loc['CI_max', :]
-            df.loc['{}.{}'.format(i, est_label),
-            ['R_naught_max', 'infectious_time_max',
-             'lambda_max', 'psi_max', 'p_max', 'type']] \
-                = [R0, rt, la, psi, rho, est_label]
+            if 'CI_min' in ddf.index:
+                R0, rt, rho, la, psi = ddf.loc['CI_min', :]
+                df.loc['{}.{}'.format(i, est_label),
+                ['R_naught_min', 'infectious_time_min',
+                 'lambda_min', 'psi_min', 'p_min', 'type']] \
+                    = [R0, rt, la, psi, rho, est_label]
+                R0, rt, rho, la, psi = ddf.loc['CI_max', :]
+                df.loc['{}.{}'.format(i, est_label),
+                ['R_naught_max', 'infectious_time_max',
+                 'lambda_max', 'psi_max', 'p_max', 'type']] \
+                    = [R0, rt, la, psi, rho, est_label]
 
     df.index = df.index.map(lambda _: int(_.split('.')[0]))
     df.sort_index(inplace=True)
