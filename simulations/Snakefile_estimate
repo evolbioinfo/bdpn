@@ -99,7 +99,7 @@ rule estimate_params_psi_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci 
+        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} 
         """
 
 
@@ -124,7 +124,7 @@ rule estimate_params_psi_fixed_bd:
         psi=`echo "print(1/${{it}})" | python3`
         cat {input.log}
 
-        bd_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci 
+        bd_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} 
         """
 
 rule estimate_params_la_fixed:
