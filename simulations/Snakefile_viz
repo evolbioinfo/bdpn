@@ -19,10 +19,10 @@ pars = ['p', 'psi']
 rule all:
     input:
         expand(os.path.join(sim_folder,'errors_{par}.svg'), par=pars),
-        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN', 'BD']),
+        # expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN', 'BD']),
         expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=pars),
-        expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=['p']),
-        # expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
+        expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=pars),
+        expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
 
 rule likelihood_bdpn:
     '''
@@ -38,7 +38,7 @@ rule likelihood_bdpn:
         name = 'lk_{i}_bdpn',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
     shell:
         """
         R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
@@ -67,7 +67,7 @@ rule likelihood_real_bdpn:
         name = 'lk_{i}_bdpn',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -96,7 +96,7 @@ rule likelihood_real_bd:
         name = 'lk_{i}_bd',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -123,7 +123,7 @@ rule likelihood_bd:
         name='lk_{i}_bd',
         qos='fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
     shell:
         """
         R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
@@ -149,7 +149,7 @@ rule likelihood_stats:
         name = 'likelihoods',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.5"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
     shell:
         """
         python3 py/likelihood_stats.py --likelihoods_est {input.lk} --likelihoods_real {input.lk_real} --log {output.stats}
