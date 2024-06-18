@@ -181,10 +181,10 @@ rule combine_estimates:
     input:
         log = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.log'), i=REPETITIONS),
         est_p = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.p.est_bdpn'), i=REPETITIONS),
-        # est_psi = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bdpn'), i=REPETITIONS),
+        est_psi = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bdpn'), i=REPETITIONS),
         # est_la = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.la.est_bdpn'), i=REPETITIONS),
         est_p_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.p.est_bd'), i=REPETITIONS),
-        # est_psi_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
+        est_psi_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
         # est_la_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.la.est_bd'), i=REPETITIONS),
     output:
         tab = os.path.join(sim_folder, '{model}', 'estimates.tab'),
