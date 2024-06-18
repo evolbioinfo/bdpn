@@ -10,7 +10,7 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small_trees')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -199,10 +199,10 @@ rule combine_estimates:
         python3 py/summary_table.py --real {input.log} \
         --estimated_p {input.est_p} \
         --estimated_p_bd {input.est_p_bd} \
+        --estimated_psi_bd {input.est_psi_bd} \
+        --estimated_psi {input.est_psi} \
         --tab {output.tab}
         """
-        # --estimated_psi_bd {input.est_psi_bd} \
-        # --estimated_psi {input.est_psi} \
         # --estimated_la {input.est_la} \
         # --estimated_la_bd {input.est_la_bd} \
 
