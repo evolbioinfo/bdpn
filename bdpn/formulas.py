@@ -1,5 +1,7 @@
 import numpy as np
 
+from bdpn.parameter_estimator import rescale_log
+
 
 def get_c1(la, psi, rho):
     """
@@ -120,3 +122,30 @@ def get_log_ppa_from_ppb(log_ppb, psi, phi, t, ti):
     Returns log(po(t)e^(-phi (ti - t))/e^(-psi (ti - t)) )
     """
     return log_ppb + (psi - phi) * (ti - t)
+
+
+def log_sum(log_summands):
+    """
+    Takes [logX1, ..., logXk] as input and returns log(X1 + ... + Xk) as output,
+    while taking care of potential under/overflow.
+
+    :param log_summands: an array of summands in log form
+    :return: log of the sum
+    """
+    result = np.array(log_summands, dtype=np.float64)
+    factors = rescale_log(result)
+    return np.log(np.sum(np.exp(result))) - factors
+
+
+def log_subtraction(log_minuend, log_subtrahend):
+    """
+    Takes logX1 and logX2 as input and returns log(X1 - X2) as output,
+    while taking care of potential under/overflow.
+
+    :param log_minuend: logX1 in the formula above
+    :param log_subtrahend: logX2 in the formula above
+    :return: log of the difference
+    """
+    result = np.array([log_minuend, log_subtrahend], dtype=np.float64)
+    factors = rescale_log(result)
+    return np.log(np.sum(np.exp(result) * [1, -1])) - factors

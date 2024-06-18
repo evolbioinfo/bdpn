@@ -5,9 +5,11 @@ import numpy as np
 
 from bdpn import bd_model
 from bdpn.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
-    get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb
-from bdpn.parameter_estimator import optimize_likelihood_params, rescale_log
+    get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb, log_subtraction, log_sum
+from bdpn.parameter_estimator import optimize_likelihood_params
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
+
+NOTIFIERS = 'notifiers'
 
 PARAMETER_NAMES = np.array(['la', 'psi', 'phi', 'rho', 'upsilon'])
 
@@ -15,33 +17,6 @@ DEFAULT_LOWER_BOUNDS = [bd_model.DEFAULT_MIN_RATE, bd_model.DEFAULT_MIN_RATE, bd
                         bd_model.DEFAULT_MIN_PROB, bd_model.DEFAULT_MIN_PROB]
 DEFAULT_UPPER_BOUNDS = [bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_RATE * 1e3,
                         bd_model.DEFAULT_MAX_PROB, bd_model.DEFAULT_MAX_PROB]
-
-
-def log_sum(log_summands):
-    """
-    Takes [logX1, ..., logXk] as input and returns log(X1 + ... + Xk) as output, 
-    while taking care of potential under/overflow.
-    
-    :param log_summands: an array of summands in log form
-    :return: log of the sum
-    """
-    result = np.array(log_summands, dtype=np.float64)
-    factors = rescale_log(result)
-    return np.log(np.sum(np.exp(result))) - factors
-
-
-def log_subtraction(log_minuend, log_subtrahend):
-    """
-    Takes logX1 and logX2 as input and returns log(X1 - X2) as output,
-    while taking care of potential under/overflow.
-
-    :param log_minuend: logX1 in the formula above
-    :param log_subtrahend: logX2 in the formula above
-    :return: log of the difference
-    """
-    result = np.array([log_minuend, log_subtrahend], dtype=np.float64)
-    factors = rescale_log(result)
-    return np.log(np.sum(np.exp(result) * [1, -1])) - factors
 
 
 def preprocess_node(params):
@@ -75,7 +50,7 @@ def preprocess_node(params):
     log_top_ppa = log_subtraction(get_log_ppa(la, psi, phi, c1, tj, th, E_tj, E_th),
                                   get_log_no_event(la + phi, tj, th))
 
-    notifiers = getattr(node, 'notifiers')
+    notifiers = getattr(node, NOTIFIERS)
     notifier2precalculated_values = {}
     for notifier in notifiers:
         tr = getattr(notifier, TIME)
@@ -205,14 +180,28 @@ def preprocess_node(params):
 
 def preprocess_forest(forest):
     annotate_forest_with_time(forest)
+    preannotate_notifiers(forest)
 
+
+def preannotate_notifiers(forest):
+    """
+    Preannotates each tree node with potential notifiers from upper subtree
+    :param forest: forest of trees to be annotated
+    :return: void, adds NOTIFIERS feature to forest tree nodes.
+        This feature contains a (potentially empty) set of upper tree notifiers
+    """
     for tree in forest:
-        all_tips = set(tree.iter_leaves())
-
-        for node in tree.traverse('postorder'):
-            ext_tips = (all_tips - {node}) if node.is_leaf() \
-                else set.intersection(*(getattr(_, 'notifiers') for _ in node.children))
-            node.add_feature('notifiers', ext_tips)
+        for tip in tree:
+            if not tip.is_root():
+                parent = tip.up
+                for sis in parent.children:
+                    if sis != tip:
+                        sis.add_feature(NOTIFIERS, getattr(sis, NOTIFIERS, set()) | {tip})
+        tree.add_feature(NOTIFIERS, set())
+        for node in tree.traverse('preorder'):
+            notifiers = getattr(node, NOTIFIERS)
+            for child in node.children:
+                child.add_feature(NOTIFIERS, getattr(child, NOTIFIERS, set()) | notifiers)
 
 
 def loglikelihood(forest, la, psi, phi, rho, upsilon, T, threads=1):
@@ -253,7 +242,7 @@ def loglikelihood(forest, la, psi, phi, rho, upsilon, T, threads=1):
             is_tip0, is_tip1 = i0.is_leaf(), i1.is_leaf()
 
             standard_br = getattr(node, 'standard_br')
-            notifiers = getattr(node, 'notifiers')
+            notifiers = getattr(node, NOTIFIERS)
             notifier2branches = getattr(node, 'r2br')
 
             if not is_tip0 and not is_tip1:
