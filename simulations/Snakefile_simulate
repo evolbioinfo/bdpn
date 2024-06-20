@@ -7,11 +7,11 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'large')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
-m, M = int(config.get('min', 5000)), int(config.get('max', 10000))
+m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 # m, M = 50, 100 # small_trees
 # m, M = 500, 1000 # trees
 # m, M = 5000, 10000 # large_trees
@@ -199,6 +199,43 @@ rule simulate_bdpn:
         while [ ! -f {output.nwk} ]
         do
             timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+        done
+        """
+
+
+rule simulate_bdpn_all_partners:
+    '''
+    Simulate a BDPN tree.
+    '''
+    input:
+        log=os.path.join(sim_folder,'BDPN','tree.{i}.log'),
+    output:
+        log = os.path.join(sim_folder, 'BDPN2', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BDPN2', 'tree.{i}.nwk'),
+    params:
+        mem = 2000,
+        name = 'simulate_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.15"
+    shell:
+        """
+        R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        pn=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
+        rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+        cat {input.log}
+
+        while [ ! -f {output.nwk} ]
+        do
+            timeout 10m generate_bd --min_tips {m} --max_tips {M} \
+            --la $la --psi $psi --p $p \
+            --phi $phi  --upsilon $pn --max_notified_partners {M} \
+            --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
 
