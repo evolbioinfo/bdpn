@@ -18,7 +18,7 @@ m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN'])
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDPN2', 'BDEI', 'BDEIPN', 'BDSSPN'])
     shell:
         """
         snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder} min={m} max={M} --unlock 2> /dev/null
