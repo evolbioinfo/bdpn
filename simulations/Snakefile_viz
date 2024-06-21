@@ -19,7 +19,7 @@ pars = ['p', 'psi']
 rule all:
     input:
         expand(os.path.join(sim_folder,'errors_{par}.svg'), par=pars),
-        # expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN', 'BD']),
+        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=['p'], model=['BDPN2']),
         expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),

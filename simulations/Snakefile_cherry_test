@@ -47,7 +47,7 @@ rule combine:
     '''
     input:
         log = expand(os.path.join(sim_folder,'{model}','tree.{i}.cherry_test'), i=REPETITIONS,
-            model=['BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSS', 'BDSSPN'])
+            model=['BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSS', 'BDSSPN', 'BDPN2'])
     output:
         tab = os.path.join(sim_folder, 'cherry_tests.tab'),
     params:
