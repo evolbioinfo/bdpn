@@ -57,7 +57,7 @@ rule simulate_bdeipn:
         while [ ! -f {output.nwk} ]
         do
             timeout 10m generate_bdei --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --mu $mu\
-            --partner_psi $psin  --pn $pn\
+            --phi $psin  --upsilon $pn\
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
@@ -101,7 +101,7 @@ rule simulate_bdsspn:
             timeout 10m generate_bdss --min_tips {m} --max_tips {M} \
             --la_ss $lass --la_sn $lasn --la_nn $lann --la_ns $lans \
             --psi $psi --p $p \
-            --partner_psi $psin  --pn $pn \
+            --phi $psin  --upsilon $pn \
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
