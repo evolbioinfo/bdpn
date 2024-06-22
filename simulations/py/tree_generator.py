@@ -32,13 +32,13 @@ if __name__ == "__main__":
     R0 = random_float(1, 5)
     psi = random_float(1 / 20, 1 / 5)
     la = psi * R0
-    psi_n = psi * random_float(50, 500)
+    phi = psi * random_float(50, 500)
     rho = random_float(0.1, 0.9)
-    rho_n = random_float(0.01 / rho, 0.9)
+    upsilon = random_float(0.01 / rho, 0.9)
 
-    print(la, psi, psi_n, rho, rho_n)
+    print(la, psi, phi, rho, upsilon)
 
-    model = PNModel(model=BirthDeathModel(p=rho, la=la, psi=psi), pn=rho_n, removal_rate=psi_n)
+    model = PNModel(model=BirthDeathModel(p=rho, la=la, psi=psi), upsilon=upsilon, partner_removal_rate=phi)
 
     forest, (total_tips, u, T), _ = generate(model, params.min_tips, params.max_tips)
 
