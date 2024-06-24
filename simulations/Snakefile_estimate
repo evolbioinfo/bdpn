@@ -17,6 +17,8 @@ folder = os.path.abspath(config.get("folder", '.'))
 sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
+ci = "--ci"
+# ci = ""
 
 rule all:
     input:
@@ -51,7 +53,7 @@ rule estimate_params_p_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --threads {threads} --ci
+        bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --threads {threads} {ci}
         """
 
 rule estimate_params_p_fixed_bd:
@@ -74,7 +76,7 @@ rule estimate_params_p_fixed_bd:
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
         cat {input.log}
 
-        bd_infer --p $p  --nwk {input.nwk} --log {output.est} --ci
+        bd_infer --p $p  --nwk {input.nwk} --log {output.est} {ci}
         """
 
 rule estimate_params_psi_fixed:
@@ -100,7 +102,7 @@ rule estimate_params_psi_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci
+        bdpn_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} {ci}
         """
 
 
@@ -125,7 +127,7 @@ rule estimate_params_psi_fixed_bd:
         psi=`echo "print(1/${{it}})" | python3`
         cat {input.log}
 
-        bd_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} --ci
+        bd_infer --psi ${{psi}}  --nwk {input.nwk} --log {output.est} {ci}
         """
 
 rule estimate_params_la_fixed:
@@ -152,7 +154,7 @@ rule estimate_params_la_fixed:
         psip=`echo "print(1/${{rt}})" | python3`
         cat {input.log}
 
-        bdpn_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  --ci
+        bdpn_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  {ci}
         """
 
 rule estimate_params_la_fixed_bd:
@@ -177,5 +179,5 @@ rule estimate_params_la_fixed_bd:
         la=`echo "print($r/${{it}})" | python3`
         cat {input.log}
 
-        bd_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  --ci
+        bd_infer --la ${{la}} --nwk {input.nwk} --log {output.est}  {ci}
         """

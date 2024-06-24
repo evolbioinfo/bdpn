@@ -43,7 +43,7 @@ rule simulate_bdeipn:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -80,7 +80,7 @@ rule simulate_bdsspn:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -124,7 +124,7 @@ rule simulate_bdss:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -164,7 +164,7 @@ rule simulate_bdei:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -196,7 +196,7 @@ rule simulate_bdpn:
         name = 'simulate_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         while [ ! -f {output.nwk} ]
@@ -220,7 +220,7 @@ rule simulate_bdpn_all_partners:
         name = 'simulate_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -257,7 +257,7 @@ rule simulate_bd:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
