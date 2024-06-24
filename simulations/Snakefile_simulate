@@ -18,7 +18,8 @@ m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDPN2', 'BDEI', 'BDEIPN', 'BDSSPN'])
+        # expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN'])
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDPN2'])
     shell:
         """
         snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder} min={m} max={M} --unlock 2> /dev/null
@@ -40,7 +41,7 @@ rule simulate_bdeipn:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -77,7 +78,7 @@ rule simulate_bdsspn:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -121,7 +122,7 @@ rule simulate_bdss:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -161,7 +162,7 @@ rule simulate_bdei:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -193,7 +194,7 @@ rule simulate_bdpn:
         name = 'simulate_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         while [ ! -f {output.nwk} ]
@@ -217,7 +218,7 @@ rule simulate_bdpn_all_partners:
         name = 'simulate_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -254,7 +255,7 @@ rule simulate_bd:
         name='simulate_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.17"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.18"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
