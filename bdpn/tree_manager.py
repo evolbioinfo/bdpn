@@ -9,6 +9,8 @@ TIME = 'time'
 
 DATE_REGEX = r'[+-]*[\d]+[.\d]*(?:[e][+-][\d]+){0,1}'
 
+NOTIFIERS = 'notifiers'
+
 
 def read_nexus(tree_path):
     with open(tree_path, 'r') as f:
@@ -119,3 +121,38 @@ def sort_tree(tree):
         delattr(c2, ot_feature)
         if not n.is_root():
             n.add_feature(ot_feature, min(t1, t2))
+
+
+def get_total_num_notifiers(tree):
+    return sum(len(getattr(_, NOTIFIERS)) for _ in tree.traverse())
+
+
+def get_max_num_notifiers(tree):
+    n = len(tree)
+    return n ** 2 - 2 * n + 2
+
+
+def get_min_num_notifiers(tree):
+    n = len(tree)
+    return n
+
+
+def preannotate_notifiers(forest):
+    """
+    Preannotates each tree node with potential notifiers from upper subtree
+    :param forest: forest of trees to be annotated
+    :return: void, adds NOTIFIERS feature to forest tree nodes.
+        This feature contains a (potentially empty) set of upper tree notifiers
+    """
+    for tree in forest:
+        for tip in tree:
+            if not tip.is_root():
+                parent = tip.up
+                for sis in parent.children:
+                    if sis != tip:
+                        sis.add_feature(NOTIFIERS, getattr(sis, NOTIFIERS, set()) | {tip})
+        tree.add_feature(NOTIFIERS, set())
+        for node in tree.traverse('preorder'):
+            notifiers = getattr(node, NOTIFIERS)
+            for child in node.children:
+                child.add_feature(NOTIFIERS, getattr(child, NOTIFIERS, set()) | notifiers)

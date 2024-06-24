@@ -7,9 +7,7 @@ from bdpn import bd_model
 from bdpn.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
     get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb, log_subtraction, log_sum
 from bdpn.parameter_estimator import optimize_likelihood_params
-from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
-
-NOTIFIERS = 'notifiers'
+from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T, preannotate_notifiers, NOTIFIERS
 
 PARAMETER_NAMES = np.array(['la', 'psi', 'phi', 'rho', 'upsilon'])
 
@@ -181,27 +179,6 @@ def preprocess_node(params):
 def preprocess_forest(forest):
     annotate_forest_with_time(forest)
     preannotate_notifiers(forest)
-
-
-def preannotate_notifiers(forest):
-    """
-    Preannotates each tree node with potential notifiers from upper subtree
-    :param forest: forest of trees to be annotated
-    :return: void, adds NOTIFIERS feature to forest tree nodes.
-        This feature contains a (potentially empty) set of upper tree notifiers
-    """
-    for tree in forest:
-        for tip in tree:
-            if not tip.is_root():
-                parent = tip.up
-                for sis in parent.children:
-                    if sis != tip:
-                        sis.add_feature(NOTIFIERS, getattr(sis, NOTIFIERS, set()) | {tip})
-        tree.add_feature(NOTIFIERS, set())
-        for node in tree.traverse('preorder'):
-            notifiers = getattr(node, NOTIFIERS)
-            for child in node.children:
-                child.add_feature(NOTIFIERS, getattr(child, NOTIFIERS, set()) | notifiers)
 
 
 def loglikelihood(forest, la, psi, phi, rho, upsilon, T, threads=1):
