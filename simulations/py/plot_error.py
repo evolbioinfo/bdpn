@@ -7,9 +7,9 @@ import seaborn as sns
 from matplotlib.offsetbox import TextArea, HPacker, AnchoredOffsetbox, VPacker
 from statsmodels.stats.weightstats import CompareMeans
 
-RATE_PARAMETERS = ['lambda', 'psi', 'psi_p', 'p', 'pn']
+RATE_PARAMETERS = ['lambda', 'psi', 'phi', 'p', 'upsilon']
 EPIDEMIOLOGIC_PARAMETERS = ['R_naught', 'infectious_time', 'partner_removal_time']
-par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'psi_p': u'\u03c8p', 'p': '\u03c1', 'pn': '\u03c1n',
+par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'phi': u'\u03c8p', 'p': '\u03c1', 'upsilon': '\u03c1n',
              'R_naught': u'\u0052\u2080' + '=' + u'\u03bb\u002F\u03c8',
              'infectious_time': 'infectious time 1' + u'\u002F\u03c8', 'partner_removal_time': 'partner removal time 1' + u'\u002F\u03c8p'}
 PARAMETERS = RATE_PARAMETERS + EPIDEMIOLOGIC_PARAMETERS
@@ -22,14 +22,14 @@ if __name__ == "__main__":
     parser.add_argument('--pdf', type=str, help="plot")
     parser.add_argument('--tab', type=str, help="error table")
     parser.add_argument('--fixed', type=str, default='p', help="fixed parameter", choices=RATE_PARAMETERS)
-    # parser.add_argument('--pn_min', type=float, default=0., help="Only display cases with pn greater or equal to this value")
-    # parser.add_argument('--pn_max', type=float, default=1, help="Only display cases with pn smaller than this value")
+    # parser.add_argument('--upsilon_min', type=float, default=0., help="Only display cases with upsilon greater or equal to this value")
+    # parser.add_argument('--upsilon_max', type=float, default=1, help="Only display cases with upsilon smaller than this value")
     params = parser.parse_args()
 
     df = pd.read_csv(params.estimates, sep='\t', index_col=0)
 
     real_df = df.loc[df['type'] == 'real', :]
-    # real_df = real_df[(real_df['pn'] * real_df['p'] >= params.pn_min) & (real_df['pn'] * real_df['p'] < params.pn_max)]
+    # real_df = real_df[(real_df['upsilon'] * real_df['p'] >= params.upsilon_min) & (real_df['upsilon'] * real_df['p'] < params.upsilon_max)]
 
     df = df.loc[df['type'] != 'real', :]
     df = df.loc[real_df.index, :]
@@ -40,11 +40,11 @@ if __name__ == "__main__":
         mask = df['type'] == type
         for par in PARAMETERS:
             # df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
-            if par != 'p' and par != 'pn':
-                if 'PN' in type or par != 'psi_p':
+            if par != 'p' and par != 'upsilon':
+                if 'PN' in type or par != 'phi':
                     df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
             else:
-                if 'PN' in type or par != 'pn':
+                if 'PN' in type or par != 'upsilon':
                     df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
 
     error_columns = [col for col in df.columns if 'error' in col]
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                 data.extend([[par2greek[par], _, type_label]
                              for _ in df.loc[df['type'] == type, '{}_error'.format(par)].apply(abs_error_or_1)])
                 if '({})'.format(par) not in type and '({})'.format(par[:2]) not in type \
-                        and (par != 'partner_removal_time' or '(psi_p)' not in type) \
+                        and (par != 'partner_removal_time' or '(phi)' not in type) \
                         and (par != 'infectious_time' or '(psi)' not in type):
                     par2type2avg_error[par][type] = \
                         '{:.2f}({:.2f})'.format(np.mean(np.abs(df.loc[df['type'] == type, '{}_error'.format(par)])),
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                         pval_abs = 1
                     par2types2pval[par][(type_1, type_2)] = pval_abs
 
-        ERROR_COL = 'relative error' if 'p' not in pars else 'relative or absolute (for {} and {}) error'.format(par2greek['p'], par2greek['pn'])
+        ERROR_COL = 'relative error' if 'p' not in pars else 'relative or absolute (for {} and {}) error'.format(par2greek['p'], par2greek['upsilon'])
         plot_df = pd.DataFrame(data=data, columns=['parameter', ERROR_COL, 'config'])
 
         palette = sns.color_palette("colorblind")
