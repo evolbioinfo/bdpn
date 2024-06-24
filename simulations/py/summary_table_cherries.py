@@ -13,7 +13,7 @@ if __name__ == "__main__":
     df = pd.DataFrame(columns=['model', 'tree', 'PN_test'])
 
     for log in params.logs:
-        i = int(re.findall(r'[0-9]+', log)[0])
+        i = int(re.findall(r'[0-9]+', log)[-1])
         with open(log, 'r') as f:
             pval = float(f.readline().strip('\n').split('\t')[1])
         model = re.findall(r'BDPN2|BDPN|BDEIPN|BDSSPN|BDEI|BDSS|BD', log)[0]

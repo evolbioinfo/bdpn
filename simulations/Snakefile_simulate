@@ -7,23 +7,25 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
-m, M = int(config.get('min', 500)), int(config.get('max', 1000))
+# m, M = int(config.get('min', 500)), int(config.get('max', 1000))
+m, M = int(config.get('min', 50)), int(config.get('max', 100))
 # m, M = 50, 100 # small_trees
 # m, M = 500, 1000 # trees
 # m, M = 5000, 10000 # large_trees
 
 rule all:
     input:
-        # expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN'])
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN']),
         expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDPN2'])
     shell:
         """
-        snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder} min={m} max={M} --unlock 2> /dev/null
-        snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder} min={m} max={M}
+        snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+        snakemake --snakefile Snakefile_cherry_test --keep-going --cores 12 --config n={n} sf={sim_folder}
         """
 
 

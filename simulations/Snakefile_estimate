@@ -4,7 +4,7 @@ import os
 # snakemake --snakefile Snakefile_estimate --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
 
 # To run on bioevo (change shakemake activation below if you are not Anna ;) :
-# source ~/.bashrc && conda activate snakemake && module load apptainer && cd /pasteur/zeus/projets/p01/Evolbioinfo/users/azhukova/projects/bdei/simulations
+# source ~/.bashrc && conda activate snakemake && module load apptainer && cd /pasteur/zeus/projets/p01/Evolbioinfo/users/azhukova/projects/bdpn/simulations
 # snakemake --snakefile Snakefile_estimate --keep-going --cores 1 --use-singularity --singularity-prefix $HOME/.singularity --singularity-args "-B /pasteur" --cluster "sbatch -c {threads} -o logs/{params.name}.log -e logs/{params.name}.log --mem {params.mem} -p common --qos={params.qos}  -A bioevo -J {params.name}" --jobs 300
 
 
@@ -13,7 +13,8 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
