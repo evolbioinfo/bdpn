@@ -22,9 +22,9 @@ ci = "--ci"
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p', 'psi'],
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
             model=['BDPN', 'BD'], estimator=['bd', 'bdpn']),
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p', 'psi'],
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
             model=['BDPN2'], estimator=['bd', 'bdpn']),
     shell:
         """
@@ -57,6 +57,7 @@ rule estimate_params_p_fixed:
 
         bdpn_infer --p $p  --nwk {input.nwk} --log {output.est} --threads {threads} {ci}
         """
+
 
 rule estimate_params_p_fixed_bd:
     '''

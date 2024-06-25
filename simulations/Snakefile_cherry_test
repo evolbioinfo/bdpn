@@ -7,8 +7,8 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 

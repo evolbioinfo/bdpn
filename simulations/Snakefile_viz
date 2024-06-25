@@ -15,12 +15,12 @@ sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
-pars = ['p', 'psi']
+pars = ['p']
 
 rule all:
     input:
         expand(os.path.join(sim_folder,'errors_{par}.svg'), par=pars),
-        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=['p'], model=['BDPN2']),
+        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN2']),
         expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
@@ -182,10 +182,10 @@ rule combine_estimates:
     input:
         log = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.log'), i=REPETITIONS),
         est_p = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.p.est_bdpn'), i=REPETITIONS),
-        est_psi = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bdpn'), i=REPETITIONS),
+        # est_psi = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bdpn'), i=REPETITIONS),
         # est_la = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.la.est_bdpn'), i=REPETITIONS),
         est_p_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.p.est_bd'), i=REPETITIONS),
-        est_psi_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
+        # est_psi_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.psi.est_bd'), i=REPETITIONS),
         # est_la_bd = expand(os.path.join(sim_folder, '{{model}}', 'tree.{i}.la.est_bd'), i=REPETITIONS),
     output:
         tab = os.path.join(sim_folder, '{model}', 'estimates.tab'),
@@ -200,10 +200,10 @@ rule combine_estimates:
         python3 py/summary_table.py --real {input.log} \
         --estimated_p {input.est_p} \
         --estimated_p_bd {input.est_p_bd} \
-        --estimated_psi_bd {input.est_psi_bd} \
-        --estimated_psi {input.est_psi} \
         --tab {output.tab}
         """
+        # --estimated_psi_bd {input.est_psi_bd} \
+        # --estimated_psi {input.est_psi} \
         # --estimated_la {input.est_la} \
         # --estimated_la_bd {input.est_la_bd} \
 
