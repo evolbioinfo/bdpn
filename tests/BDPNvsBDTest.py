@@ -21,6 +21,17 @@ class BDPNvsBDTest(unittest.TestCase):
         lk_bd = bd_model.loglikelihood(forest, la=vs_bd[0], psi=vs_bd[1], rho=vs_bd[2], T=T)
         self.assertGreater(lk_bdpn, lk_bd)
 
+    def test_bdpn_vs_bd_lk_tip_forest(self):
+        forest = [Tree('A:5;', format=3), Tree('B:4;', format=3)]
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        vs_bdpn, _ = bdpn_model.infer(forest, T, p=0.3)
+        vs_bd, _ = bd_model.infer(forest, T, p=0.3)
+        lk_bdpn = bdpn_model.loglikelihood(forest, la=vs_bdpn[0], psi=vs_bdpn[1], phi=vs_bdpn[2], rho=vs_bdpn[3],
+                                           upsilon=vs_bdpn[4], T=T)
+        lk_bd = bd_model.loglikelihood(forest, la=vs_bd[0], psi=vs_bd[1], rho=vs_bd[2], T=T)
+        self.assertAlmostEquals(lk_bdpn, lk_bd, places=3)
+
     def test_bdpn_upsilon_0_vs_bd_lk(self):
         forest = [Tree(NWK, format=3)]
         bdpn_model.preprocess_forest(forest)

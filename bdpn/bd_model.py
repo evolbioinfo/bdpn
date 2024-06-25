@@ -55,7 +55,8 @@ def loglikelihood(forest, la, psi, rho, T, threads=1):
     log_psi_rho = np.log(psi) + np.log(rho)
     log_two_la = np.log(2) + np.log(la)
 
-    res = 0
+    u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
+    res = len(forest) * u / (1 - u) * np.log(u)
     for tree in forest:
         n = len(tree)
         res += n * log_psi_rho + (n - 1) * log_two_la
@@ -68,8 +69,10 @@ def loglikelihood(forest, la, psi, rho, T, threads=1):
                 ti_2 = getattr(child2, TIME)
                 res += get_log_p(c1, t, ti=ti_1, E_t=E_t, E_ti=get_E(c1, c2, ti_1, T)) \
                        + get_log_p(c1, t, ti=ti_2, E_t=E_t, E_ti=get_E(c1, c2, ti_2, T))
-    u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
-    return res + len(forest) * u / (1 - u) * np.log(u)
+        root_ti = getattr(tree, TIME)
+        root_t = root_ti - tree.dist
+        res += get_log_p(c1, root_t, ti=root_ti, E_t=get_E(c1, c2, root_t, T), E_ti=get_E(c1, c2, root_ti, T))
+    return res
 
 
 def infer(forest, T, la=None, psi=None, p=None,
@@ -186,5 +189,3 @@ def loglikelihood_main():
 
 if '__main__' == __name__:
     main()
-
-
