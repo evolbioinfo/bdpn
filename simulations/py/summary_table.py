@@ -34,7 +34,7 @@ if __name__ == "__main__":
                                'R_naught', 'R_naught_min', 'R_naught_max',
                                'infectious_time', 'infectious_time_min', 'infectious_time_max',
                                'p', 'p_min', 'p_max',
-                               'upsilon', 'pn_min', 'pn_max',
+                               'upsilon', 'upsilon_min', 'upsilon_max',
                                'partner_removal_time', 'partner_removal_time_min', 'partner_removal_time_max'])
 
     for real in params.real:
@@ -81,12 +81,12 @@ if __name__ == "__main__":
                 R0, rt, rho, upsilon, prt, la, psi, phi = ddf.loc['CI_min', :]
                 df.loc['{}.{}'.format(i, est_label),
                 ['R_naught_min', 'infectious_time_min', 'partner_removal_time_min',
-                 'lambda_min', 'psi_min', 'phi_min', 'p_min', 'pn_min', 'type']] \
+                 'lambda_min', 'psi_min', 'phi_min', 'p_min', 'upsilon_min', 'type']] \
                     = [R0, rt, prt, la, psi, phi, rho, upsilon, est_label]
                 R0, rt, rho, upsilon, prt, la, psi, phi = ddf.loc['CI_max', :]
                 df.loc['{}.{}'.format(i, est_label),
                 ['R_naught_max', 'infectious_time_max', 'partner_removal_time_max',
-                 'lambda_max', 'psi_max', 'phi_max', 'p_max', 'pn_max', 'type']] \
+                 'lambda_max', 'psi_max', 'phi_max', 'p_max', 'upsilon_max', 'type']] \
                     = [R0, rt, prt, la, psi, phi, rho, upsilon, est_label]
 
     estimate_list = []
