@@ -12,7 +12,7 @@ from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_
 PARAMETER_NAMES = np.array(['la', 'psi', 'phi', 'rho', 'upsilon'])
 
 DEFAULT_LOWER_BOUNDS = [bd_model.DEFAULT_MIN_RATE, bd_model.DEFAULT_MIN_RATE, bd_model.DEFAULT_MIN_RATE,
-                        bd_model.DEFAULT_MIN_PROB, bd_model.DEFAULT_MIN_PROB]
+                        bd_model.DEFAULT_MIN_PROB, 0]
 DEFAULT_UPPER_BOUNDS = [bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_RATE * 1e3,
                         bd_model.DEFAULT_MAX_PROB, bd_model.DEFAULT_MAX_PROB]
 
@@ -336,25 +336,25 @@ def main():
     parser.add_argument('--la', required=False, default=None, type=float, help="transmission rate")
     parser.add_argument('--psi', required=False, default=None, type=float, help="removal rate")
     parser.add_argument('--p', required=False, default=None, type=float, help='sampling probability')
-    parser.add_argument('--pn', required=False, default=None, type=float, help='notification probability')
+    parser.add_argument('--upsilon', required=False, default=None, type=float, help='notification probability')
     parser.add_argument('--phi', required=False, default=None, type=float, help='partner removal rate')
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--nwk', required=True, type=str, help="input tree file")
     parser.add_argument('--upper_bounds', required=False, type=float, nargs=5,
-                        help="upper bounds for parameters (la, psi, phi, p, pn)", default=DEFAULT_UPPER_BOUNDS)
+                        help="upper bounds for parameters (la, psi, phi, p, upsilon)", default=DEFAULT_UPPER_BOUNDS)
     parser.add_argument('--lower_bounds', required=False, type=float, nargs=5,
-                        help="lower bounds for parameters (la, psi, phi, p, pn)", default=DEFAULT_LOWER_BOUNDS)
+                        help="lower bounds for parameters (la, psi, phi, p, upsilon)", default=DEFAULT_LOWER_BOUNDS)
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
     parser.add_argument('--threads', required=False, type=int, default=1, help="number of threads for parallelization")
     params = parser.parse_args()
 
     # if os.path.exists(params.nwk.replace('.nwk', '.log')):
     #     df = pd.read_csv(params.nwk.replace('.nwk', '.log'))
-    #     R, it, p, pn, rt = df.iloc[0, :5]
+    #     R, it, p, upsilon, rt = df.iloc[0, :5]
     #     psi = 1 / it
     #     la = R * psi
     #     phi = 1 / rt
-    #     print('Real parameters: ', np.array([la, psi, phi, p, pn]))
+    #     print('Real parameters: ', np.array([la, psi, phi, p, upsilon]))
     #     params.psi = psi
 
     if params.la is None and params.psi is None and params.p is None:
@@ -395,7 +395,7 @@ def loglikelihood_main():
     print(lk)
 
 
-def infer(forest, T, la=None, psi=None, phi=None, p=None, pn=None,
+def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
           lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, threads=1, **kwargs):
     """
     Infers BDPN model parameters from a given forest.
@@ -405,12 +405,12 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, pn=None,
     :param psi: removal rate
     :param phi: partner removal rate
     :param p: sampling probability
-    :param pn: partner notification probability
-    :param lower_bounds: array of lower bounds for parameter values (la, psi, partner_psi, p, pn)
-    :param upper_bounds: array of upper bounds for parameter values (la, psi, partner_psi, p, pn)
+    :param upsilon: partner notification probability
+    :param lower_bounds: array of lower bounds for parameter values (la, psi, phi, p, upsilon)
+    :param upper_bounds: array of upper bounds for parameter values (la, psi, phi, p, upsilon)
     :param ci: whether to calculate the CIs or not
-    :return: tuple(vs, cis) of estimated parameter values vs=[la, psi, partner_psi, p, pn]
-        and CIs ci=[[la_min, la_max], ..., [pn_min, pn_max]]. In the case when CIs were not set to be calculated,
+    :return: tuple(vs, cis) of estimated parameter values vs=[la, psi, phi, p, upsilon]
+        and CIs ci=[[la_min, la_max], ..., [upsilon_min, upsilon_max]]. In the case when CIs were not set to be calculated,
         their values would correspond exactly to the parameter values.
     """
     if la is None and psi is None and p is None:
@@ -423,8 +423,8 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, pn=None,
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
     start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
-                                 vs[-1], 0.5 if pn is None or pn <= 0 or pn > 1 else pn])
-    input_params = np.array([la, psi, phi, p, pn])
+                                 vs[-1], 0.5 if upsilon is None or upsilon < 0 or upsilon > 1 else upsilon])
+    input_params = np.array([la, psi, phi, p, upsilon])
     print('Fixed input parameter(s): {}'
           .format(', '.join('{}={:g}'.format(*_)
                             for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))

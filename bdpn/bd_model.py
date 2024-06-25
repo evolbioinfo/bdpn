@@ -6,8 +6,8 @@ from bdpn.formulas import get_c1, get_c2, get_E, get_log_p, get_u
 from bdpn.parameter_estimator import optimize_likelihood_params
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
 
-DEFAULT_MIN_PROB = 1e-3
-DEFAULT_MAX_PROB = 1 - 1e-6
+DEFAULT_MIN_PROB = 1e-6
+DEFAULT_MAX_PROB = 1
 DEFAULT_MIN_RATE = 1e-3
 DEFAULT_MAX_RATE = 1e3
 
