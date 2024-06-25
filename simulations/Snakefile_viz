@@ -10,8 +10,8 @@ localrules: all
 os.makedirs('logs', exist_ok=True)
 
 folder = os.path.abspath(config.get("folder", '.'))
-# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
@@ -65,7 +65,7 @@ rule likelihood_real_bdpn:
         lk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.lk_real'),
     params:
         mem = 2000,
-        name = 'lk_{i}_bdpn',
+        name = 'lk_{i}_bdpn_real',
         qos = 'fast',
     threads: 1
     singularity: "docker://evolbioinfo/bdpn:v0.1.6"
@@ -94,7 +94,7 @@ rule likelihood_real_bd:
         lk = os.path.join(sim_folder, 'BD', 'tree.{i}.lk_real'),
     params:
         mem = 2000,
-        name = 'lk_{i}_bd',
+        name = 'lk_{i}_bd_real',
         qos = 'fast',
     threads: 1
     singularity: "docker://evolbioinfo/bdpn:v0.1.6"

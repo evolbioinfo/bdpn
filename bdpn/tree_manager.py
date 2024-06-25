@@ -137,6 +137,7 @@ def get_min_num_notifiers(tree):
     return n
 
 
+
 def preannotate_notifiers(forest):
     """
     Preannotates each tree node with potential notifiers from upper subtree

@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 
-RATE_PARAMETERS = ['lambda', 'psi', 'psi_p']
-PARAMETERS = RATE_PARAMETERS + ['p', 'pn']
+RATE_PARAMETERS = ['lambda', 'psi', 'phi']
+PARAMETERS = RATE_PARAMETERS + ['p', 'upsilon']
 
 
 if __name__ == "__main__":

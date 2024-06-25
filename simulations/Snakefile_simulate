@@ -7,13 +7,13 @@ import os
 localrules: all
 
 folder = os.path.abspath(config.get("folder", '.'))
-# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
-sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
 n = int(config.get("n", 100))
 REPETITIONS = list(range(n))
 
-# m, M = int(config.get('min', 500)), int(config.get('max', 1000))
-m, M = int(config.get('min', 50)), int(config.get('max', 100))
+m, M = int(config.get('min', 500)), int(config.get('max', 1000))
+# m, M = int(config.get('min', 50)), int(config.get('max', 100))
 # m, M = 50, 100 # small_trees
 # m, M = 500, 1000 # trees
 # m, M = 5000, 10000 # large_trees
@@ -48,11 +48,11 @@ rule simulate_bdeipn:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
-        pn=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        upsilon=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
         rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
         psi=`echo "print(1/${{it}})" | python3`
-        psin=`echo "print(1/${{rt}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
         la=`echo "print($R*${{psi}})" | python3`
         mu=`echo "import numpy as np\nprint(1/20 + (1 - np.random.random(size=1)[0]) * (10 - 1/20))" | python3`
         cat {input.log}
@@ -60,7 +60,7 @@ rule simulate_bdeipn:
         while [ ! -f {output.nwk} ]
         do
             timeout 10m generate_bdei --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --mu $mu\
-            --phi $psin  --upsilon $pn\
+            --phi $phi  --upsilon $upsilon\
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
@@ -85,11 +85,11 @@ rule simulate_bdsspn:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
-        pn=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        upsilon=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
         rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
         psi=`echo "print(1/${{it}})" | python3`
-        psin=`echo "print(1/${{rt}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
         la=`echo "print($R*${{psi}})" | python3`
         x=`echo "import numpy as np\nprint(3 + (1 - np.random.random(size=1)[0]) * (10 - 3))" | python3`
         f=`echo "import numpy as np\nprint(0.05 + (1 - np.random.random(size=1)[0]) * (0.2 - 0.05))" | python3`
@@ -104,7 +104,7 @@ rule simulate_bdsspn:
             timeout 10m generate_bdss --min_tips {m} --max_tips {M} \
             --la_ss $lass --la_sn $lasn --la_nn $lann --la_ns $lans \
             --psi $psi --p $p \
-            --phi $psin  --upsilon $pn \
+            --phi $phi  --upsilon $upsilon \
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
@@ -225,7 +225,7 @@ rule simulate_bdpn_all_partners:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
-        pn=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        upsilon=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
         rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
         psi=`echo "print(1/${{it}})" | python3`
@@ -237,7 +237,7 @@ rule simulate_bdpn_all_partners:
         do
             timeout 10m generate_bd --min_tips {m} --max_tips {M} \
             --la $la --psi $psi --p $p \
-            --phi $phi  --upsilon $pn --max_notified_partners {M} \
+            --phi $phi  --upsilon $upsilon --max_notified_partners {M} \
             --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
         done
         """
