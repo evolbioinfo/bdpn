@@ -2,8 +2,6 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import chi2
 
-from bdpn.tree_manager import TIME, annotate_forest_with_time
-
 MIN_VALUE = np.log(np.finfo(np.float64).eps)
 MAX_VALUE = np.log(np.finfo(np.float64).max)
 
@@ -33,7 +31,8 @@ def rescale_log(loglikelihood_array):
     return factors
 
 
-def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bounds, start_parameters, cis=False, threads=1):
+def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bounds, start_parameters,
+                               cis=False, threads=1):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -43,32 +42,20 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
     """
 
     def get_real_params_from_optimised(ps):
-        ps = np.maximum(np.minimum(ps, 1), -1)
-        # ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
+        ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
         result = np.zeros(len(input_parameters))
 
         i = 0
-        bounds_it = iter(bounds)
         for par_index, par in enumerate(input_parameters):
             if par is None:
-                # result[par_index] = ps[i]
-                m, M = next(bounds_it)
-                p = ps[i]
-                result[par_index] = p * ((M - m) / 2) + (M + m) / 2
+                result[par_index] = ps[i]
                 i += 1
             else:
                 result[par_index] = par
         return result
 
     def get_optimised_params_from_real(ps):
-        result = []
-        bounds_it = iter(bounds)
-        for par_index, par in enumerate(input_parameters):
-            if par is None:
-                p = ps[par_index]
-                m, M = next(bounds_it)
-                result.append((p - (m + M) / 2) / ((M - m) / 2))
-        return np.array(result)
+        return np.array(ps[input_parameters == None])
 
     def get_v(ps):
         if np.any(np.isnan(ps)):
@@ -81,16 +68,13 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
     x0 = get_optimised_params_from_real(start_parameters)
     best_log_lh = -get_v(x0)
 
-    rescaled_bounds = np.array([[-1, 1]] * len(bounds))
     for i in range(5):
         if i == 0:
             vs = x0
         else:
-            # vs = np.random.uniform(bounds[:, 0], bounds[:, 1])
-            vs = np.random.uniform(rescaled_bounds[:, 0], rescaled_bounds[:, 1])
+            vs = np.random.uniform(bounds[:, 0], bounds[:, 1])
 
-        # fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=bounds)
-        fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=rescaled_bounds)
+        fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=bounds)
         if fres.success and not np.any(np.isnan(fres.x)):
             if -fres.fun >= best_log_lh:
                 x0 = np.array(fres.x)
