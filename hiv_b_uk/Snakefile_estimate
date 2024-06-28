@@ -35,7 +35,7 @@ rule estimate_params_p_fixed_bdpn:
         name = 'est_p',
         qos = 'normal'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
     shell:
         """
         bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -54,7 +54,7 @@ rule estimate_params_p_fixed_bd:
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
     shell:
         """
         bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -74,7 +74,7 @@ rule cherry_test:
         name='pn_test',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}
