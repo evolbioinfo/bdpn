@@ -14,9 +14,6 @@ REPETITIONS = list(range(n))
 
 m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 # m, M = int(config.get('min', 50)), int(config.get('max', 100))
-# m, M = 50, 100 # small_trees
-# m, M = 500, 1000 # trees
-# m, M = 5000, 10000 # large_trees
 
 rule all:
     input:

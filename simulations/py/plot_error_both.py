@@ -9,14 +9,14 @@ from statsmodels.stats.weightstats import CompareMeans
 
 RATE_PARAMETERS = ['lambda', 'psi', 'phi', 'p', 'upsilon']
 EPIDEMIOLOGIC_PARAMETERS = ['R_naught', 'infectious_time', 'partner_removal_time']
-par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'phi': u'\u03c8p', 'p': '\u03c1', 'upsilon': '\u03c5',
+par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'phi': u'\u03c6', 'p': '\u03c1', 'upsilon': '\u03c5',
              'R_naught': u'\u0052\u2080' + '=' + u'\u03bb\u002F\u03c8',
              'infectious_time': 'infectious time 1' + u'\u002F\u03c8',
              'partner_removal_time': 'partner removal time 1' + u'\u002F\u03c6'}
 PARAMETERS = RATE_PARAMETERS + EPIDEMIOLOGIC_PARAMETERS
 
 PS_BDPN = EPIDEMIOLOGIC_PARAMETERS + ['p', 'upsilon']
-PS_BD = EPIDEMIOLOGIC_PARAMETERS[:-1] + ['p']
+PS_BD = EPIDEMIOLOGIC_PARAMETERS[:-1] + ['p', 'upsilon']
 
 if __name__ == "__main__":
     import argparse
@@ -54,11 +54,9 @@ if __name__ == "__main__":
             for par in PARAMETERS:
                 # df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
                 if par != 'p' and par != 'upsilon':
-                    if 'PN' in type or par != 'phi':
-                        df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
+                    df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
                 else:
-                    if 'PN' in type or par != 'upsilon':
-                        df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
+                    df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
 
 
         n_types = len(types)

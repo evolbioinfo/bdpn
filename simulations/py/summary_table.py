@@ -54,8 +54,8 @@ if __name__ == "__main__":
                 = ddf.loc[next(iter(ddf.index)), :]
             df.loc['{}.real'.format(i),
                    ['R_naught', 'infectious_time',
-                    'lambda', 'psi', 'p', 'sampled_tips', 'type']] \
-                = [R0, it, R0 / it, 1 / it, p, tips, 'real']
+                    'lambda', 'psi', 'p', 'upsilon', 'sampled_tips', 'type']] \
+                = [R0, it, R0 / it, 1 / it, p, 0, tips, 'real']
 
     estimate_list = []
     if params.estimated_la:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         if not est_list:
             continue
         for est in est_list:
-            i = int(re.findall(r'[0-9]+', est)[0])
+            i = int(re.findall(r'[0-9]+', est)[-1])
             ddf = pd.read_csv(est, index_col=0)
             est_label = 'BDPN({})'.format(fixed)
             R0, rt, rho, upsilon, prt, la, psi, phi = ddf.loc['value', :]
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         if not est_list:
             continue
         for est in est_list:
-            i = int(re.findall(r'[0-9]+', est)[0])
+            i = int(re.findall(r'[0-9]+', est)[-1])
             ddf = pd.read_csv(est, index_col=0)
             est_label = 'BD({})'.format(fixed)
             R0, rt, rho, la, psi = ddf.loc['value', :]

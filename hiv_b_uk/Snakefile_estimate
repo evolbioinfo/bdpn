@@ -18,7 +18,7 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
-        expand(os.path.join(data_dir, 'estimates_{model}.tab'), model=['bd', 'bdpn']),
+        expand(os.path.join(data_dir, 'estimates_{model}.tab'), model=['bd']),
         expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
 
 
@@ -35,7 +35,7 @@ rule estimate_params_p_fixed_bdpn:
         name = 'est_p',
         qos = 'normal'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
     shell:
         """
         bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -54,7 +54,7 @@ rule estimate_params_p_fixed_bd:
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
     shell:
         """
         bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -74,7 +74,7 @@ rule cherry_test:
         name='pn_test',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.6"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.8"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}

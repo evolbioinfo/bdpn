@@ -6,7 +6,7 @@ import numpy as np
 from bdpn import bd_model
 from bdpn.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
     get_u, get_log_no_event, get_log_ppa, get_log_ppa_from_ppb, get_log_pb, log_subtraction, log_sum
-from bdpn.parameter_estimator import optimize_likelihood_params
+from bdpn.parameter_estimator import optimize_likelihood_params, estimate_cis
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T, preannotate_notifiers, NOTIFIERS
 
 PARAMETER_NAMES = np.array(['la', 'psi', 'phi', 'rho', 'upsilon'])
@@ -60,8 +60,9 @@ def preprocess_node(params):
 
         log_p_psi_rho_not_ups = log_p + log_psi_rho_not_ups
         log_standard_n_psi_rho_ups = log_standard_n + log_psi_rho_ups
-        node.add_feature('lxx', log_sum([log_p_psi_rho_not_ups,
-                                         log_standard_n_psi_rho_ups]))
+        lxx = log_sum([log_p_psi_rho_not_ups,
+                       log_standard_n_psi_rho_ups])
+        node.add_feature('lxx', lxx)
 
     notifiers = getattr(node, NOTIFIERS)
     if notifiers:
@@ -314,12 +315,13 @@ def save_results(vs, cis, log, ci=False):
         R0 = la / psi
         rt = 1 / psi
         prt = 1 / phi
-        (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (rho_p_min, rho_p_max) = cis
-        R0_min, R0_max = la_min / psi, la_max / psi
-        rt_min, rt_max = 1 / psi_max, 1 / psi_min
-        prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
         f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, rho_p, prt, la, psi, phi])))
         if ci:
+            (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (
+            rho_p_min, rho_p_max) = cis
+            R0_min, R0_max = la_min / psi, la_max / psi
+            rt_min, rt_max = 1 / psi_max, 1 / psi_min
+            prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
             f.write('CI_min,{}\n'.format(
                 ','.join(str(_) for _ in [R0_min, rt_min, rho_min, rho_p_min, prt_min, la_min, psi_min, psi_p_min])))
             f.write('CI_max,{}\n'.format(
@@ -422,22 +424,38 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
     bounds = np.zeros((5, 2), dtype=np.float64)
     bounds[:, 0] = lower_bounds
     bounds[:, 1] = upper_bounds
+    input_params = np.array([la, psi, phi, p, upsilon])
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
-    start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
-                                 vs[-1], 0.5 if upsilon is None or upsilon < 0 or upsilon > 1 else upsilon])
-    input_params = np.array([la, psi, phi, p, upsilon])
-    print('Fixed input parameter(s): {}'
-          .format(', '.join('{}={:g}'.format(*_)
-                            for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
-    print('Starting BDPN parameters: {}'.format(start_parameters))
-    vs, cis, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
-                                             loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                             start_parameters=start_parameters, cis=ci, threads=threads)
-    print('Estimated BDPN parameters: {}'.format(vs))
+    bounds = bounds[input_params == None]
+    upsilon_estimated = upsilon is None or upsilon < 0 or upsilon > 1
+    best_vs, best_lk = None, -np.inf
+    for i, ups in enumerate((0.25, 0.5, 0.75) if upsilon_estimated else (upsilon,)):
+        start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
+                                     vs[-1], ups])
+        print('Starting BDPN parameters:\t{}'
+              .format(', '.join('{}={:g}{}'.format(_[0], _[1], '' if _[2] is None else ' (fixed)')
+                                for _ in zip(PARAMETER_NAMES, start_parameters, input_params))))
+        vs, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
+                                            loglikelihood_function=loglikelihood, bounds=bounds,
+                                            start_parameters=start_parameters, threads=threads)
+
+        print(
+            'Estimated BDPN parameters{}:\t{};\tloglikelihood={}'
+            .format(' (round {})'.format(i) if upsilon_estimated else '',
+                    (', '.join('{}={:g}'.format(*_) for _ in zip(PARAMETER_NAMES, vs))), lk))
+
+        if lk > best_lk:
+            best_lk = lk
+            best_vs = vs
     if ci:
-        print('Estimated CIs:\n{}'.format(cis))
-    return vs, cis
+        cis = estimate_cis(T, forest, input_parameters=input_params, loglikelihood_function=loglikelihood,
+                           optimised_parameters=best_vs, bounds=bounds, threads=threads)
+        print('Estimated CIs:\t{}'
+              .format(', '.join('{}=[{:g},{:g}]'.format(p, *p_ci) for (p, p_ci) in zip(PARAMETER_NAMES, cis))))
+    else:
+        cis = None
+    return best_vs, cis
 
 
 if '__main__' == __name__:

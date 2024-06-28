@@ -20,9 +20,11 @@ pars = ['p']
 rule all:
     input:
         expand(os.path.join(sim_folder,'errors_{par}.svg'), par=pars),
-        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN2']),
+        expand(os.path.join(sim_folder, '{model}', 'errors_{par}.svg'), par=pars, model=['BDPN2', 'BDPN']),
         expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=pars),
+        expand(os.path.join(sim_folder,'BDPN2','likelihood_stats_bdpn.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=pars),
+        expand(os.path.join(sim_folder, 'BD','likelihood_stats_bdpn.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
 
 rule likelihood_bdpn:
@@ -59,10 +61,10 @@ rule likelihood_real_bdpn:
     Calculate likelihood value for real parameters.
     '''
     input:
-        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
     output:
-        lk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.lk_real'),
+        lk = os.path.join(sim_folder, '{model,BDP[N2]+}', 'tree.{i}.lk_real'),
     params:
         mem = 2000,
         name = 'lk_{i}_bdpn_real',

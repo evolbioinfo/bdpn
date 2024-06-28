@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from bdpn.formulas import get_c1, get_c2, get_E, get_log_p, get_u
-from bdpn.parameter_estimator import optimize_likelihood_params
+from bdpn.parameter_estimator import optimize_likelihood_params, estimate_cis
 from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
 
 DEFAULT_MIN_PROB = 1e-6
@@ -76,7 +76,7 @@ def loglikelihood(forest, la, psi, rho, T, threads=1):
 
 
 def infer(forest, T, la=None, psi=None, p=None,
-          lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, **kwargs):
+          lower_bounds=DEFAULT_LOWER_BOUNDS, upper_bounds=DEFAULT_UPPER_BOUNDS, ci=False, threads=1, **kwargs):
     """
     Infers BD model parameters from a given forest.
 
@@ -99,16 +99,22 @@ def infer(forest, T, la=None, psi=None, p=None,
     bounds[:, 1] = upper_bounds
     start_parameters = get_start_parameters(forest, la, psi, p)
     input_params = np.array([la, psi, p])
-    print('Fixed input parameter(s): {}'
-          .format(', '.join('{}={:g}'.format(*_)
-                            for _ in zip(PARAMETER_NAMES[input_params != None], input_params[input_params != None]))))
-    print('Starting BD parameters: {}'.format(start_parameters))
-    vs, cis, lk = optimize_likelihood_params(forest, T, input_parameters=input_params,
-                                             loglikelihood=loglikelihood, bounds=bounds[input_params == None],
-                                             start_parameters=start_parameters, cis=ci)
-    print('Estimated BD parameters: {}'.format(vs))
+    print('Starting BD parameters:\t{}'
+          .format(', '.join('{}={:g}{}'.format(_[0], _[1], '' if _[2] is None else ' (fixed)')
+                            for _ in zip(PARAMETER_NAMES, start_parameters, input_params))))
+    bounds = bounds[input_params == None]
+    vs, lk = optimize_likelihood_params(forest, T, input_parameters=input_params,
+                                        loglikelihood_function=loglikelihood, bounds=bounds,
+                                        start_parameters=start_parameters)
+    print('Estimated BD parameters:\t{};\tloglikelihood={}'
+          .format(', '.join('{}={:g}'.format(*_) for _ in zip(PARAMETER_NAMES, vs)), lk))
     if ci:
-        print('Estimated CIs:\n{}'.format(cis))
+        cis = estimate_cis(T, forest, input_parameters=input_params, loglikelihood_function=loglikelihood,
+                           optimised_parameters=vs, bounds=bounds, threads=threads)
+        print('Estimated CIs:\t{}'
+              .format(', '.join('{}=[{:g},{:g}]'.format(p, *p_ci) for (p, p_ci) in zip(PARAMETER_NAMES, cis))))
+    else:
+        cis = None
     return vs, cis
 
 
@@ -120,11 +126,11 @@ def save_results(vs, cis, log, ci=False):
         la, psi, rho = vs
         R0 = la / psi
         rt = 1 / psi
-        (la_min, la_max), (psi_min, psi_max), (rho_min, rho_max) = cis
-        R0_min, R0_max = la_min / psi, la_max / psi
-        rt_min, rt_max = 1 / psi_max, 1 / psi_min
         f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, la, psi])))
         if ci:
+            (la_min, la_max), (psi_min, psi_max), (rho_min, rho_max) = cis
+            R0_min, R0_max = la_min / psi, la_max / psi
+            rt_min, rt_max = 1 / psi_max, 1 / psi_min
             f.write('CI_min,{}\n'.format(
                 ','.join(str(_) for _ in [R0_min, rt_min, rho_min, la_min, psi_min])))
             f.write('CI_max,{}\n'.format(

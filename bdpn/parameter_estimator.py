@@ -2,6 +2,8 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import chi2
 
+LIKELIHOOD_DIFF_95_CI = chi2.ppf(q=0.95, df=1) / 2
+
 MIN_VALUE = np.log(np.finfo(np.float64).eps)
 MAX_VALUE = np.log(np.finfo(np.float64).max)
 
@@ -31,8 +33,8 @@ def rescale_log(loglikelihood_array):
     return factors
 
 
-def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bounds, start_parameters,
-                               cis=False, threads=1):
+def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_function, bounds, start_parameters,
+                               threads=1):
     """
     Optimizes the likelihood parameters for a given forest and a given MTBD model.
 
@@ -40,29 +42,24 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
     :param forest: a list of ete3.Tree trees
     :return: tuple: (the values of optimized parameters, CIs)
     """
+    optimised_parameter_mask = input_parameters == None
 
     def get_real_params_from_optimised(ps):
         ps = np.maximum(np.minimum(ps, bounds[:, 1]), bounds[:, 0])
-        result = np.zeros(len(input_parameters))
-
-        i = 0
-        for par_index, par in enumerate(input_parameters):
-            if par is None:
-                result[par_index] = ps[i]
-                i += 1
-            else:
-                result[par_index] = par
+        result = np.array(input_parameters)
+        result[optimised_parameter_mask] = ps
         return result
 
     def get_optimised_params_from_real(ps):
-        return np.array(ps[input_parameters == None])
+        return np.array(ps[optimised_parameter_mask])
 
     def get_v(ps):
-        if np.any(np.isnan(ps)):
-            return np.nan
+        # print(ps, type(ps))
+        # if np.any(np.isnan(ps)):
+        #     # print("{}\t-->\t{:g}".format(ps, np.nan))
+        #     return np.nan
         ps = get_real_params_from_optimised(ps)
-        res = loglikelihood(forest, *ps, T, threads=threads)
-        # print("{}\t-->\t{:g}".format(ps, res))
+        res = loglikelihood_function(forest, *ps, T=T, threads=threads)
         return -res
 
     x0 = get_optimised_params_from_real(start_parameters)
@@ -83,22 +80,20 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
             # print('Attempt {} of trying to optimise the parameters: {} -> {}.'.format(i, x0, -fres.fun))
     optimised_parameters = get_real_params_from_optimised(x0)
 
-    n = len(optimised_parameters)
-    optimised_cis = np.zeros((n, 2))
-    bound_iterator = iter(bounds)
-    for bs_i in range(n):
-        if input_parameters[bs_i] is not None:
-            optimised_cis[bs_i, :] = input_parameters[bs_i], input_parameters[bs_i]
-        else:
-            min_bound, max_bound = next(bound_iterator)
-            optimised_cis[bs_i, :] = max(min_bound, optimised_parameters[bs_i] / 2), \
-                min(max_bound, optimised_parameters[bs_i] * 2)
+    return optimised_parameters, best_log_lh
 
-    if cis:
-        print('Estimated parameters:', optimised_parameters)
+
+def estimate_cis(T, forest, input_parameters, loglikelihood_function, optimised_parameters, bounds, threads=1):
         print('Estimating CIs...')
-        diff = chi2.ppf(q=0.95, df=1) / 2
-        lk_threshold = loglikelihood(forest, *optimised_parameters, T, threads=threads) - diff
+        n = len(optimised_parameters)
+        optimised_cis = np.zeros((n, 2))
+        bound_iterator = iter(bounds)
+        for bs_i in range(n):
+            if input_parameters[bs_i] is not None:
+                optimised_cis[bs_i, :] = input_parameters[bs_i], input_parameters[bs_i]
+            else:
+                optimised_cis[bs_i, :] = next(bound_iterator)
+        lk_threshold = loglikelihood_function(forest, *optimised_parameters, T, threads=threads) - LIKELIHOOD_DIFF_95_CI
 
         def binary_search(v_min, v_max, get_lk, lower=True):
             v = v_min + (v_max - v_min) / 2
@@ -106,7 +101,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
                 return v_min if lower else v_max
 
             lk_diff = get_lk(v) - lk_threshold
-            if np.abs(lk_diff) < diff / 100:
+            if np.round(np.abs(lk_diff), 3) == 0:
                 return v
 
             go_left = (lower and lk_diff > 0) or ((not lower) and lk_diff < 0)
@@ -136,8 +131,8 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
             def get_lk(v):
                 rps[i] = v
                 ip[i] = v
-                return optimize_likelihood_params(forest, T, ip, loglikelihood, bounds=bs, start_parameters=rps,
-                                                  cis=False, threads=threads)[-1]
+                return optimize_likelihood_params(forest, T, ip, loglikelihood_function, bounds=bs, start_parameters=rps,
+                                                  threads=threads)[-1]
 
             optimised_cis[i, 0] = binary_search(optimised_cis[i, 0], optimised_value, get_lk, True)
             optimised_cis[i, 1] = binary_search(optimised_value, optimised_cis[i, 1], get_lk, False)
@@ -152,8 +147,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood, bound
         # else:
         for _ in ((i, v) for (i, v) in enumerate(optimised_parameters) if input_parameters[i] is None):
             get_ci(_)
-
-    return optimised_parameters, optimised_cis, best_log_lh
+        return optimised_cis
 
 
 def AIC(k, loglk):
