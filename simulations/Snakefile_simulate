@@ -1,7 +1,7 @@
 import os
 
 # To run locally:
-# snakemake --snakefile Snakefile_simulate --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+# snakemake --snakefile Snakefile_simulate --keep-going --cores 1 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
 
 
 localrules: all
@@ -17,7 +17,7 @@ m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 
 rule all:
     input:
-        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN']),
+        # expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN']),
         expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDPN2'])
     shell:
         """
@@ -181,26 +181,26 @@ rule simulate_bdei:
         """
 
 
-rule simulate_bdpn:
-    '''
-    Simulate a BDPN tree.
-    '''
-    output:
-        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
-        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
-    params:
-        mem = 2000,
-        name = 'simulate_{i}',
-        qos = 'fast'
-    threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
-    shell:
-        """
-        while [ ! -f {output.nwk} ]
-        do
-            timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
-        done
-        """
+# rule simulate_bdpn:
+#     '''
+#     Simulate a BDPN tree.
+#     '''
+#     output:
+#         log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+#         nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
+#     params:
+#         mem = 2000,
+#         name = 'simulate_{i}',
+#         qos = 'fast'
+#     threads: 1
+#     singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
+#     shell:
+#         """
+#         while [ ! -f {output.nwk} ]
+#         do
+#             timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+#         done
+#         """
 
 
 rule simulate_bdpn_all_partners:
@@ -217,7 +217,7 @@ rule simulate_bdpn_all_partners:
         name = 'simulate_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.22"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -225,17 +225,18 @@ rule simulate_bdpn_all_partners:
         upsilon=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
         rt=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
+        T=`tail -n 1 {input.log} | awk -F',' '{{ print $7 }}'`
         psi=`echo "print(1/${{it}})" | python3`
         phi=`echo "print(1/${{rt}})" | python3`
         la=`echo "print($R*${{psi}})" | python3`
         cat {input.log}
-
+        
         while [ ! -f {output.nwk} ]
         do
             timeout 10m generate_bd --min_tips {m} --max_tips {M} \
             --la $la --psi $psi --p $p \
             --phi $phi  --upsilon $upsilon --max_notified_partners {M} \
-            --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+            --nwk {output.nwk} --log {output.log} --T $T || echo 'The forest took too long, restarting!'
         done
         """
 

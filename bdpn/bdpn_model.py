@@ -318,7 +318,7 @@ def save_results(vs, cis, log, ci=False):
         f.write('value,{}\n'.format(','.join(str(_) for _ in [R0, rt, rho, rho_p, prt, la, psi, phi])))
         if ci:
             (la_min, la_max), (psi_min, psi_max), (psi_p_min, psi_p_max), (rho_min, rho_max), (
-            rho_p_min, rho_p_max) = cis
+                rho_p_min, rho_p_max) = cis
             R0_min, R0_max = la_min / psi, la_max / psi
             rt_min, rt_max = 1 / psi_max, 1 / psi_min
             prt_min, prt_max = 1 / psi_p_max, 1 / psi_p_min
@@ -351,15 +351,6 @@ def main():
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
     parser.add_argument('--threads', required=False, type=int, default=1, help="number of threads for parallelization")
     params = parser.parse_args()
-
-    # if os.path.exists(params.nwk.replace('.nwk', '.log')):
-    #     df = pd.read_csv(params.nwk.replace('.nwk', '.log'))
-    #     R, it, p, upsilon, rt = df.iloc[0, :5]
-    #     psi = 1 / it
-    #     la = R * psi
-    #     phi = 1 / rt
-    #     print('Real parameters: ', np.array([la, psi, phi, p, upsilon]))
-    #     params.psi = psi
 
     if params.la is None and params.psi is None and params.p is None:
         raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
@@ -430,7 +421,7 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
     bounds = bounds[input_params == None]
     upsilon_estimated = upsilon is None or upsilon < 0 or upsilon > 1
     best_vs, best_lk = None, -np.inf
-    for i, ups in enumerate((0.25, 0.5, 0.75) if upsilon_estimated else (upsilon,)):
+    for i, ups in enumerate((0.25, 0.75) if upsilon_estimated else (upsilon,)):
         start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
                                      vs[-1], ups])
         print('Starting BDPN parameters:\t{}'
@@ -439,7 +430,6 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
         vs, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
                                             loglikelihood_function=loglikelihood, bounds=bounds,
                                             start_parameters=start_parameters, threads=threads)
-
         print(
             'Estimated BDPN parameters{}:\t{};\tloglikelihood={}'
             .format(' (round {})'.format(i) if upsilon_estimated else '',
