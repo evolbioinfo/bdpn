@@ -31,7 +31,7 @@ rule cherry_test:
         name='cherry_test_{i}',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}
