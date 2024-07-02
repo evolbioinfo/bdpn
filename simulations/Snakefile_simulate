@@ -17,7 +17,7 @@ m, M = int(config.get('min', 500)), int(config.get('max', 1000))
 
 rule all:
     input:
-        # expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN']),
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDSS', 'BD', 'BDPN', 'BDEI', 'BDEIPN', 'BDSSPN']),
         expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDPN2'])
     shell:
         """
@@ -181,26 +181,26 @@ rule simulate_bdei:
         """
 
 
-# rule simulate_bdpn:
-#     '''
-#     Simulate a BDPN tree.
-#     '''
-#     output:
-#         log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
-#         nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
-#     params:
-#         mem = 2000,
-#         name = 'simulate_{i}',
-#         qos = 'fast'
-#     threads: 1
-#     singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
-#     shell:
-#         """
-#         while [ ! -f {output.nwk} ]
-#         do
-#             timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
-#         done
-#         """
+rule simulate_bdpn:
+    '''
+    Simulate a BDPN tree.
+    '''
+    output:
+        log = os.path.join(sim_folder, 'BDPN', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BDPN', 'tree.{i}.nwk'),
+    params:
+        mem = 2000,
+        name = 'simulate_{i}',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
+    shell:
+        """
+        while [ ! -f {output.nwk} ]
+        do
+            timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+        done
+        """
 
 
 rule simulate_bdpn_all_partners:

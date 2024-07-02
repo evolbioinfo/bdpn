@@ -24,8 +24,8 @@ rule all:
     input:
         expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
             model=['BDPN', 'BD'], estimator=['bd', 'bdpn']),
-        # expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
-        #     model=['BDPN2'], estimator=['bd', 'bdpn']),
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
+            model=['BDPN2'], estimator=['bd', 'bdpn']),
     shell:
         """
         snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
