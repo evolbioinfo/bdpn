@@ -418,10 +418,10 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
     input_params = np.array([la, psi, phi, p, upsilon])
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
-    bounds = bounds[input_params == None]
     upsilon_estimated = upsilon is None or upsilon < 0 or upsilon > 1
+    bounds = bounds[input_params == None]
     best_vs, best_lk = None, -np.inf
-    for i, ups in enumerate((0.25, 0.75) if upsilon_estimated else (upsilon,)):
+    for i, ups in enumerate((0.1, 0.5) if upsilon_estimated else (upsilon,)):
         start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
                                      vs[-1], ups])
         print('Starting BDPN parameters:\t{}'
