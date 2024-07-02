@@ -42,6 +42,9 @@ if __name__ == "__main__":
             # df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
             if par != 'p' and par != 'upsilon':
                 df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par]) / real_df[par]
+                if par == 'phi' or par == 'partner_removal_time':
+                    zero_ups_mask = pd.isna(df['upsilon']) | (df['upsilon'] == 0)
+                    df.loc[mask & zero_ups_mask, '{}_error'.format(par)] = np.nan
             else:
                 df.loc[mask, '{}_error'.format(par)] = (df.loc[mask, par] - real_df[par])
 
