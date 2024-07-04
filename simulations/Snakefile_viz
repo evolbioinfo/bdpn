@@ -24,9 +24,9 @@ rule all:
         expand(os.path.join(sim_folder,'BDPN','likelihood_stats_bdpn.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, 'BD','likelihood_stats_bd.{par}.txt'), par=pars),
         expand(os.path.join(sim_folder, 'BD','likelihood_stats_bdpn.{par}.txt'), par=pars),
-        expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD']),
         expand(os.path.join(sim_folder, 'BDPN2', 'errors_{par}.svg'), par=pars),
         expand(os.path.join(sim_folder,'BDPN2','likelihood_stats_bdpn.{par}.txt'), par=pars),
+        expand(os.path.join(sim_folder, '{model}', 'CI_stats.txt'), model=['BDPN', 'BD', 'BDPN2']),
 
 rule likelihood_bdpn:
     '''
