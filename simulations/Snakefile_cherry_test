@@ -52,7 +52,7 @@ rule combine:
         name = 'combine',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/python-evol:v3.6richer.1"
+    singularity: "docker://evolbioinfo/pastml:v1.9.43"
     shell:
         """
         python3 py/summary_table_cherries.py --logs {input.log} --tab {output.tab}
