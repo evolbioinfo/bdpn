@@ -47,7 +47,7 @@ rule estimate_params_p_fixed:
         name = 'est_p_{i}',
         qos = 'normal'
     threads: 2
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
@@ -73,7 +73,7 @@ rule estimate_params_p_fixed_bd:
         name = 'est_p_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
@@ -96,7 +96,7 @@ rule estimate_params_psi_fixed:
         name = 'est_psi_{i}',
         qos = 'normal'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
@@ -123,7 +123,7 @@ rule estimate_params_psi_fixed_bd:
         name = 'est_psi_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         it=`tail -n 1 {input.log} | awk -F',' '{{ print $2 }}'`
@@ -147,7 +147,7 @@ rule estimate_params_la_fixed:
         name = 'est_la_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         r=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -174,7 +174,7 @@ rule estimate_params_la_fixed_bd:
         name = 'est_la_{i}',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.11"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.12"
     shell:
         """
         r=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
