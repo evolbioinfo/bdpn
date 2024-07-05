@@ -50,7 +50,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
                                                   np.finfo(np.float64).eps))
 
     def get_real_params_from_optimised(ps):
-        # ps = np.maximum(np.minimum(ps, optimised_bounds[:, 1]), optimised_bounds[:, 0])
+        ps = np.maximum(np.minimum(ps, optimised_bounds[:, 1]), optimised_bounds[:, 0])
         ps[optimise_as_logs] = np.power(10, ps[optimise_as_logs])
         result = np.array(input_parameters)
         result[optimised_parameter_mask] = ps
