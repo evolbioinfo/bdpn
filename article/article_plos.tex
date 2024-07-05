@@ -195,7 +195,7 @@
 % Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
 \\
 Anna Zhukova\textsuperscript{1,2,3*},
-Mathieu Moslonka-Lefebvre\textsuperscript{1\textcurrency},
+%Mathieu Moslonka-Lefebvre\textsuperscript{1\textcurrency},
 Olivier Gascuel\textsuperscript{1,4},
 \\
 \bigskip
@@ -210,7 +210,7 @@ Olivier Gascuel\textsuperscript{1,4},
 \bigskip
 
 % Current address notes
-\textcurrency Current Address: Dept/Program/Center, Institution Name, City, State, Country % change symbol to "\textcurrency a" if more than one current address note
+%\textcurrency Current Address: Dept/Program/Center, Institution Name, City, State, Country % change symbol to "\textcurrency a" if more than one current address note
 % \textcurrency b Insert second current address 
 % \textcurrency c Insert third current address
 
@@ -221,54 +221,62 @@ Olivier Gascuel\textsuperscript{1,4},
 \end{flushleft}
 % Please keep the abstract below 300 words
 \section*{Abstract}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget porta erat. Morbi consectetur est vel gravida pretium. Suspendisse ut dui eu ante cursus gravida non sed sem. Nullam sapien tellus, commodo id velit id, eleifend volutpat quam. Phasellus mauris velit, dapibus finibus elementum vel, pulvinar non tellus. Nunc pellentesque pretium diam, quis maximus dolor faucibus id. Nunc convallis sodales ante, ut ullamcorper est egestas vitae. Nam sit amet enim ultrices, ultrices elit pulvinar, volutpat risus.
+Phylodynamics bridges the gap between classical epidemiology and pathogen genome sequence data by estimating epidemiological parameters from time-scaled pathogen phylogenetic trees. The models used in phylodynamics typically assume that the sampling procedure is independent between infected individuals. However this assumption does not hold for many epidemics, in particular for such sexually transmitted infections as HIV-1, for which partner notification schemes are included in health policies of many countries. 
+
+We developed an extension of phylodynamic multi-type birth-death (MTBD) models with partner notification (PN), and a simulator to generate trees under MTBD and MTBD-PN models. We proposed a non-parametric test for detecting partner notification in pathogen phylogenetic trees. Its application to simulated data showed that it is both highly specific and sensitive. For the simplest representative of the MTBD-PN family, the BD-PN model, we developed a maximum likelihood parameter and CI estimator. It performed accurate estimations on simulated data, and detected partner notification in HIV-1 B epidemics in Zurich and the UK. Importantly, we showed that not accounting for partner notification when it is present leads to bias in parameter estimation with the BD model, while BD-PN parameter estimator performs well both in presence and in absence of partner notification.
+
+Our PN test, MTBD-PN tree simulator and BD-PN parameter estimator are freely available at \href{github.com/evolbioinfo/treesimulator}{https://github.com/evolbioinfo/treesimulator} and \href{github.com/evolbioinfo/bdpn}{https://github.com/evolbioinfo/bdpn}.
 
 
 % Please keep the Author Summary between 150 and 200 words
 % Use first person. PLOS ONE authors please skip this step. 
 % Author Summary not valid for PLOS ONE submissions.   
 \section*{Author summary}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget porta erat. Morbi consectetur est vel gravida pretium. Suspendisse ut dui eu ante cursus gravida non sed sem. Nullam sapien tellus, commodo id velit id, eleifend volutpat quam. Phasellus mauris velit, dapibus finibus elementum vel, pulvinar non tellus. Nunc pellentesque pretium diam, quis maximus dolor faucibus id. Nunc convallis sodales ante, ut ullamcorper est egestas vitae. Nam sit amet enim ultrices, ultrices elit pulvinar, volutpat risus.
+Phylodynamic models can estimate epidemiological parameters from pathogen phylogenetic trees (i.e., genealogies). These models typically assume that sampling of pathogen sequences from detected cases is independent between infected individuals. However this assumption does not hold for many epidemics, in particular for such sexually transmitted infections as HIV-1, for which partner notification (contact tracing) is included in health policies of many countries. 
+
+We developed a phylodynamic model accounting for partner notification and a test for detection of partner notification in pathogen phylogenetic trees. They showed good performance both on simulated and real data (HIV-1 B epidemics in Zurich and the UK). Importantly, we showed that not accounting for partner notification when it is present leads to bias in parameter estimation, while our new estimator performs well both in presence and in absence of partner notification.
 
 \linenumbers
 
 % Use "Eq" instead of "Equation" for equation citations.
 \section*{Introduction}
-The interaction of epidemiological and evolutionary processes leaves a footprint in pathogen genomes. Phylodynamics leverages this footprint to estimate epidemiological parameters~\cite{Grenfell2004a,Volz2013}. It relies on models that bridge the gap between traditional epidemiology and sequence data by estimating such parameters as the basic reproduction number, $R_0$, from topology and branch lengths of pathogen phylogenies (i.e. genealogies of the pathogen population, approximating the transmission trees) combined with metadata on the samples. Classical epidemiological methods make inferences from incidence curves, which in the presence of import cases might be biased and give appearance of elevated local transmission. In contrast, phylodynamic approach can overcome such biases as it uses the transmission structure as one of its information sources~\cite{vaughanEstimatesEarlyOutbreakspecific2024}. Therefore, using genomic data with phylodynamic estimations can provide valuable insights for preventing epidemic spreads.
+The interaction of epidemiological and evolutionary processes leaves a footprint in pathogen genomes. Phylodynamics leverages this footprint to estimate epidemiological parameters~\cite{Grenfell2004a,Volz2013}. It relies on models that bridge the gap between traditional epidemiology and sequence data by estimating such parameters as the basic reproduction number, $R_0$, from topology and branch lengths of pathogen phylogenies (i.e., genealogies of the pathogen population, approximating the transmission trees) combined with metadata on the samples. Classical epidemiological methods make inferences from incidence curves, which in the presence of import cases might be biased and give appearance of elevated local transmission. In contrast, phylodynamic approach can overcome such biases as it uses the transmission structure as one of its information sources~\cite{vaughanEstimatesEarlyOutbreakspecific2024}. Therefore, using genomic data with phylodynamic estimations can provide valuable insights for preventing epidemic spreads.
 
 
-Phylodynamic models can be classified into two main families:  coalescent~\cite{Volz2009a,Drummond2005,Pybus2000a} and birth-death (BD)~\cite{Kendall1948,Maddison2007,Stadler2009,Stadler2010}. Coalescent models are often preferred for estimating deterministic population dynamics, however for highly stochastic processes, such as the dynamics of emerging pathogens, BD models are better adapted~\cite{Macpherson2021}. In the classic BD model with incomplete sampling~\cite{Stadler2009}, births represent pathogen transmission events (happening at a constant transmission rate), while deaths correspond to becoming non-infectious (e.g. due to healing, self-isolation, starting a treatment, or death, modelled with a constant removal rate). 
+Phylodynamic models can be classified into two main families:  coalescent~\cite{Volz2009a,Drummond2005,Pybus2000a} and birth-death (BD)~\cite{Kendall1948,Maddison2007,Stadler2009,Stadler2010}. Coalescent models are often preferred for estimating deterministic population dynamics, however for highly stochastic processes, such as the dynamics of emerging pathogens, BD models are better adapted~\cite{Macpherson2021}. In the classic BD model with incomplete sampling~\cite{Stadler2009}, births represent pathogen transmission events (happening at a constant transmission rate), while deaths correspond to becoming non-infectious (e.g., due to healing, self-isolation, starting a treatment, or death, modelled with a constant removal rate). 
 
-The epidemic spread and detection can however be non-homogenous and depend on different factors, including governmental health policies (e.g. quarantine measures or development of pathogen detection tests), pathogen evolution over time (e.g. some SARS-CoV-2 variants are more transmissible than the others),  differences between host individuals (e.g. due to their immune system particularities or to their behaviour).
+The epidemic spread and detection can however be non-homogenous and depend on different factors, including governmental health policies (e.g., quarantine measures or development of pathogen detection tests), pathogen evolution over time (e.g., some SARS-CoV-2 variants are more transmissible than the others),  differences between host individuals (e.g., due to their immune system particularities or to their behaviour).
 
-To allow for heterogeneity at the population level, the multi-type birth-death (MTBD) extention of the classical BDS model was developed by Stadler \textit{et al.}~\cite{Stadler2013a}. MTBD framework allows for different types of individual states (and changes between them, modelled with state change rates). These models are phylodynamic analogies of compartmental models in classical epidemiology (e.g. SIR, Susceptible-Infectious-Removed).  Examples of the MTBD family models include the birth-death exposed-infectious (BDEI) model, which was designed for pathogens featuring an incubation period between the moments of infection and of becoming infectious (e.g. Ebola and SARS-CoV-2), and the birth-death with superspreading model (BDSS) accounting for the fact that some individuals might spread the pathogen (e.g. HIV) more than the others~\cite{Stadler2014}.
+To allow for heterogeneity at the population level, the multi-type birth-death (MTBD) extention of the classical BD model was developed by Stadler \textit{et al.}~\cite{Stadler2013a}. MTBD framework allows for different types of individual states (and changes between them, modelled with state change rates). These models are phylodynamic analogies of compartmental models in classical epidemiology (e.g., SIR, Susceptible-Infectious-Removed).  Examples of the MTBD family models include the birth-death exposed-infectious (BDEI) model, which was designed for pathogens featuring an incubation period between the moments of infection and of becoming infectious (e.g., Ebola and SARS-CoV-2), and the birth-death with superspreading model (BDSS) accounting for the fact that some individuals might spread the pathogen (e.g., HIV) more than the others~\cite{Stadler2014}.
 
-To allow for heterogeneity over time, Stadler \textit{et al.}~\cite{Stadler2013} developed one-state Bayesian birth-death skyline plot (BDSKY) that divides the time into intervals and allows for different piecewise constant rates on them. Kühnert \textit{et al.}~{Kuhnert2016} combined the MTBD model with the BDSKY to allow for both piecewise-constant rate changes over time and multiple individual types. In particular the skyline approach can be useful to account for changes in the sampling policies (e.g. before/after HIV discovery or before/after PCR test spread for SARS-CoV-2).
-
-
-Another important source of heterogeneity that none of these models accounts for is inflicted by non-independent sampling. We can propose different sampling probabilities for different types of individuals in MTBD framework, or change of the sampling probability over time intervals with the BDSKY, however, none of them can account for correlation effects in sampling, in particular due to partner notification (contact tracing). Partner notification or contact tracing is a process in which contacts of detected infected individuals are identified and offered testing for infection. It has been applied to various infectious diseases, including syphilis, HIV, tuberculosis, Ebola and COVID-19, and shown to successfully reduce transmission~\cite{el-sadrContactTracingBarriers2022}. For instance, for HIV,  partner notification showed increased early referral and initiation of treatment, and several countries include it in their national HIV testing services policies~\cite{worldhealthorganizationCountryPolicyReview2016}. 
+To allow for heterogeneity over time, Stadler \textit{et al.}~\cite{Stadler2013} developed one-state Bayesian birth-death skyline plot (BDSKY) that divides the time into intervals and allows for different piecewise constant rates on them. Kühnert \textit{et al.}~\cite{Kuhnert2016} combined the MTBD model with the BDSKY to allow for both piecewise-constant rate changes over time and multiple individual types. In particular the skyline approach can be useful to account for changes in the sampling policies (e.g., before/after HIV discovery or before/after PCR test spread for SARS-CoV-2).
 
 
-In this study we propose an extension of MTBD models that allows for modeling non-random sampling due to partner notification (PN), MTBD-PN. We describe the -PN extension and its assumptions, and present a transmission tree simulator under MTBD-PN models. We propose a non-parametric test for detecting partner notification in pathogen phylogenetic trees. For the simplest representative of this model family, the BD-PN model, we also derive the equations for its likelihood calculation and present a maximum likelihood parameter estimator. We test our BD-PN parameter estimator on simulated data, and apply it to the study of HIV-1 B epidemic in the UK. 
+Another important source of heterogeneity that none of these models accounts for is inflicted by non-independent sampling. One can set different sampling probabilities for different types of individuals in MTBD framework, or change of the sampling probability between time intervals with the BDSKY, however, none of these models can account for correlation effects in sampling, in particular due to partner notification (contact tracing). Partner notification or contact tracing is a process in which contacts of detected infected individuals are identified and offered testing for infection. It has been applied to various infectious diseases, including syphilis, HIV, tuberculosis, Ebola and COVID-19, and shown to successfully reduce transmission~\cite{el-sadrContactTracingBarriers2022}. For instance, for HIV,  partner notification showed increased early referral and initiation of treatment, and several countries include it in their national HIV testing services policies~\cite{worldhealthorganizationCountryPolicyReview2016}. 
+
+\bigskip
+
+In this study we propose an extension of MTBD models that allows for modeling non-random sampling due to partner notification (PN), MTBD-PN. We describe the -PN extension and its assumptions, and present a transmission tree simulator under MTBD-PN models. We propose a non-parametric test for detecting partner notification in pathogen phylogenetic trees. For the simplest representative of this model family, the BD-PN model, we also derive the equations for its likelihood calculation and present a maximum likelihood parameter estimator. We test our BD-PN parameter estimator on simulated data, and apply it to the study of HIV-1 B epidemics in Zurich and in the UK. Importantly, we show that not accounting for partner notification when it is present leads to bias in parameter estimation with the BD model, while BD-PN parameter estimator performs well both in presence and in absence of partner notification.
 
 \section*{Materials and methods}
 In a pathogen transmission tree $\mathscr{T}$ (approximated by a time-scaled pathogen phylogeny) the tips represent sampled pathogens %, patient state transitions occur along the branches, 
-while bifurcations (i.e. internal nodes) correspond to pathogen transmissions (Fig.~\ref{fig:tt}). The tree branches are measured in units of time. Let $T$ denote the time that passed between the tree root (the beginning of the (sub-)epidemic, at time $t=0$) and the last sampled tip (at $t=T$). 
+while bifurcations (i.e., internal nodes) correspond to pathogen transmissions. % (Fig.~\ref{fig:tt}). 
+The tree branches are measured in units of time, and the time goes forward, from the tree root (representing the beginning of the (sub-)epidemic, at time $t=0$) to the time of the last sampled tip (at $t=T$). 
 
-\begin{figure}[!h]
-\centering 
-%\includegraphics[width=0.8\textwidth]{Transmission_tree.png}
-\includestandalone[width=0.6\textwidth]{Fig_tree}
-\caption{\textbf{Transmission tree} $\mathscr{T}$ with $n=5$ external nodes (i.e. tips, which correspond to sampling events: $0000, 0001, 001, 010, 011$), $n-1=4$ internal nodes (which correspond to transmissions: $0$ (the root) and $00, 01, 000$) and $2n - 2 = 8$ branches (plus the root branch of zero length). %The lengths of the branches are shown on the right of each branch: $t_i$ is the lengths of the branch connecting the node $i$ to its parent. 
-Time $t$ starts at the root of the tree ($t=0$) and goes till the last sampled tip. The times of the nodes are shown on the left, e.g. $t_{0001}$ is the time of tip $0001$ (when $0001$'s pathogen was sampled). $T$ corresponds to the end of the sampling period (when the most recent tip, $0000$, was sampled).}
-\label{fig:tt} 
-\end{figure}
+%\begin{figure}[!h]
+%\centering 
+%%\includegraphics[width=0.8\textwidth]{Transmission_tree.png}
+%\includestandalone[width=0.6\textwidth]{Fig_tree}
+%\caption{\textbf{Transmission tree} $\mathscr{T}$ with $n=5$ external nodes (i.e., tips, which correspond to sampling events: $0000, 0001, 001, 010, 011$), $n-1=4$ internal nodes (which correspond to transmissions: $0$ (the root) and $00, 01, 000$) and $2n - 2 = 8$ branches (plus the root branch of zero length). %The lengths of the branches are shown on the right of each branch: $t_i$ is the lengths of the branch connecting the node $i$ to its parent. 
+%Time $t$ starts at the root of the tree ($t=0$) and goes till the last sampled tip. The times of the nodes are shown on the left, e.g., $t_{0001}$ is the time of tip $0001$ (when $0001$'s pathogen was sampled). $T$ corresponds to the end of the sampling period (when the most recent tip, $0000$, was sampled).}
+%\label{fig:tt} 
+%\end{figure}
 
 \subsection*{Extending Multi-Type Birth-Death models with Partner Notification}
 \subsubsection*{Birth-Death (BD) model with incomplete sampling}
 Under the basic birth-death (BD) model~\cite{Stadler2009} all the individuals are in the same state. They can transmit with a constant rate $\lambda$, get removed with a constant rate $\psi$, and their pathogen can be sampled upon removal with a constant probability $\rho$. 
 
-Under this model we can calculate the likelihood density $L(\mathscr{T}|\Theta)$ of a tree $\mathscr{T}$ under parameter values $\Theta = \{\lambda, \psi, \rho\}$ (see \nameref{math}). The likelihood density can then be used to estimate model parameters from a phylogenetic tree (e.g. by finding parameter values that maximize it, in maximum likelihood framework). In particular, it permits inference of the following epidemiological parameters: 
+Under this model we can calculate the likelihood density $L(\mathscr{T}|\Theta)$ of a tree $\mathscr{T}$ under parameter values $\Theta = \{\lambda, \psi, \rho\}$ (see \nameref{math}). The likelihood density can then be used to estimate model parameters from a phylogenetic tree (e.g., by finding parameter values that maximize it, in maximum likelihood framework). In particular, it permits inference of the following epidemiological parameters: 
 
 \begin{itemize}
 \item \textit{effective reproduction number} $R_e = \frac{\lambda}{\psi}$, expected number of individuals directly infected by an infectious case;
@@ -285,14 +293,14 @@ is hence modeled with exponential distributions.
 
 \subsubsection*{Partner Notification (PN) extension}
 
-In this section we propose an %non-Markovian 
-extension of the MTBD models that adds partner notification (PN).  In the simplest case, the BD-PN model, at the moment of sampling the sampled individual might notify their most recent partner with a constant probability $\upsilon$. The notification implies that four conditions are met: (i) the sampled individual remembers their last partner and accepts to either notify the partner on their own or to give the partner's contacts to the health officials for assisted notification; (ii) a pathogen transmission happened at the moment of contact (either the sampled individual infected the partner or the other way round); (iii) the partner is successfully reached and notified; (iv) unless the partner already became uninfectious by other means by the moment of notification (e.g. got diagnosed though the standard procedure), they get tested upon notification. The parameter $\upsilon$ hence regroups a complex set of conditions, which would hardly be identifiable separately from only sequence data. Upon notification, the partner's pathogen is sampled almost instantaneously (modeled via a constant notified sampling rate $\phi >> \psi$). Upon sampling, the partner might notify in their turn. BD-PN hence has 3 classical BD and 2 additional parameters:
+We propose an %non-Markovian 
+extension of the MTBD models that adds partner notification (PN).  In the simplest case, the BD-PN model, at the moment of sampling the sampled individual might notify their most recent partner with a constant probability $\upsilon$. The notification implies that four conditions are met: (i) the sampled individual remembers their last partner and accepts to either notify the partner on their own or to give the partner's contacts to health-care providers for assisted notification; (ii) a pathogen transmission happened at the moment of contact (either the sampled individual infected the partner or the other way round); (iii) the partner is successfully reached and notified; (iv) unless the partner already became uninfectious by other means by the moment of notification (e.g., got diagnosed though the standard procedure), they get tested upon notification. The parameter $\upsilon$ hence regroups a complex set of conditions, which would hardly be identifiable separately from only sequence data. Upon notification, the partner's pathogen is sampled almost instantaneously (modeled via a constant notified sampling rate $\phi >> \psi$). Upon sampling, the partner might notify in their turn. BD-PN hence has 3 classical BD and 2 additional parameters:
 \begin{itemize}
  \item $\lambda$ -- constant transmission rate: an infected individual transmits their pathogen to a newly infected individual (which corresponds to an internal node in the transmission tree);
  \item $\psi$ -- constant removal rate: an infected individual stops being infectious at this rate. This corresponds to a tip in the transmission tree (observed or hidden);
  \item $\rho$ -- constant sampling probability: upon removal the individual's pathogen might get sampled with this probability, which corresponds to an observed tip in the transmission tree;
  \item $\upsilon$ -- constant notification probability: upon sampling, the sampled individual might notify their most recent partner with this probability;
- \item $\phi >> \psi$ -- constant notified sampling rate: a notified individual (if not yet removed via standard procedure) gets removed \textit{and observed} with this rate. This creates an observed tip in the transmission tree. 
+ \item $\phi >> \psi$ -- constant notified sampling rate: a notified individual (if not yet removed via the standard procedure) gets removed \textit{and observed} with this rate. This creates an observed tip in the transmission tree. 
 \end{itemize}
 
 
@@ -302,9 +310,9 @@ This model is a simplification of the notification process, in particular it mak
 
 This is a realistic hypothesis in which an individual is ``observed'' because he or she enters a diagnostic and follow-up process that includes partner notification. Without entering this process, he or she is not observed and does not notify.
 
-\item notified individuals will eventually get sampled (i.e., their pathogens are always observed upon removal, unlike the standard case where the observation happens with a sampling probability $\rho$);\\
+\item successfully notified individuals get sampled (i.e., their pathogens are always observed upon removal, unlike the standard case where the observation happens with a sampling probability $\rho$);\\
 
-Realistically again, we assume here that the diagnosis and follow-up process works as expected, sampling notified patients.
+Realistically again, we assume here that the diagnostic and follow-up process works as expected, sampling notified patients.
 
 %\item notified individuals do not notify further;
 %\item once notified, the partners do not transmit further;\\
@@ -313,9 +321,9 @@ Realistically again, we assume here that the diagnosis and follow-up process wor
 
 \item only the most recent partner can get notified;\\
 
-This assumption might need to be removed or relaxed (e.g. to up to a certain fixed number of most recent partners, or all the partners within a certain time interval) in the future work. It is however useful to make the mathematics and likelihood calculation under the model manageable. In the case of sexually transmitted diseases, notifying only the most recent partner could roughly correspond to notifying the ``main'' partner (e.g. spouse).
+This assumption might need to be removed or relaxed (e.g., to up to a certain fixed number of most recent partners, or all the partners within a certain time interval) in the future work. It is however useful to make the mathematics and likelihood calculation under the model manageable. In the case of sexually transmitted diseases, notifying only the most recent partner could roughly correspond to notifying the ``main'' partner (e.g., spouse).
 
-Note that the ``most recent partner'' relationship is not necessarily symmetrical. The most recent partner $j$ of individual $i$ might have transmitted their virus further (to individual $k$) after the contact with $i$ and before the notification by $i$. Hence, while $j$ is the most recent partner of $i$, $j$'s most recent partner is $k$, and, once notified, $j$ might notify $k$.  
+Note that the ``most recent partner'' relationship is not necessarily symmetrical. The most recent partner $j$ of individual $i$ might have transmitted their virus further (to individual $k$) after the contact with $i$. Hence, while $j$ is the most recent partner of $i$, $j$'s most recent partner is $k$, and, once notified, $j$ might notify $k$.  
 \end{enumerate}
 
 These assumptions can be easily relaxed in a tree simulator (e.g., to be used with a deep learning estimator~\cite{Voznica2021}, which does not require likelihood calculation).
@@ -326,7 +334,7 @@ The -PN extension can be generalized from BD to MTBD models: at the moment of sa
 \subsection*{MTBD-PN tree simulator and test datasets}\label{sec:sim}
 
 We implemented a tree simulator that generates sampled transmission trees under MTBD and MTBD-PN models (with $m$ states). It is Gillespie-based, generates state change, transmission and removal times, and only reconstructs the sampled parts of the tree to save memory and increase speed.
-We give its algorithmic details in~\nameref{S1_Appendix}. The results in the following section show that the trees generated under MTBD and MTBD-PN models are different and easily distinguishable.
+We give its algorithmic details in~\nameref{S1_Appendix}. The results in section~"\nameref{sec:test:sim}" show that the trees generated under MTBD and MTBD-PN models are different and easily distinguishable.
 
 Using our simulator, we generated trees under three classical MTBD-family models: BD, BDEI (Birth-Death Exposed-Infectious~~\cite{Stadler2014}) and BDSS (Birth-Death with Super Spreading~\cite{Stadler2013a}), and under their -PN versions: BD-PN, BDEI-PN and BDSS-PN models. (See Fig.~1 in \cite{Voznica2021} for a graphical representation of BD, BDEI and DBSS models and their parameters).
 
@@ -347,27 +355,27 @@ The common parameters were consistent between models, in a sense that the $i$-th
 
 
 \subsection*{Testing for presence of Partner Notification}~\label{sec:test}
-To access whether a given tree reveals the presence of partner notification, we developed a non-parametric test based on cherries (two-tip clades). 
+To access whether a given tree reveals partner notification, we developed a non-parametric test based on cherries (two-tip clades). 
 
 The intuition behind the test is that in the presence of partner notification the tree will contain more cherries whose tips are close in time. Indeed, in a transmission tree internal nodes correspond to transmissions while tips correspond to sampling events. Hence if a transmission tree is complete, a cherry corresponds to a transmission from an infected individual to their most recent partner, followed by sampling of both. If there is no partner notification, these two sampling events are independent, while in the presence of partner notification the first sampling might trigger the second one, and they will be close in time (e.g., the second cherry in Fig.~\ref{fig:tipswap}a). For an incomplete transmission tree (where some infected individuals were not sampled), the difference would be that some cherries might include hidden transmissions. The notification pattern should however still be observed for some of the cherries.
 
-More formally, in the absence of partner notification (null hypothesis, H0), we assume that branch lengths of two cherry tips are independently drawn from the same distribution (which is the case for MTBD models). In the presence of partner notification (alternative hypothesis, H1), we assume that for some of the cherries (including notified partners) their branch lengths are not independent and are similar. Therefore, in the absence of partner notification two external branches taken randomly from the tree and two external branches belonging to the same cherry should be indistinguishable, if they all start at about the same time. Being close in starting time is important as the tree is censored by the end of the sampling period: $t \leq T$. Hence the external branches that start close to the end of the sampling period would be on average shorter (as if they are not sampled before $T$ they will stay hidden) than those that start closer to the root~\cite{mooersBranchLengthsBirth2012}. %We give control to the user on what should be considered ``some of the cherries'' and ``similar branch lengths'' for their data, via adjustable test parameter values. 
+More formally, in the absence of partner notification (null hypothesis, H0), we assume that branch lengths of two cherry tips are independently drawn from the same distribution (which is the case for MTBD models). In the presence of partner notification (alternative hypothesis, H1), we assume that for some of the cherries (including notified partners) their branch lengths are not independent and are similar. Therefore, in the absence of partner notification two external branches taken randomly from the tree and two external branches belonging to the same cherry should be indistinguishable, if they all start at about the same time. Being close in starting time is important as the tree is censored by the end of the sampling period: $t \leq T$. Hence the external branches that start close to the end of the sampling period would be on average shorter (as unless sampled before $T$ they will stay hidden) than those that start closer to the root~\cite{mooersBranchLengthsBirth2012}. %We give control to the user on what should be considered ``some of the cherries'' and ``similar branch lengths'' for their data, via adjustable test parameter values. 
 
-Let us assume that there are N cherries in the tree. For each cherry $i\;(1 \leq i \leq N)$ with tips $i0$ and $i1$, we calculate the difference between its tip times $d_i = |t_{i0} - t_{i1}|$. We then generate a collection of reshuffled cherries by (1) ordering the cherries by their root dates; (2) for each cherry $i$ randomly selecting one of its tips $i* \in \{i0, i1\}$; (3) swapping the selected tips between the neighboring cherries: the tip $2i*$ gets swapped with the tip $2i-1*$ ($1 \leq i \leq N / 2$) as illustrated in Fig.~\ref{fig:tipswap}. If the total number of cherries N is odd, instead of swapping the selected tips of the last two cherries, we swap the selected tips of the last three cherries in a cycle (see Fig.~\ref{fig:tipswap}). We then calculate the time differences $d_{i'}$ between the tips of these shuffles cherries. 
-The test then compares $d_i$ to $d_{i'}$: $sign(d_{i'} - d_i) = 1$ if $d_{i'}$ is larger than $d_i$; $= -1$ if it is smaller; or $= 0$ if they are equal (this could happen as in real datasets dates are often truncated, e.g. to month or even a year). Note that if cherry tip branch lengths are independently drawn from the same distribution, $d_{i'}$ will be smaller than $d_i$ for about half of the cherries. However, if some cherries are ``notified'' their real tip differences should be smaller than reshuffled ones. We therefore output the pvalue calculated by the sign test.
+Let us assume that there are N cherries in the tree. For each cherry $i\;(1 \leq i \leq N)$ with tips $i0$ and $i1$, we calculate the difference between its tip times $d_i = |t_{i0} - t_{i1}|$. We then generate a collection of reshuffled cherries by (1) ordering the cherries by their root dates; (2) for each cherry $i$ randomly selecting one of its tips $i* \in \{i0, i1\}$; (3) swapping the selected tips between the neighboring cherries: the tip $2i*$ gets swapped with the tip $2i-1*$ ($1 \leq i \leq N / 2$) as illustrated in Fig.~\ref{fig:tipswap}. (If the total number of cherries N is odd, instead of swapping the selected tips of the last two cherries, we swap the selected tips of the last three cherries in a cycle as in Fig.~\ref{fig:tipswap}). We then calculate the time differences $d_{i'}$ between the tips of these shuffles cherries. 
+The test then compares $d_i$ to $d_{i'}$: $sign(d_{i'} - d_i) = 1$ if $d_{i'}$ is larger than $d_i$; $= -1$ if it is smaller; or $= 0$ if they are equal (this could happen as in real datasets dates are often truncated, e.g., to month or even a year). Note that if cherry tip branch lengths are independently drawn from the same distribution, $d_{i'}$ will be smaller than $d_i$ for about half of the cherries. However, if some cherries are ``notified'' their real tip differences should be smaller than reshuffled ones. We therefore output the pvalue calculated by the sign test.
 
 
 \begin{figure*}[tbhp]
 \centering 
 \includegraphics[width=0.5\textwidth]{Fig_cherryswap.png}
-\caption{Reshuffled cherry generation. \textbf{a.} Cherries of the original tree sorted by their root times (times of the roots of the two oldest cherries, $t_{r1}$ and $t_{r2}$, are shown on the left). The randomly selected tip is shown with a bold branch for each cherry (e.g. the tip on the right for the leftmost cherry). The tip sampling time differences are shown for the two leftmost cherries ($d_1$ and $d_2$). \textbf{b.} Reshuffled cherries, which were obtained from the original ones by swapping the selected tips between the neighbouring cherry couples (as shown with arrows in a.): the first and the second; the third and the forth. As the total number of cherries (7) is odd, the last three (instead of two) cherries exchanged their selected tips in a cycle. The reshuffled tip sampling time differences are shown for the two leftmost cherries ($d'_1$ and $d'_2$).}
+\caption{Reshuffled cherry generation. \textbf{a.} Cherries of the original tree sorted by their root times (times of the roots of the two oldest cherries, $t_{r1}$ and $t_{r2}$, are shown on the left). The randomly selected tip is shown with a bold branch for each cherry (e.g., the tip on the right for the leftmost cherry). The tip sampling time differences are shown for the two leftmost cherries ($d_1$ and $d_2$). \textbf{b.} Reshuffled cherries, which were obtained from the original ones by swapping the selected tips between the neighbouring cherry couples (as shown with arrows in a.): the first and the second; the third and the forth. As the total number of cherries (7) is odd, the last three (instead of two) cherries exchanged their selected tips in a cycle. The reshuffled tip sampling time differences are shown for the two leftmost cherries ($d'_1$ and $d'_2$).}
 \label{fig:tipswap} 
 \end{figure*}
 
 %The reason for which we are constructing a random cherry from the neighbouring instead of any cherries (in terms of root date), is that cherry branch lengths depend on the date of the cherry root. As tip sampling times are bounded from above by the end of the sampling period, the closer the cherry root is to the end of the sampling period, the shorter on average its branches will be (and less time difference they will be able to have in any case). 
 
 
-We implemented the PN-test in Python 3. It is available as a part of BDPN parameter estimator (see section~"\nameref{sec:sim}").
+We implemented the PN-test in Python 3. It is available as a part of BDPN parameter estimator ($pn\_test$, see section~"\nameref{sec:sim}").
 
  
 
@@ -388,8 +396,8 @@ U(T) = & 1\;  \textit{\color{gray} $\leftarrow$ the probability to stay unsample
 \end{equation}
 
 
-With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch $i$, starting on this branch at a time $t \leq t_i$ till time $t_i$. The master equations for the BD models were initially developed by Stadler \textit{et al.}~\cite{Stadler2009}, however what we present here is their branch-specific formulation that we proposed in~\cite{zhukovaFastAccurateMaximumLikelihood2022}:
-In our formulation, ${p}^{(i)}(t)$ describes an evolution along a tree branch $i$, without taking into account the branch's subtree. $t_i$ corresponds to the time of the equation's initial condition (typically at the end of the branch). % and provided that we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at time $t$. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. 
+With the equation~(\ref{eq:Us}), we can write down the equation for the probability density $p^{(i)}(t)$ of evolving as on an observed tree branch $i$ till time $t_i$, starting on this branch at time $t \leq t_i$. The master equations for the BD models were initially developed by Stadler \textit{et al.}~\cite{Stadler2009}, however what we present here is their branch-specific formulation that we proposed in~\cite{zhukovaFastAccurateMaximumLikelihood2022}:
+In our formulation, ${p}^{(i)}(t)$ describes an evolution along a tree branch $i$, without taking into account the branch's subtree. $t_i$ corresponds to the time of the equation's initial condition (typically at the end of the branch $i$). % and provided that we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at time $t$. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. 
 
 \begin{equation}
 \scriptsize
@@ -420,7 +428,7 @@ Importantly, the BD model is asymptotically unidentifiable (see Remark 3.4 in~\c
 
 \paragraph{Tree branches under BD vs BD-PN models.}
 
-In the classical BD model with incomplete sampling, a branch of the tree corresponds to a virus evolution between the transmission corresponding to the node at the beginning of this branch and either a sampling event (if the branch is external) or a transmission corresponding to the node at the end of the branch (if it is internal). Note, that since sampling is incomplete, hidden transmissions (leading to fully unsampled subtrees) could occur along this branch, where the unsampled subtree could correspond to either donor or recipient.  Hence, we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at any time $t < t_i$ along the branch. These two individuals could be different if a hidden transmission, where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. $p^{(i)}(t)$ in equations~(\ref{eq:p}) describes an evolution along such a tree branch, integrating over all the possibilities, starting from no hidden transmission along the branch and including any number of hidden transmissions with either donor or recipient tree staying unsampled (and hence potentially different individuals at times $t$ and the branch end $t_i$).
+In the classical BD model with incomplete sampling, a branch of the tree corresponds to a virus evolution between the transmission corresponding to the node at the beginning of this branch and either a sampling event (if the branch is external) or a transmission corresponding to the node at the end of the branch (if it is internal). Note, that since sampling is incomplete, hidden transmissions (leading to fully unsampled subtrees) could occur along this branch, where the unsampled subtree could correspond to either donor or recipient.  Hence, we do not know whether the individual at the end of the branch (at time $t_i$) is the same as at any time $t < t_i$ along the branch. These two individuals could be different if a hidden transmission where the donor subtree stayed unobserved, occurred between times $t$ and $t_i$. $p^{(i)}(t)$ in equations~(\ref{eq:p}) describes an evolution along such a tree branch, integrating over all the possibilities, starting from no hidden transmission along the branch and including any number of hidden transmissions with either donor or recipient tree staying unsampled (and hence potentially different individuals at times $t$ and the branch end $t_i$).
 
 In trees generated by the BD-PN model, however, the individuals do not behave in the same way when they are notified or not and, hence, other types of branches are possible. As in a real tree we do not know who might have notified whom, we have to integrate over all the possibilities to calculate the tree likelihood. We calculate the likelihood density of a tree using a pruning algorithm~\cite{10.1093/sysbio/22.3.240}, while considering all the combinatorial possibilities for each node. For instance, for each tree tip we consider four possibilities: whether the corresponding individual was notified or not by someone, and on top of that, whether the tip's individual notified or not their most recent partner upon sampling. Before describing the combinations behind tree likelihood calculation, we will introduce additional tree branch types.
 
@@ -433,11 +441,18 @@ Let us consider a person A who got sampled at time $t_A$ and successfully notifi
 \begin{figure}[h!]
 \centering 
 %\includegraphics[width=0.8\textwidth]{Transmission_tree.png}
-\includegraphics[width=1\textwidth]{Fig_PNbranches}
-\caption{\textbf{Examples of partner notification in a transmission tree}. Let us assume that an individual A got sampled at time $t_A$ (violet tip) and notified their most recent partner B (orange), where B is either observed (\textbf{1}) or hidden (\textbf{2-3}). 
-The (observed as in \textbf{1-2} or hidden as in \textbf{3}) internal node AB corresponds to the transmission between A and B. The fact that A is the notifier of B implies that there is no hidden event along its branch AB-A (coloured violet), and that in any transmission on the path AB-B (coloured orange) the donor is B. Note, that since the most-recent-partner relationship is not always symmetric, B might be the most recent partner of more than one individual and hence might have got notified by someone else too (e.g. C in \textbf{b}, who in \textbf{1b,2b} was infected by B, and in \textbf{3b} could have been infected by or have infected B, who have then infected A). Moreover, between the moment of B's first notification ($t_A$ for \textbf{a}, $t_C$ for \textbf{b}) and the moment of sampling  of B ($t_B$) the removal rate of B becomes $\phi$ instead of $\psi$ (coloured dark red). Finally, B might have been removed via a standard procedure before getting notified by their partner(s) (with rate $\psi$ and a probability $\rho$, \textbf{c}).
-In the panels \textbf{3} B's subtree is fully hidden, and hence the transmission node AB is also unobserved, therefore the A's branch is composed of two parts, where the bottom part (violet) corresponds to A and contains no hidden transmissions, while the top part could correspond to A or not  (e.g in \textbf{3b} it corresponds to B) and might contain hidden transmissions. 
-In the panels \textbf{2-3a-b} B is hidden as by the end of the sampling period ($T$) B is not yet sampled, while in \textbf{2-3c} B is hidden as B got removed via the standard procedure without sampling before any notification.}
+\includegraphics[width=0.9\textwidth]{Fig_PNbranches}
+\caption{\textbf{Examples of partner notification in a transmission tree}. Let us assume that an individual A got sampled at time $t_A$ (violet tip) and notified their most recent partner B (orange), who is either observed (\textbf{1}) or hidden (\textbf{2-3}).
+The (observed as in \textbf{1-2} or hidden as in \textbf{3}) internal node AB corresponds to the transmission between A and B. 
+The fact that A is the notifier of B implies that there is no hidden event along its branch AB-A (violet), and that in any transmission on the path AB-B (orange) the donor is B. 
+Note, that since the most-recent-partner relationship is not always symmetric, B might be the most recent partner of more than one individual and hence might have got notified by someone else too (e.g., by C in \textbf{b}, who in \textbf{1b,2b} was infected by B, and in \textbf{3b} could have been infected by or have infected B, who have then infected A). 
+Moreover, between the moment of B's first notification ($t_A$ for \textbf{a}, $t_C$ for \textbf{b}) and the moment of sampling  of B ($t_B$) the removal rate of B becomes $\phi$ instead of $\psi$ (dark red).
+Finally, B might have been removed via a standard procedure before getting notified by their partner(s) (with rate $\psi$ and a probability $\rho$, \textbf{c}).
+In the panels \textbf{3} B's subtree is fully hidden, and hence the transmission node AB is also unobserved. Therefore the A's branch is composed of two parts, where the bottom part (violet) corresponds to A and contains no hidden transmissions, while the top part could correspond to A or not  (e.g in \textbf{3b} it corresponds to B) and might contain hidden transmissions. 
+In the panels \textbf{2a-b,3a-b} B is hidden as by the end of the sampling period ($t=T$) B is not yet sampled, while in \textbf{2-3c} B is hidden as B got removed via the standard procedure without sampling before any notification.
+\\
+A's branch is modeled with a notifier branch probability~(\ref{eq:p-n}) in panels \textbf{1-2}, and with a mixed branch probability~(\ref{eq:p_mixed}) where the bottom part corresponds to the notifier (A) in panels \textbf{3}. If B did not notify their most recent partner upon sampling in panel \textbf{1}, branches on the path AB-B are modeled with a combination of partner probability before notification (orange, (\ref{eq:p-pb})) and partner probability after notification (dark red, (\ref{eq:p-pa})). Otherwise, the part after the transmission from B to their last partner is modeled with either a both notified and notifier branch probability~(\ref{eq:p-b}) (as in \textbf{1a-b}) or a notifier branch probability~(\ref{eq:p-n}) (as in \textbf{1c}), depending on the B's notified status at that time. In the panels \textbf{2}, the AB-C branch is modeled with a mixed branch probability~(\ref{eq:p_mixed}), where the top part corresponds to the partner state (B).
+}
 \label{fig:pn-branches} 
 \end{figure}
 
@@ -456,14 +471,14 @@ p_n^{(A)}(t_A) &= 1\label{eq:p-n}
 
 As B corresponds to A's partner, the individual on the path between the transmission node AB and the tip B cannot change (is always B) and 
 %before the notification time $t_A$ 
-only transmissions from B to someone else are possible along the path leading from AB to B. These transmissions can be either hidden (where the recipient tree stayed unobserved) or observed: in both cases we know which subtree corresponds to the donor (the one that contains B). However, depending on whether B already got notified ($t \geq t_A$ in Fig.~\ref{fig:pn-branches}(1a)) or not yet (($t < t_A$ in Fig.~\ref{fig:pn-branches}(1a))) B's removal rate is different (is correspondingly $\phi$ or $\psi$). We will use a \textbf{partner branch probability before notification} $p_{pb}^{(x)}(t)$ for cases when the individual at the end of the branch (or considered time interval, here $t_x=t_A$) is the same as at time $t$, has not yet been notified, but might have transmitted to someone else (unobserved) along the way (coloured orange in Fig~\ref{fig:pn-branches}):
+only transmissions from B to someone else are possible along the path leading from AB to B. These transmissions can be either hidden (where the recipient tree stayed unobserved) or observed: in both cases we know which subtree corresponds to the donor (the one that contains B). However, depending on whether B already got notified ($t \geq t_A$ in Fig.~\ref{fig:pn-branches}(1a)) or not yet ($t < t_A$ in Fig.~\ref{fig:pn-branches}(1a)), B's removal rate is different (is correspondingly $\phi$ or $\psi$). We will use a \textbf{partner branch probability before notification} $p_{pb}^{(x)}(t)$ for cases when the individual at the end of the branch (or considered time interval, here $t_x=t_A$) is the same as at time $t$, has not yet been notified, but might have transmitted to someone else (unobserved) along the way (coloured orange in Fig~\ref{fig:pn-branches}):
 
 \begin{equation}
 \scriptsize
 \begin{cases}
 \dot{p}_{pb}^{(x)}(t) &=~~  \Big(\lambda + \psi\Big) p_{pb}^{(x)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
     &~~~ - \lambda p_{pb}^{(x)}(t)U(t)\;  \textit{\color{gray} $\leftarrow$ transmission with hidden recipient subtree}\\
-p_{pb}^{(x)}(t_x) &=  1\label{eq:p-o}
+p_{pb}^{(x)}(t_x) &=  1\label{eq:p-pb}
 \end{cases}
 \end{equation}
 
@@ -474,7 +489,7 @@ We will use a \textbf{partner branch probability after notification} $p_{pa}^{(i
 \begin{cases}
 \dot{p}_{pa}^{(B)}(t) &=~~  \Big(\lambda + \phi\Big) p_{pa}^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no event in the next infinitesimal time $\Delta t$ }\\
     &~~~ - \lambda p_{pa}^{(B)}(t)U(t)\;  \textit{\color{gray} $\leftarrow$ transmission with hidden recipient subtree}\\
-p_{pa}^{(B)}(t_B) &=  1\label{eq:p-p}
+p_{pa}^{(B)}(t_B) &=  1\label{eq:p-pa}
 \end{cases}
 \end{equation}
 
@@ -489,32 +504,6 @@ p_b^{(B)}(t_B) &= 1\label{eq:p-b}
 \end{cases}
 \end{equation}
 
-%On the branch of B, no transmission is possible between the moment of notification $t_A$ and the moment of B's sampling $t_B$ as, according to assumption 3, once notified partners do not transmit further. We will use a \textbf{notified partner branch probability} $p_{pa}^{(i)}(t)$ for cases when the individual at the end of the branch is the partner who got notified at time prior to $t$ (coloured dark red in Fig~\ref{fig:pn-branches}):
-%
-%\begin{equation}
-%\scriptsize
-%\begin{cases}
-%\dot{p}_p^{(B)}(t) &=  \phi p_{pa}^{(B)}(t)\; \textit{\color{gray} $\leftarrow$ no sampling in the next infinitesimal time $\Delta t$ }\\
-%p_{pa}^{(B)}(t_B) &=  1\label{eq:p-np}
-%\end{cases}
-%\end{equation}
-
-
-
-Note that on top of the scenario we just described (shown in Fig.~\ref{fig:pn-branches}(1a)), two other scenarios are possible for a person A who once sampled (at $t_A$) notified their most recent partner B, who got sampled at time $t_B$:
-\begin{enumerate}
-
-\item[1b.] by the time $t_A$, B was already notified by someone else (at time $t_C < t_A$, see Fig.~\ref{fig:pn-branches}(1b)).
-%Note, that once notified partners do not transmit further, hence $t_C > t_{AB}$. 
-\\
-
-This would lead to a shorter partner-before-notification part on the B branch (finishing at $t_C$), and a longer notified-partner part (between $t_C$ and $t_B$). 
- 
-
-\item[1c.] by the time $t_A$, B was already sampled via a standard procedure (at time $t_B < t_A$, hence the branch B would finish before the branch A, as in Fig~\ref{fig:pn-branches}(1c)).
-
-This would lead to the partner-before-notification part on the B branch finishing at $t_B$ and no notified-partner part. Note that the branches between AB and B stay oriented as B remains the most recent partner of A.
-\end{enumerate}
 
 The equations~\ref{eq:Us}, \ref{eq:p}, \ref{eq:p-n}-\ref{eq:p-b} have the following closed form solutions:
 \begin{equation}
@@ -534,17 +523,32 @@ p_{pb}^{(i)}(t) =  \sqrt{p^{(i)}(t)p_n^{(i)}(t)} \\
 \\
 p_{pa}^{(i)}(t) =  e^{(\phi-\psi) (t -t_i)} p_{pb}^{(i)}(t) 
 \end{cases},\\
-& \textit{where } c_1 = \sqrt{(\lambda - \psi)^2 + 4 \lambda\psi\rho},\; c_2 = \frac{c_1 + \lambda - \psi}{c_1 - \lambda + \psi},\\
-& ~~~~~~~~E(t) = c_2 e^{c_1 (t -T)} \\
+& \textit{where } c_1 = \sqrt{(\lambda - \psi)^2 + 4 \lambda\psi\rho},\; c_2 = \frac{c_1 + \lambda - \psi}{c_1 - \lambda + \psi}, E(t) = c_2 e^{c_1 (t -T)} \\
 \end{split}\label{eq:ps}
 \end{equation}
 
 
-Note that if A is a notifier, A is always observed, as notification only happens upon sampling. However, B could have stay unsampled: either because once notified (by A or another partner, who notified them before A did) B has not yet got sampled (Fig~\ref{fig:pn-branches}(2a-b,3a-b)); or because B got removed via the standard procedure without sampling before any notification (Fig.~\ref{fig:pn-branches}(2c,3c)). Moreover, between the transmission AB and the moment of B's notification/removal B might have transmitted to someone else (e.g. C in Fig.~\ref{fig:pn-branches}(2), BC denoting the transmission). If that happened and someone in BC's subtree got sampled, the branch AB-A would still correspond to the notifier A, while the other AB's child branch would partially correspond to B (between AB and BC) and partially to C (starting at BC), as in Fig.~\ref{fig:pn-branches}(2). Otherwise (if there was no such transmission or all such subtrees stayed unobserved, as in Fig.~\ref{fig:pn-branches}(3)), the node AB will not be observed either, and A's branch will get extended with its parent's branch. Hence only the bottom part (after AB) of the A's branch would correspond to the notifier probability (see Fig.~\ref{fig:pn-branches}(3))).
+
+Note that on top of the scenario we just described (shown in Fig.~\ref{fig:pn-branches}(1a)), two other scenarios are possible for a person A who once sampled (at $t_A$) notified their most recent partner B, who got sampled at time $t_B$:
+\begin{enumerate}
+
+\item[1b.] by the time $t_A$, B was already notified by someone else (e.g., at time $t_C < t_A$ in  Fig.~\ref{fig:pn-branches}(1b)).
+
+This would lead to a shorter partner-before-notification part on the B's branch (finishing at $t_C$), and a longer notified-partner part (between $t_C$ and $t_B$). 
+ 
+
+\item[1c.] by the time $t_A$, B was already sampled via a standard procedure (at time $t_B < t_A$, hence the branch B would finish before the branch A, as in Fig~\ref{fig:pn-branches}(1c)).
+
+This would lead to the partner-before-notification part on the B branch finishing at $t_B$ and no notified-partner part. Note that the branches between AB and B stay oriented as B remains the most recent partner of A.
+\end{enumerate}
 
 
 
-To model the cases when B is not sampled, we will need to describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branch in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g. between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g. between AB and A in Fig.~\ref{fig:pn-branches}(3), notifier). Let's denote the first notification time of the hidden partner as $t_r$, and the time of the hidden partner subtree start as $t_h$, while as usual $t_i$ stands for the time at the branch end.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
+Note that if A is a notifier, A is always observed, as notification only happens upon sampling. However, B could have stay unsampled: either because once notified (by A or another partner, who notified them before A did) B has not yet got sampled (Fig~\ref{fig:pn-branches}(2a-b,3a-b)); or because B got removed via the standard procedure without sampling before any notification (Fig.~\ref{fig:pn-branches}(2c,3c)). Moreover, between the transmission AB and the moment of B's notification/removal, B might have transmitted to someone else (e.g., C in Fig.~\ref{fig:pn-branches}(2), BC denoting the transmission). If that happened and someone in BC's subtree got sampled, the branch AB-A would still correspond to the notifier A, while the other AB's child branch would partially correspond to B (between AB and BC) and partially to C (starting at BC), as in Fig.~\ref{fig:pn-branches}(2). Otherwise (if there was no such transmission or all such subtrees stayed unobserved, as in Fig.~\ref{fig:pn-branches}(3)), the node AB will not be observed either, and A's branch will get extended with its parent's branch. Hence only the bottom part (after AB) of the A's branch would correspond to the notifier probability (see Fig.~\ref{fig:pn-branches}(3)).
+
+
+
+To model the cases when B is not sampled, we will need to describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branch in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g., between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g., between AB and A in Fig.~\ref{fig:pn-branches}(3), notifier). Let us denote the first notification time of the hidden partner as $t_r$, and the time of the hidden partner subtree start as $t_h$, while as usual $t_i$ stands for the time at the branch end.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
 
 $p_{m(s1,s2)}^{(i)}(t,t_r)$ combines three elements: the probability of the top part of the branch $p_{top=s1}^{(h)}(t)$, which finishes with a transmission to or from the hidden partner, the probability of the bottom part of the branch $p_{bottom=s2}^{(i)}(t_h)$ (without taking into account the event at its end) and the probability of the hidden partner subtree $U_p(t_h,t_r)$. We describe the details behind approximation of $p_{m(s1,s2)}^{(i)}(t,t_r)$ in~\nameref{S2_Appendix}, and give the result below:
 
@@ -588,13 +592,13 @@ p_{m(p,-,n)}^{(i)}(t,t_r) &\approx p_{top=p}^{(h1)}(t, t_r)\frac{U_p(t_{h1},t_{r
 
 
 
-In the real trees we do not know sampled individual's status (individual who did not notify, notifier, partner notified in time or not), and hence during the tree likelihood calculation, we will have to consider all these scenarios.
+In real trees we do not know sampled individual's status (individual who did not notify, notifier, partner notified in time or not), and hence during the tree likelihood calculation, we will have to consider all these scenarios.
 
  
 
 \subsubsection*{Tree likelihood under BD-PN model} 
 
-Using the formulas~(\ref{eq:ps}), (\ref{eq:p_mixed}) and (\ref{eq:p_mixed_mixed}), we can calculate the likelihood density of a tree using a pruning algorithm~\cite{10.1093/sysbio/22.3.240}. For each visited node $i$ we calculate the likelihood density of its subtree including the branch $ji$ connecting $i$ to its parent node $j$ for two cases depending on $i$'s receiving-a-notification status (shown with the first superscript, $^{\not{n}}$ or $^n$). In the first case,  $l^{(\not{n})}(i)$, the node $i$ corresponds to an unnotified individual. In the second case, $l^{(n)}(i, r)$, the branch $ji$ and the node $i$ correspond to an (eventually) notified partner (notified by the individual corresponding to a tip $r$ at time $t_r$). If $i$ is a tip, we additionally consider whether there is an observed partner in our tree, whom the individual $i$ notified  (shown with the second superscript, $^n$ or $^{\not{n}}$). For instance, $l^{(\not{n},n)}(i)$ represents the case where the tip $i$ was not notified but notified their most recent partner (who is observed). %Note that if the tip $i$ was notified by their partner $r$, we need to consider two possibilities: (1) when $t_r \leq t_i$, and hence the notification was successful at provoking $i$'s diagnostics and sampling; and (2) when $t_r > t_i$, and hence by the time of notification by $r$ $i$ already got sampled by other means.
+Using the formulas~(\ref{eq:ps}) and (\ref{eq:p_mixed}), we can calculate the likelihood density of a tree using a pruning algorithm~\cite{10.1093/sysbio/22.3.240}. For each visited node $i$ we calculate the likelihood density of its subtree including the branch $ji$ connecting $i$ to its parent node $j$ for two cases depending on $i$'s receiving-a-notification status (shown with the first superscript, $^{\not{n}}$ or $^n$). In the first case,  $l^{(\not{n})}(i)$, the node $i$ corresponds to an unnotified individual. In the second case, $l^{(n)}(i, r)$, the branch $ji$ and the node $i$ correspond to an (eventually) notified partner (notified by the individual corresponding to a tip $r$ at time $t_r$). If $i$ is a tip, we additionally consider whether there is an observed partner in our tree, whom the individual $i$ notified  (shown with the second superscript, $^n$ or $^{\not{n}}$). For instance, $l^{(\not{n},n)}(i)$ represents the case where the tip $i$ was not notified but notified their most recent partner (who is observed). %Note that if the tip $i$ was notified by their partner $r$, we need to consider two possibilities: (1) when $t_r \leq t_i$, and hence the notification was successful at provoking $i$'s diagnostics and sampling; and (2) when $t_r > t_i$, and hence by the time of notification by $r$ $i$ already got sampled by other means.
 
 The tree $\mathscr{T}$ likelihood density $L(\mathscr{T}|\Theta)$ under BD-PN model with parameters $\Theta=\{\lambda, \psi, \rho, \phi, \upsilon\}$ can be calculated as $l^{(\not{n})}(root)$, as the root can only correspond to an unnotified individual (since there was no observed transmission before it).
 
@@ -612,13 +616,11 @@ We describe the subtree likelihood density calculation case by case in~~\nameref
 
 \subsubsection*{Extension to forests}
 
-As we previously described in~\cite{zhukovaFastAccurateMaximumLikelihood2022}, the likelihood calculation with MTBD models can be easily extended to forests. This extension applies also to the BD-PN model. Forests are useful for cases when a (sub-)epidemic started with several infected individuals (e.g. due to multiple pathogen introductions to a country of interest or due to a change of health policies leading to a change in parameter values).
-
-In this case the (sub-)epidemic leads to a forest $\mathscr{F}$ of $f$ observed trees: $\mathscr{T}_1, \ldots, \mathscr{T}_f$. The forest $\mathscr{F}$ might also include a certain number $u$ of unobserved trees, for which none of their tips got sampled.
+As we previously described in~\cite{zhukovaFastAccurateMaximumLikelihood2022}, the likelihood calculation with MTBD models can be easily extended to forests. This extension applies also to the BD-PN model. Forests are useful for cases when a (sub-)epidemic started with several infected individuals (e.g., due to multiple pathogen introductions to a country of interest or due to a change of health policies leading to a change in parameter values). In this case the (sub-)epidemic leads to a forest $\mathscr{F}$ of $f$ observed trees: $\mathscr{T}_1, \ldots, \mathscr{T}_f$. The forest $\mathscr{F}$ might also include a certain number $u$ of unobserved trees, for which none of their tips got sampled.
 Forest likelihood formula hence combines the likelihoods of $f$ observed and $u$ hidden trees, and can be represented in a logarithmic form~(\ref{eq:forest_likelihood}). The tree likelihood formula %[\ref{eq:tree_likelihood}] 
 is its special case, where $f=1$ and $u=0$. 
 
-%As our application to Ebola data (see~Application) shows, $u$ is an important parameter: while the results are not very sensible to slight $u$ variations, ignoring it completely (e.g. using $u=0$ instead of $u \approx 500$ in our example) can change the inferences.
+%As our application to Ebola data (see~Application) shows, $u$ is an important parameter: while the results are not very sensible to slight $u$ variations, ignoring it completely (e.g., using $u=0$ instead of $u \approx 500$ in our example) can change the inferences.
 
 \begin{equation}
 \begin{split}
@@ -638,13 +640,25 @@ u = f \frac{U_{hidden}(\Theta)}{1 - U_{hidden}(\Theta)}\label{eq:u}
 We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\phi,\rho,\upsilon) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). We also implemented the classical BD model estimator, bd.
 
 Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\cite{Wilks1938}.
-For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as including the values $\tilde{p}$ such that $log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \chi^2_1(0.95) / 2$, where $\chi^2_1(0.95)$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$ (i.e., $\sim3.84$). $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
+For each non-fixed parameter $p \in \Theta$, we calculate its $95\%$-CI as $[\tilde{p} \in \mathbb{R}\; |\; log L(\mathscr{F}|\Theta_{opt|p=\tilde{p}}) > log L(\mathscr{F}| \Theta_{opt}) - \frac{\chi^2_1(0.95)}{2}]$, where $\chi^2_1(0.95) \approx 3.84$ is the value of chi-squared distribution with 1 degree of freedom corresponding to the significance level of $0.95$, while $\Theta_{opt|p=\tilde{p}}$ corresponds to the maximum-likelihood value for the other non-fixed parameters when $p = \tilde{p}$. 
 
 \subsubsection*{Code availability}
 The BD-PN and BD parameter estimators are implemented in Python 3. They use ETE 3 framework for tree manipulation~\cite{Huerta-Cepas2016} and NumPy package for array operations~\cite{harris_array_2020}. 
 
 They are available as a command-line program and a Python 3 package via PyPi (\href{https://pypi.org/project/bdpn}{bdpn}), and via Docker/Singularity (\href{https://hub.docker.com/r/evolbioinfo/bdpn/tags}{evolbioinfo/bdpn}). The source code and the installation and usage documentation are available on GitHub at \href{https://github.com/evolbioinfo/bdpn}{github.com/evolbioinfo/bdpn}.
 
+
+\subsection*{UK HIV-1 B tree reconstruction and sampling probability estimation}\label{uk_tree}
+To asses the partner notification in HIV-infected patients in the UK, we used the phylogenetic tree from our recent study of HIV drug resistance in the UK~\cite{zhukovaModelingDrugResistance2023}. The tree tips represent viruses sampled from 40\,055 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\cite{Dunn2007}. The sampling date metadata for these samples were month-specific (e.g., Aug 2015), hence potentially creating simultaneous sampling dates for cases, which were sampled on different days of the month. To avoid this issue we randomly selected a date within the specified month for each sample, and time-scaled the tree with LSD2~\cite{To2016} (v2.4.1, strict molecular clock with outlier removal). We repeated this time-scaling procedure 10 times, obtaining 10 trees with slightly different branch lengths and root dates between Oct 5 and Nov 11, 1962.
+
+Between 2012 and 2015, in the UK ART of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\cite{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count $>$ 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\cite{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e., later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\cite{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated trees between 2012 and 2015. 
+
+To estimate the BD-PN parameter values, we needed to fix one of the parameters for model identifiability. We therefore estimated the base sampling probability $\rho$ as follows. According to the \href{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112132123mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/602942/HIV_in_the_UK_report.pdf}{``Towards elimination of HIV transmission, AIDS and HIV-related deaths in the UK''}
+ report, the estimated total number of people living with HIV in the UK in 2015 was 101\,200. % (97\,500 to 105\,700). % in 2012 this number was 98\,400 (93\,500-104\,300) [\href{HIV in the United Kingdom: 2013 Report}{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112133715mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/326601/HIV_annual_report_2013.pdf}]. Moreover these document report about 400 HIV-related deaths per year. 
+According to our estimate~\cite{zhukovaModelingDrugResistance2023}, 66.5\% of the HIV-infected individuals in the UK were infected with HIV-B. We hence estimated that in 2015 67\,298 % (64\,837, 70\,291) 
+people were living with HIV-B. Our trees contained 39\,047 tips sampled by the end of 2015, and therefore account for about 58\% %(56\%, 60\%) 
+of the total number of individuals living with HIV-B in the UK. We hence fixed the sampling probability $\rho$ to 0.58. %However this estimate does not take into account deaths of the HIV-infected individuals over the years, which would increase the total number of HIV-infected individuals by 2015, and decrease the proportion of individuals represented by our tree. We therefore tested several sampling probabilities $\rho=$0.6; 0.5; 0.4.
+ 
 
 % Results and Discussion can be combined.
 \section*{Results}
@@ -653,7 +667,7 @@ They are available as a command-line program and a Python 3 package via PyPi (\h
 \subsubsection*{PN test is highly specific and sensitive at detecting partner notification}~\label{sec:test:sim}
 To illustrate the PN test performance, we applied it to the six 100-tree simulated datasets, corresponding to the three classical MTBD-family models: BD, BDEI (Birth-Death Exposed-Infectious~~\cite{Stadler2014}) and BDSS (Birth-Death with Super Spreading~\cite{Stadler2013a}), and to their -PN versions: BD-PN, BDEI-PN and BDSS-PN (see~"\nameref{sec:sim}" for dataset details).
 
-For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value was above $0.05$ (i.e. 98\%/97\%/95\% true negative and 2\%/3\%/5\% false positive results). For 95/95/96 out of 100 trees in the BD-PN/BDEI-PN/BDSS-PN dataset the PN test p-value was below $0.05$ (i.e. 95\%/95\%/96\% true positive and 5\%/5\%/4\% false negative results). These results are summarised in Table~\ref{tbl:pntest}. Our test therefore showed both high specificity and sensitivity.
+For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value was above $0.05$ (i.e., 98\%/97\%/95\% true negative and 2\%/3\%/5\% false positive results). For 95/95/96 out of 100 trees in the BD-PN/BDEI-PN/BDSS-PN dataset the PN test p-value was below $0.05$ (i.e., 95\%/95\%/96\% true positive and 5\%/5\%/4\% false negative results). These results are summarised in Table~\ref{tbl:pntest}. Our test therefore showed both high specificity and sensitivity.
 
 \begin{table}[!h]\centering
 \small
@@ -675,12 +689,12 @@ For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value wa
 
 \subsubsection*{Accounting for partner notification is crucial for accurate parameter estimation}
 
-We assessed the performance of our maximum-likelihood estimator for the BD-PN model on the 100 trees from the the BD-PN simulated data set (see~"\nameref{sec:sim}" for dataset details).
+We assessed the performance of our maximum-likelihood estimator for the BD-PN model bdpn on the 100 trees from the the BD-PN simulated data set (see~"\nameref{sec:sim}" for dataset details).
 
-We applied bdpn to each of the trees fixing the sampling probability $\rho$ to its real value (for identifiability). The results with the becoming-uninfectious rate $\psi$ fixed are similar and given in the Supplementary Material. 
-As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values in both settings.
+We applied bdpn to each of the trees fixing the sampling probability $\rho$ to its real value (for identifiability). %The results with the becoming-uninfectious rate $\psi$ fixed are similar and given in the Supplementary Material. 
+As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values for all the trees in both settings.
 
-To highlight the importance of accounting for partner notification with the model, we also applied the classical BD model estimator bd to these trees. Additionally, we applied both BD-PN and BD model parameter estimators to the dataset simulated under BD model. The results are shown in  Fig.~\ref{fig:sim}.
+To highlight the importance of accounting for partner notification with the model, we also applied the classical BD model estimator bd to these trees. Additionally, we applied both bdpn and bd estimators to the dataset simulated under the BD model. The results are shown in  Fig.~\ref{fig:sim}.
 %We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree. For $\rho$ and $\upsilon$ absolute values were calculated instead of normalized ones. 
 We compared the method accuracy by a paired z-test. On the BD data set, bd and bdpn estimators performed equally well in estimation $R_0$ and infectious time $\frac{1}{\psi}$, with an average relative error $\leq 6\%$, and average relative bias $\leq 2\%$. The partner notification probability $\upsilon$ estimated on these trees by bdpn was systematically low, with the maximum value of 0.018, and mean value of 0.003. Its CI's 2.5\% bound hit the lower bound $0.001$ for all the trees. On the BD-PN data set, bdpn accuracy was significantly better (p-value $\leq 0.01$), with errors and biases $\leq 10\%$ for all parameters (vs. $36-40\%$ for bd).
 
@@ -691,7 +705,7 @@ We compared the method accuracy by a paired z-test. On the BD data set, bd and b
 
 %The hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
 
-The percentage of the trees for which real parameter values are with the CI estimates and relative CI widths ($\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$) are shown in Table~\ref{tbl:ci}. They suggest that the rate parameters are easier to estimate than the probability ones.
+The percentage of the trees for which real parameter values were with the CI estimates and relative CI widths ($\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$) are shown in Table~\ref{tbl:ci}. They suggest that the rate parameters are easier to estimate than the probability ones.
 
 \begin{figure}[h!]
 \centering 
@@ -703,41 +717,40 @@ We show the swarmplots (coloured by estimator) of relative errors for each test 
  
  \begin{table}[!h]\centering
 \small
-\caption{Percentage of simulated BD-PN trees for which the real parameter values were withing the bdpn-estimated 95\% CIs, and the median CI width: $\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$. \smallskip}
-\begin{tabular}{c|cc|cc}
-\textbf{parameter} & \textbf{$\psi$ fixed} & & \textbf{$\rho$ fixed} &  \\
- & \% within CI & median CI width & \% within CI & median CI width  \\
+\caption{Percentage of simulated BD-PN trees for which the real parameter values were withing the bdpn-estimated 95\% CIs, and the median CI width: $\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$  \smallskip}
+\begin{tabular}{c|cc}
+\textbf{parameter} & \% within CI & median CI width  \\
 \toprule 
- $\lambda$ &  91\% & 14.2\% & 96\% & 11.6\%\\
- $\psi$ & -- & -- & 88\% & 28.9\% \\
- $\rho$ & 78\%  & 38.9\% & -- & -- \\
- $\phi$ & 93\% & 32.3\% & 95\% & 32.2\% \\
- $\upsilon$ & 74\% & 21.8\% & 70\% & 21.7\% \\
+ $\lambda$ & 96\% & 11.6\%\\
+ $\psi$ & 88\% & 28.9\% \\
+ $\rho$ & fixed & -- \\
+ $\phi$ & 95\% & 32.2\% \\
+ $\upsilon$ & 70\% & 21.7\% \\
 \bottomrule
 \end{tabular}
 \label{tbl:ci}
 \end{table}
 
+\subsubsection*{Application 1: Men-having-sex-with-men (MSM) HIV-1 B epidemic in Zurich}
+We applied our estimator to asses the partner notification for HIV-1 subtype B epidemic among men-having-sex-with-men (MSM) in Zurich.  We used the phylogenetic tree of 200 samples reconstructed by Rasmussen \textit{et al.}~\cite{Rasmussen2017} from the sequences collected as a part of the Swiss Cohort Study~\cite{swisshivcohortstudyCohortProfileSwiss2010a} between 1988 and 2014. This tree was also previously analyzed by Voznica~\textit{et al.}~\cite{Voznica2021} using a Birth-Death model with SuperSpreading (BDSS). 
 
-\subsubsection*{Application 1: HIV-1 B epidemic in the UK}
-We applied our estimator to asses the partner notification in HIV-infected patients in the UK. We used the phylogenetic tree from our recent study of HIV drug resistance in the UK~\cite{zhukovaModelingDrugResistance2023}. The tree tips represent viruses sampled from 40\,055 individuals between 1996 and 2016. The samples used for the tree reconstruction were obtained from the UK HIV Drug resistance database~\cite{Dunn2007}. The sampling date metadata for these samples were month-specific (e.g. Aug 2015), hence potentially creating simultaneous sampling dates for cases, which were sampled on different days of the month. To avoid this issue we randomly selected a date within the specified month for each sample, and time-scaled the tree with LSD2~\cite{To2016} (v2.4.1, strict molecular clock with outlier removal). We repeated this time-scaling procedure 10 times, obtaining 10 trees with slightly different branch lengths and root dates between Oct 5 and Nov 11, 1962.
+The PN test detected partner notification in this tree (p-value=0.046). Following Voznica~\textit{et al.}~\cite{Voznica2021}, we fixed the sampling probability for this tree at 25\%: $\rho=0.25$. Our bdpn estimator inferred the partner notification probability $\upsilon=0.07$ CI $[0.006-0.190]$,  
+$R_e = 1.4$ $[1.2-1.6]$, infectious time $\frac{1}{\psi} = 8$ $[6-10]$ years, and 3.4 months [5 days -- 15 months] between partner notification and their sampling. These results globally agree (CIs intersect) with the $R_e$ estimate using a coalescent model from Rasmussen \textit{et al.}~\cite{Rasmussen2017} (between 1.0 and 2.5), and the estimates using the BDSS model from Voznica~\textit{et al.}~\cite{Voznica2021}: $R_e$ of 1.6 and 1.7 and an infectious period of 10.2 and 9.8 years (depending on the tree representation used for the deep learner).
 
-Between 2012 and 2015, in the UK antiretroviral treatment (ART) of HIV-infected individuals  was initiated when their CD4 count dropped below 350 cells/mL~\cite{williamsBritishHIVAssociation2012}. However ``if a patient with a CD4 cell count $>$ 350 cells/mL wishes to start ART to reduce the risk of transmission to partners, this decision is respected and ART is started''~\cite{williamsBritishHIVAssociation2012}. Before 2012, treatment started with an even lower CD4 (i.e. later). The British HIV Association 2015 guidelines recommend all individuals with suspected or diagnosed primary HIV infection ``are offered immediate ART''~\cite{churchillBritishHIVAssociation2016}. To have a more homogeneous setting in terms of access to ART, awareness of the HIV infection, etc., we cut the dated trees between 2012 and 2015. We then applied the PN-test and estimated the BD-PN parameters on these 2012--2015 forests. 
+Note that this tree covers a long non-homogeneous time interval (between 1974, the root of the tree, and 2012), including times with no or limited access to treatment, when the infectious time corresponded to progression to AIDS ($\approx 10$ years), as well as later times, when antiretroviral treatment (ART) became available, and hence the infectious period would correspond to the time till ART start, as, when taken properly, it prevents transmission. Our estimate (8 years) represent a mix of these scenarios. This also holds for the other estimated parameters, whose values represent a somewhat averaged estimate over the time period. As this data set was already small, we did not cut it to obtain a more homogeneous treatment policy (as we did in Application 2).
 
-The PN-test values were below 0.05 for all the forests (values between $7 \cdot 10^{-18}$ and $5 \cdot 10^{-12}$), strongly suggesting the presence of partner notification.
 
-To estimate the BD-PN parameter values, we needed to fix one of the parameters for model identifiability. We therefore estimated the base sampling probability $\rho$ as follows. According to the \href{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112132123mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/602942/HIV_in_the_UK_report.pdf}{``Towards elimination of HIV transmission, AIDS and HIV-related deaths in the UK''}
- report, the estimated total number of people living with HIV in the UK in 2015 was 101\,200 (97\,500 to 105\,700). % in 2012 this number was 98\,400 (93\,500-104\,300) [\href{HIV in the United Kingdom: 2013 Report}{https://webarchive.nationalarchives.gov.uk/ukgwa/20181112133715mp_/https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/326601/HIV_annual_report_2013.pdf}]. Moreover these document report about 400 HIV-related deaths per year. 
-According to our estimate~\cite{zhukovaModelingDrugResistance2023}, 66.5\% of the HIV-infected individuals in the UK were infected with HIV-B. We hence estimated that in 2015 67\,298 (64\,837, 70\,291) people were living with HIV-B. Our trees contained 39\,047 tips sampled by the end of 2015, and therefore account for about 58\% (56\%, 60\%) of the total number of individuals living with HIV-B in the UK. We hence fixed the sampling probability $\rho$ to 0.58. %However this estimate does not take into account deaths of the HIV-infected individuals over the years, which would increase the total number of HIV-infected individuals by 2015, and decrease the proportion of individuals represented by our tree. We therefore tested several sampling probabilities $\rho=$0.6; 0.5; 0.4.
- 
- 
-Using $\rho=0.58$, we estimated the partner notification probability $\upsilon=0.006-0.008$, %the following parameter values: $\lambda=0.53$, $\psi=0.43$, $\phi=23-59$, $\upsilon=0.006-0.007$, which corresponds to 
-$R_e = 1.2$, infectious time $\frac{1}{\psi} = 2.3$ years, and 15--16 days between partner notification and their sampling. The results are consistent between 10 forests and shown in Table~\ref{tbl:uk}. %The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
+\subsubsection*{Application 2: HIV-1 B epidemic in the UK}
+We also applied our estimator to asses the partner notification in HIV-infected individuals in the UK. We used the phylogenetic tree from our recent study of HIV drug resistance in the UK~\cite{zhukovaModelingDrugResistance2023}, reconstructed from HIV-1 B samples of 40\,055 individuals sampled between 1996 and 2016 and obtained from the UK HIV Drug resistance database~\cite{Dunn2007}. 
+
+The sampling dates in the UK HIV Drug resistance database are month-specific, hence to avoid potentially creating simultaneous sampling dates for cases, which were sampled on different days of the month, we randomly selected a date within the specified month for each sample before time-scaling the tree. We repeated the time-scaling procedure 10 times, obtaining 10 trees with slightly different branch lengths and root dates between Oct 5 and Nov 11, 1962 (see~"\nameref{uk_tree}"). We cut this tree between 2012 and 2015, as this period featured a homogeneous ART start policy in the UK (CD4 cell count below 350 cells/mL~\cite{williamsBritishHIVAssociation2012}). We then applied the PN-test and estimated the BD-PN parameters on these 2012--2015 forests. 
+
+The PN-test values were below 0.05 for all the forests (values between $7 \cdot 10^{-18}$ and $5 \cdot 10^{-12}$), strongly suggesting the presence of partner notification. Using sampling probability $\rho=0.58$ (see~"\nameref{uk_tree}" for its estimation), we estimated the partner notification probability $\upsilon=0.006-0.008$, %the following parameter values: $\lambda=0.53$, $\psi=0.43$, $\phi=23-59$, $\upsilon=0.006-0.007$, which corresponds to 
+$R_e = 1.2$, infectious time $\frac{1}{\psi} = 2.3$ years, and 15--16 days between partner notification and their sampling. The results were consistent between 10 forests and shown in Table~\ref{tbl:uk}. %The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
 %$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
  
-The average time of HIV progression to AIDs in the absence of treatment is 10 years, which could serve as an estimate of the infectious time. However, in the UK, 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 2.3 years. 
+In the UK 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 2.3 years. 
 
-For comparison, parameter estimation on the same forests with the BD model (with $\rho$ fixed to $0.58$) gave unrealistic results: $R_e = 0.5$ (suggesting contained epidemic) and very short infectious time $\frac{1}{\psi} = 0.4$ years. These results were robust across the 10 forests, see \nameref{S1_Table}. As with the results on simulated data, this  highlights the importance of accounting for partner notification during parameter estimation.
 
 \begin{table}[!ht]
 \begin{adjustwidth}{-0.8in}{0in} % Comment out/remove adjustwidth environment if table fits in text column.
@@ -768,27 +781,31 @@ rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]& $\frac{1}{\phi}$ [days]&$\upsilo
 \end{adjustwidth}
 \end{table}
 
-\subsubsection*{Application 2: Men-having-sex-with-men (MSM) HIV-1 B epidemic in Zurich}
-For comparison with the UK case, we applied our estimator to asses the partner notification for HIV-1 subtype B epidemic in a different setting: in men-having-sex-with-men (MSM) community from Zurich.  We used the phylogenetic tree including 200 samples from the largest MSM HIV cluster in Zurich reconstructed by Rasmussen \textit{et al.}~\cite{Rasmussen2017} from the sequences collected as a part of the Swiss Cohort Study~\cite{swisshivcohortstudyCohortProfileSwiss2010a} between 1988 and 2014. As this data set was already small, we did not cut it to obtain a more homogeneous treatment policy, as we did for the UK.
 
-The PN test detected partner notification in this tree (p-value=0.046). Following Voznica~\textit{et al.}~\cite{Voznica2021}, we fixed the sampling probability for this tree at 25\%: $\rho=0.25$. Our bdpn estimator inferred the partner notification probability $\upsilon=0.07$ (CI $[0.006-0.190]$),  
-$R_e = 1.4$ (CI $[1.2-1.6]$), infectious time $\frac{1}{\psi} = 8$ (CI $[6-10]$) years, and 3.4 months (CI [5 days -- 15 months]) between partner notification and their sampling. 
+For comparison, parameter estimation on the same forests with the BD model (with $\rho$ fixed to $0.58$) gave unrealistic results: $R_e = 0.5$ (suggesting contained epidemic) and very short infectious time $\frac{1}{\psi} = 0.4$ years. These results were robust across the 10 forests, see \nameref{S1_Table}. As with the results on simulated data, this  highlights the importance of accounting for partner notification during parameter estimation.
 
-Overall the estimates on this much smaller dataset show larger CIs than those on the larger UK data set. The CIs estimated on the two data sets intersect for the effective reproductive number $R_e$, while the infectious time is larger for the Zurich data set (CI of $6-10$ years vs $2.2-2.4$ years for the UK data set). This is however expected as the Zurich data set covers a longer, earlier and non-homogeneous time interval (between 1974, the root of the tree, and 2012), including times with no or limited access to treatment, when the infectious time corresponded to progression to AIDS ($\approx 10$ years). The CIs for notification probability $\upsilon$ and partner removal time $\frac{1}{\phi}$ also intersect on the two data sets, though they do not have to, as the notification policy might differ between the two countries, and especially during the long and non-homogeneous time interval represented by Zurich data. The point estimates suggest stronger partner notification probability and longer notified partner removal time in Zurich than in the UK.
+\bigskip
+
+Overall the estimates on the much smaller Zurich dataset show larger CIs than those on the larger UK one. The CIs estimated on the two data sets intersect for the effective reproductive number $R_e$, while the infectious time is larger for Zurich (CI of $6-10$ years vs $2.2-2.4$ years for the UK). This is however expected as the Zurich tree covers a longer, earlier and non-homogeneous time interval (between 1974 and 2012), including times with no or limited access to treatment, when the infectious time corresponded to progression to AIDS ($\approx 10$ years). The CIs for notification probability $\upsilon$ and partner removal time $\frac{1}{\phi}$ also intersect on the two data sets, though they do not have to, as the notification policy might differ between the two countries, and especially during the long and non-homogeneous time interval represented by the Zurich tree. The point estimates suggest stronger partner notification probability and longer notified partner removal time in Zurich than in the UK.
+
+
 
 
 \section*{Discussion}
-We proposed an extension of the phylodynamic birth-death model that accounts for non-random sampling due to partner notification (BD-PN). In real-life epidemics, detected infected individuals might notify the people whom they think they might have infected or got infected by, and who in turn might get tested and detected in a much faster and non-random way. Our model accounts for this scenario.
+We proposed an extension of the phylodynamic birth-death model that accounts for non-random sampling due to partner notification (BD-PN). In real-life epidemics, detected infected individuals might notify the people whom they think they might have infected or got infected by, and who in turn might get tested and detected much faster than via the standard procedure. Our model accounts for this scenario.
 
 The -PN extension adds two constant parameters to the classical BD model: the probability of partner notification $\upsilon$ and the partner detection rate $\phi$. It can also be applied to a more general, multi-type birth-death (MTBD) model framework, which accounts for heterogeneity in the infected population. 
 
 We developed a PN-test allowing to distinguish between trees generated under models with and without partner notification. Its application to simulated data showed high sensitivity and specificity. 
 
-We developed a mathematical framework for calculation of the likelihood density of a transmission tree (approximated by a time-scaled phylogenetic tree) under the BD-PN model, and implemented a maximum-likelihood BD-PN parameter estimator bdpn based on this framework. The advantage of the BD-PN model is that the differential equations describing it have closed-form solutions, which are quick to calculate and do not require numerical approximation (as is the case for more complex MTBD models). Tests on simulated data show that our estimator robustly infers model parameter values and their CIs in the setting when the duration of the infectious period $\frac{1}{\psi}$ or the base sampling probability $\rho$ is fixed. Fixing one of the model parameters is needed for model identifiability. In practice, $\rho$ and $\frac{1}{\psi}$ may often be approximated from epidemiological data, e.g., as the proportion of sampled cases among the declared ones (for $\rho$), or estimated from observations of infected cases ($\frac{1}{\psi}$). 
+We developed a mathematical framework for calculation of the likelihood density of a transmission tree (approximated by a time-scaled phylogenetic tree) under the BD-PN model, and implemented a maximum-likelihood BD-PN parameter estimator bdpn based on this framework. %The advantage of the BD-PN model is that the differential equations describing it have closed-form solutions, which are quick to calculate and do not require numerical approximation (as is the case for more complex MTBD models). 
+Tests on simulated data show that our estimator robustly infers model parameter values and their CIs in the setting when the duration of the infectious period $\frac{1}{\psi}$ or the base sampling probability $\rho$ is fixed. Fixing one of the model parameters is needed for model identifiability. In practice, $\rho$ and $\frac{1}{\psi}$ may often be approximated from epidemiological data, e.g., as the proportion of sampled cases among the declared ones (for $\rho$), or estimated from observations of infected cases ($\frac{1}{\psi}$). 
 
 Importantly, our simulations show that in the presence of partner notification, the classical BD model estimator fails to accurately estimate epidemiological parameters (average relative errors $> 30\%$ for $R_0$ and infectious time $\frac{1}{\psi}$). On the contrary, in the absence of partner notification, the BD-PN model estimator correctly identifies $R_0$ and infectious time $\frac{1}{\psi}$ (as well as the BD model estimator), and estimates a very low partner notification probability $\upsilon$, whose confidence intervals hit the lower bound.
 
-We applied the PN-test and our estimator to the HIV-1 B epidemic in the UK, between 2012 and 2015 and to the HIV-1 B MSM cluster in Zurich. The test detected presence of partner notification in both cases. The obtained estimates of epidemiological parameters are in agreement with what we now know about the HIV-1 B epidemic (e.g., $R_e$ between $1.2$ and $1.6$ ). We estimated a modest partner notification probability ($1\%$ in the UK, $7\%$ in Zurich), and rapid notified partner detection ($\approx 16$ days vs $\approx 2.3$ years for detection under the standard random procedure in the UK; and $\approx 3.4$ months vs $\approx  8$ years for detection under the standard random procedure in Zurich).
+We applied the PN-test and our estimator to the HIV-1 B MSM cluster in Zurich and to the HIV-1 B epidemic in the UK between 2012 and 2015. The test detected presence of partner notification in both cases. The obtained estimates of epidemiological parameters are in agreement with what we now know about the HIV-1 B epidemic (e.g., $R_e$ between $1.2$ and $1.6$). We estimated a modest partner notification probability ($7\%$ in Zurich, $1\%$ in the UK), and rapid notified partner detection ($\approx 3.4$ months vs $\approx  8$ years for detection under the standard procedure in Zurich; and $\approx 16$ days vs $\approx 2.3$ years for detection under the standard procedure in the UK).
+
+\bigskip 
 
 The BD-PN model is the first step towards accounting for non-random sampling in phylodynamic models. In order to reduce its mathematical complexity (having closed-form solutions for its differential equations) and make parameter estimation fast, we made several assumptions: (i) that only detected individuals can notify their partners; (ii) only the most recent partner can get notified; (iii) notified partners are always sampled upon removal (i.e., observed in the transmission tree). These assumptions may be too simple to fully grasp the real partner notification process and should be relaxed in the future work. Another needed extension should account for population heterogeneity (i.e., MTBD-PN). As it is much easier to implement a tree simulator with a complex model (e.g., as we did for MTBD-PN models) than to derive its likelihood, a promising path to take for future -PN model developments would be using deep learning (e.g., adding new models to PhyloDeep~\cite{Voznica2021}). 
 
@@ -828,20 +845,20 @@ Finally, what we presented here is a specific case of an epidemiological model. 
 Our tree simulator generates sampled transmission trees under MTBD and MTBD-PN models (with $m$ states). It is Gillespie-based, generates state change, transmission and removal times, and only reconstructs the sampled parts of the tree to save memory and increase speed.  
 
 The simulator iterates through occurring events till either time or sampled tip number limit is reached. 
-It keeps updating an array $C = [c_1, \ldots, c_m]$ of counts of currently infected individuals (i.e. non-removed) in different states; an array $S = [s_1, \ldots, s_m]$ of counts of sampled individuals in different states; as well as a mapping $M$ between states and ids of currently infected individuals in those states, and a mapping $N$ between states and ids of sampled individuals in those states.  In the beginning ($t=0$) the only infected individual corresponds to the root: $c_k = 0 \;\forall k \neq state(root), \;c_{state(root)} = 1; \;M_k = \emptyset \; \forall k \neq state(root)$, $ \; M_{state(root)} = \{root\}$, and no individual is sampled: $s_k=0,\;N_k = \emptyset \; \forall 1 \leq k \leq m$.
+It keeps updating an array $C = [c_1, \ldots, c_m]$ of counts of currently infected individuals (i.e., non-removed) in different states; an array $S = [s_1, \ldots, s_m]$ of counts of sampled individuals in different states; as well as a mapping $M$ between states and ids of currently infected individuals in those states, and a mapping $N$ between states and ids of sampled individuals in those states.  In the beginning ($t=0$) the only infected individual corresponds to the root: $c_k = 0 \;\forall k \neq state(root), \;c_{state(root)} = 1; \;M_k = \emptyset \; \forall k \neq state(root)$, $ \; M_{state(root)} = \{root\}$, and no individual is sampled: $s_k=0,\;N_k = \emptyset \; \forall 1 \leq k \leq m$.
 
 At each iteration the algorithm (1) calculates the time of the next event; (2) chooses the type of this event and the the individual involved in it; (3) updates the counts and the mappings according to the event and records its time.
 
 At step 1, to calculate the time of the next event, we (i) calculate the total rate $r$ as a sum of total state change, transmission and transition rates: $r = r^{(\mu)} + r^{(\lambda)} + r^{(\psi)}$, where $r^{(\mu)} = \sum\limits_{k=1}^{m} c_k \sum\limits_{r=1}^{m} \mu_{kr}$, $r^{(\lambda)} = \sum\limits_{k=1}^{m} c_k \sum\limits_{r=1}^{m} \lambda_{kr}$, and $r^{(\psi)} = \sum\limits_{k=1}^{m} c_k \psi_{k}$; (ii) draw $\Delta t$ from the exponential distribution with rate $r$; (iii) update the current time to $t + \Delta t$.
 
-At step 2, to chose the type of the event, we draw a value $v$ (uniformly) from an interval $[0, r[$. This interval can be seen as composed of subintervals corresponding to each possible event, where the width of each subinterval is defined by the corresponding rate and infected individual count, e.g. the subinterval corresponding to a transmission from $k$ to $r$ has a width of $\lambda_{kr}c_k$. The subinterval in which $v$ is located defines the event type.
+At step 2, to chose the type of the event, we draw a value $v$ (uniformly) from an interval $[0, r[$. This interval can be seen as composed of subintervals corresponding to each possible event, where the width of each subinterval is defined by the corresponding rate and infected individual count, e.g., the subinterval corresponding to a transmission from $k$ to $l$ has a width of $\lambda_{kl}c_k$. The subinterval in which $v$ is located defines the event type.
 
-At step 3, we randomly draw an individual $i$ of type $k$ (selected at step 2) from $M[k]$, and proceed depending on the event type. If it is a state-change from $k$ to $r$, then we decrease $c_k$ by one, increase $c_r$ by one, remove $i$ from $M[k]$ and put $i$ into $M[r]$. If it is a transmission from $k$ to $r$, then we increase $c_r$ by one, create a new id $j$ for the recipient and put $j$ into $M[r]$. If it is a removal, then we decrease $c_k$ by one, remove $i$ from $M[k]$, and draw a value $p$ (uniformly) from an interval $[0, 1[$: if $p < \rho$, the individual gets sampled and we put $i$ into $N[k]$. 
+At step 3, we randomly draw an individual $i$ of type $k$ (selected at step 2) from $M[k]$, and proceed depending on the event type. If it is a state-change from $k$ to $l$, then we decrease $c_k$ by one, increase $c_l$ by one, remove $i$ from $M[k]$ and put $i$ into $M[l]$. If it is a transmission from $k$ to $l$, then we increase $c_l$ by one, create a new id $j$ for the recipient and put $j$ into $M[l]$. If it is a removal, then we decrease $c_k$ by one, remove $i$ from $M[k]$, and draw a value $p$ (uniformly) from an interval $[0, 1[$: if $p < \rho$, the individual gets sampled and we put $i$ into $N[k]$. 
 
 For transmission and sampling events we also record their time and ids of the involved individuals. These values are used to reconstruct the sampled parts of the tree once the simulation is finished.
 
 
-For the PN version of this simulator, we add additional $m$ states for notified-partner versions of each state. $m + k$'s state-change and transmission rates are set to the $k$'s state-change and transmission rates : $\mu_{m+k,m+l} = \mu_{k,l}$; $\lambda_{m+k,m+l} = \lambda_{k,l}$ $\forall 1 \leq  k,l \leq m$. The rates between initial and notified states set to zero: ;  $\mu_{m+k,l} = \mu_{k,m+l} = \lambda_{m+k,l} = \lambda_{k,m+l} = 0$. The removal rates of notified states are set to $\phi$: $\psi_{m+k} = \phi >> \psi_k$, while their sampling probabilities are set to $1$: $\rho_{m+k} = 1$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, if the removed individual $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \upsilon$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$) and not yet notified ($J \leq m$), we change $j$'s state to $m + j$ as in a state-change event.
+For the PN version of this simulator, we add additional $m$ states for notified-partner versions of each state. $m + k$'s state-change rates are set to the $k$'s state-change rates : $\mu_{m+k,m+l} = \mu_{k,l}\; \forall 1 \leq  k,l \leq m$, while the state-change rates between initial and notified states are set to zero: $\mu_{m+k,l} = \mu_{k,m+l} = 0$. Only the transmissions to non-notified states are allowed (and the ones from notified states are set to the corresponding non-notified rates): $\lambda_{m+k,l} = \lambda_{k,l}; \;\lambda_{m+k,l+k} = \lambda_{k,m+l} =0 \; \forall 1 \leq  k,l \leq m$. The removal rates of notified states are set to $\phi$: $\psi_{m+k} = \phi >> \psi_k$, while their sampling probabilities are set to $1$: $\rho_{m+k} = 1 \; \forall 1 \leq  k \leq m$. We keep a mapping of most recent partners $P$ for each infectious individual, and update it for both the donor and the recipient at each transmission event. We also keep a mapping between each infectious individual and their state, and update it at each state-change event. At each removal event, if the removed individual $i$ gets sampled upon removal, we draw a value $p$ (uniformly) from an interval $[0, 1[$. If $p < \upsilon$, and if $i$'s most recent partner ($j = P[i]$) is not yet sampled (not in $N[state(j)]$) and not yet notified ($j \leq m$), we change $j$'s state to $m + j$ as in a state-change event.
 
 \subsubsection*{Code availability}
 The simulator is implemented in Python 3. It uses ETE 3 framework for tree manipulation~\cite{Huerta-Cepas2016} and NumPy package for array operations~\cite{harris_array_2020}. 
@@ -863,17 +880,14 @@ U_p(t, t_A) = U_p^{(1)}(t, t_A) + U_p^{(2)}(t, t_A).
 
 The first part can be easily expressed via the previously defined equations: partner branch evolution before notification till time $t_A$ (if $t_A > t$) followed by partner branch evolution after notification till time $T$. Note, that neither  $p_{pb}^{(x)}(t, t_A)$ not $p_{pa}^{(x)}(t_A)$ include an event at the end of the branch, and in this case the partner branch does not end at $t_x = T$:
 \begin{equation}
-\begin{split}
-U_p^{(1)}(t, t_A) &= 
+U_p^{(1)}(t, t_A) = 
 \begin{cases}
 p_{pb}^{(A)}(t) p_{pa}^{(x)}(t_A) & \textit{\color{gray} if $t_A > t$}\\
 p_{pa}^{(x)}(t) & \textit{\color{gray} if $t_A \leq t$}
-\end{cases}{\color{gray},}\\
-&\textit{\color{gray}where $t_x =T$}\\
-\end{split}
+\end{cases}\textit{\color{gray}, where $t_x =T$}
 \end{equation} 
 
-The second scenario is only possible if $t_A > t$. To calculate it, we would need to integrate over all possible partner removal times $t_B \in [t, t_A[$, provided that in the interval between $t$ and $t_B$ the partner might have transmitted to someone else (potentially multiple times), whose subtree(s) stayed unobserved till $T$. Note that $p_{pb}^{(A)}(t)$ describes a partner branch evolution between $t$ and $t_A$ with any number of hidden transmissions, no removal along it, and no event at the end of the branch. What we need instead is a removal with no sampling at time $\tau$. To approximate $U_p^{(2)}(t, t_A)$ we will divide $p_{pb}^{(A)}(t)$ by the probability of no removal during the time $(t_A - t)$ (i.e. $e^{-\psi(t_A - t)}$), multiply it by the probability of removal during that time ($1 - e^{-\psi(t_A - t)}$), and by the probability of not being sampled upon removal ($1 - \rho$):
+The second scenario is only possible if $t_A > t$. To calculate it, we would need to integrate over all possible partner removal times $t_B \in [t, t_A[$, provided that in the interval between $t$ and $t_B$ the partner might have transmitted to someone else (potentially multiple times), whose subtree(s) stayed unobserved till $T$. Note that $p_{pb}^{(A)}(t)$ describes a partner branch evolution between $t$ and $t_A$ with any number of hidden transmissions, no removal along it, and no event at the end of the branch. What we need instead is a removal with no sampling at time $\tau$. To approximate $U_p^{(2)}(t, t_A)$ we will divide $p_{pb}^{(A)}(t)$ by the probability of no removal during the time $(t_A - t)$ (i.e., $e^{-\psi(t_A - t)}$), multiply it by the probability of removal during that time ($1 - e^{-\psi(t_A - t)}$), and by the probability of not being sampled upon removal ($1 - \rho$):
 
 \begin{equation}
 U_p^{(2)}(t, t_A) \approx 
@@ -888,11 +902,11 @@ p_{pb}^{(A)}(t) \frac{1 - e^{-\psi(t_A - t)}}{e^{-\psi(t_A - t)}} (1 - \rho)& \t
 
 
 
-We will also need to describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branch in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g. between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g. between AB and A in Fig.~\ref{fig:pn-branches}(3), notifier). Let's denote the first notification time of the hidden partner as $t_r$, and the time of the hidden partner subtree start as $t_h$, while as usual $t_i$ stands for the time at the branch end.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
+We now describe the probability of a\textbf{ mixed branch} $p_{m(s1,s2)}^{(i)}(t,t_r)$ for branches that include a hidden partner subtree (AB-C branches in Fig.~\ref{fig:pn-branches}(2) and A's tip branches in Fig.~\ref{fig:pn-branches}(3)). $s1$ here denotes the type of the top of the branch (e.g., between AB and BC in Fig.~\ref{fig:pn-branches}(2), partner) and $s2$ denotes the type of the bottom of the branch (e.g., between AB and A in Fig.~\ref{fig:pn-branches}(3), notifier). Let us denote the first notification time of the hidden partner as $t_r$, and the time of the hidden partner subtree start as $t_h$, while as usual $t_i$ stands for the time at the branch end.  For instance, in Fig~\ref{fig:pn-branches}(2a) $t_i=t_C$, $t_r=t_A$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(2b) $t_i=t_r=t_C$, $t_h=t_{BC}$; in Fig~\ref{fig:pn-branches}(3c) $t_i=t_r=t_A$, $t_h=t_{AB}$. 
 
 $p_{m(s1,s2)}^{(i)}(t,t_r)$ combines two elements: the probability of the top part of the branch $p_{top=s1}^{(h)}(t, t_r)$, which finishes with a transmission to or from the hidden partner at time $t_h$ and the probability of the bottom part of the branch (without taking into account the event at its end) $p_{bottom=s2}^{(i)}(t_h)$.
 
-Note that since the branch contains a hidden partner, this partner must have at least one notifier (who is observed as all the notifiers). If the branch is external, the notifier could correspond to its tip: For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b). If the branch is external, the notifier could only correspond to a tip in its node's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c). 
+Note that since the branch contains a hidden partner, this partner must have at least one notifier (who is observed as all the notifiers).  The notifier could correspond to a tip in the branch's supertree: For example, tip A who is part of the C's supertree in Fig.~\ref{fig:pn-branches}(2a,c). If the branch is external, the notifier could also correspond to its own tip: For example, such notifiers correspond to tip A in Fig.~\ref{fig:pn-branches}(2b) and tip C in Fig.~\ref{fig:pn-branches}(3b).
 Having a notifier as the branch's tip implies that the bottom part of the branch corresponds to the notifier. Having a notifier in the supertree implies that the top part of the branch corresponds to the partner (already notified or not yet). Hence if the branch is internal, the top part can only correspond to the partner, while the bottom part can only correspond to a standard state (unnotified non-notifier), as the bottom part of such a branch corresponds to the partner's recipient (who could not be notified as the partner is unobserved and could not be a notifier as the branch is not external). Finally, if the branch is external, and the only partner's notifier corresponds to its tip, then there are two possibilities for its top part: (1a) either it fully corresponds to a standard state (unnotified non-notifier); or (1b) there is another partners' notifier in its supertree, and this other partner is also hidden along the top part of the same branch, hence the top part of the branch is partner-standard (see Fig.~\ref{fig:pn-mixed}). If, on the other hand, the branch is external, and the partner's notifier(s) is(are) only found in its supertree, then there are two possibilities for its bottom part: (2a) either it fully corresponds to a standard state (unnotified non-notifier); or (2b) there is another partners' notifier at its tip, and this other partner is also hidden along the bottom part of the same branch, hence the bottom part of the branch is standard-notifier (see Fig.~\ref{fig:pn-mixed}). Note that (1b) and (2b) represent the same case but from the point of view of two different hidden partners (B and their notifier A for the former, and D and their notifier C for the latter in Fig.~\ref{fig:pn-mixed}).  
 
 
@@ -906,7 +920,7 @@ Having a notifier as the branch's tip implies that the bottom part of the branch
 
 %if the branch is external the bottom part of the branch can either correspond to a notifier (as in Fig~\ref{fig:pn-branches}(2b,3)), or to a standard branch, or to a mixed tip branch starting as a standard branch and finishing as a notifier. It cannot correspond to another partner branch as every partner has their notifier sampled, and notifiers only notify one partner (who is already hidden along this branch). The bottom branch part evolution can then be expressed with the previously defined equations:
 
-We will first describe the one-hidden-partner case $p_{m(s1,s2)}^{(i)}(t,t_r)$ (where $s1 \in \{p, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case $p_{m(p,-,n)}^{(i)}(t,t_{r})$, where $t_{r}$ is the earliest notification time for the hidden partner at the top of the branch (e.g. $t_r=t_C$ in Fig.~\ref{fig:pn-mixed}), the only notification time for the hidden partner at the bottom of the branch being $t_i$  (e.g. $t_i=t_A$ in Fig.~\ref{fig:pn-mixed}).
+We will first describe the one-hidden-partner case $p_{m(s1,s2)}^{(i)}(t,t_r)$ (where $s1 \in \{p, -\}$, $s2 \in \{n, -\}$ and $-$ stands for the standard (unnotified non-notifier) state), and then proceed with the two-partner case $p_{m(p,-,n)}^{(i)}(t,t_{r})$, where $t_{r}$ is the earliest notification time for the partner hidden at the top of the branch (e.g., $t_r=t_C$ in Fig.~\ref{fig:pn-mixed}), the only notification time for the partner hidden at the bottom of the branch being $t_i$  (e.g., $t_i=t_A$ in Fig.~\ref{fig:pn-mixed}).
 
 
 For the bottom branch part: 
@@ -919,7 +933,7 @@ p^{(i)}(t_h)&\textit{\color{gray} otherwise ($s2=-$, the standard state)}\\
 \end{cases}
 \end{equation}
 
-We will approximate $p_{top=s1}^{(h)}(t)$ using the branch evolution probability of the type corresponding to $s1$  in the following way. For example, let us assume that $s1=-$ (standard branch). $p^{(h)}(t)$ expresses a probability of evolving along this branch between the times $t$ and $t_h$ with no or any number of hidden transmissions, without taking into account the event at the end of it. In our case there must be at least one hidden transmission: to/from the partner at time $t_h$ (where the partner tree stayed unsampled). If we remove the probability of no event during this time ($e^{-(\lambda + \psi)(t_h - t)}$) from $p^{(h)}(t)$, we will obtain a probability of a branch with at least one oriented hidden transmission somewhere between $t$ and $t_h$ (the probability of the corresponding hidden tree being included). $p_{top=-}^{(h)}(t)$ expresses almost the same thing, with the difference being that the last hidden transmission must have happened at time $t_h$ and correspond to the hidden partner. % the probability of the hidden partner tree corresponding to it is not included. 
+We will approximate $p_{top=s1}^{(h)}(t)$ using the branch evolution probability of the type corresponding to $s1$  in the following way. For example, let us assume that $s1=-$ (standard branch). $p^{(h)}(t)$ expresses a probability of evolving along this branch between the times $t$ and $t_h$ with no or any number of hidden transmissions, without taking into account the event at the end of it. In our case there must be at least one hidden transmission: to/from the partner at time $t_h$ (where the partner tree stayed unsampled). If we remove the probability of no event during this time ($e^{-(\lambda + \psi)(t_h - t)}$) from $p^{(h)}(t)$, we will obtain a probability of a branch with at least one hidden transmission somewhere between $t$ and $t_h$ (the probability of the corresponding hidden tree being included). $p_{top=-}^{(h)}(t)$ expresses almost the same thing, with the difference being that the last hidden transmission must have happened at time $t_h$ and correspond to the hidden partner. % the probability of the hidden partner tree corresponding to it is not included. 
 We will hence approximate $p_{top=-}^{(h)}(t)$ as follows: 
 \begin{equation}
 p_{top=-}^{(h)}(t, t_r) \approx p^{(h)}(t) -e^{-(\lambda + \psi)(t_{h} - t)}
@@ -948,7 +962,7 @@ p_{m(s1,s2)}^{(i)}(t,t_r) &= p_{top=s1}^{(h)}(t, t_r)\frac{U_p(t_h,t_r)}{U(t_h)}
 &\textit{\color{gray}where $t_{h} \approx t + \frac{(t_i - t)}{2}$ is an approximation of the time}\\
 &\textit{\color{gray}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~of the hidden partner subtree start,}\\
 &\textit{\color{gray}~~~~~~~~$t_{r}$ is the earliest notification time of the hidden partner.}\\
-\end{split}\label{eq:p_mixed}
+\end{split}\label{eq:p_mixed_eq}
 \end{equation}
 
 
@@ -975,67 +989,80 @@ For a tip $i$ with a parent node $j$ the subtree likelihood density values can b
 \begin{equation}
 \scriptsize
 \begin{array}{ll}
-l^{(\not{n},\not{n})}(i) &= p^{(i)}(t_j)\psi\rho (1-\upsilon) \textit{\color{gray} ~i.e. $i$ was not notified and did not notify}\\
+l^{(\not{n},\not{n})}(i) &= p^{(i)}(t_j)\psi\rho (1-\upsilon) \textit{\color{gray} ~i.e., $i$ was not notified and did not notify}\\
 & \textit{\color{gray} (standard branch evolution followed by sampling and no notification)}\\
-&~~+p_{m(-,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e. $i$ was not notified but notified their partner who is hidden}\\
-& \textit{\color{gray} (mixed standard-notifier branch evolution followed by sampling and notification)}\\
-\\
+&~~+p_{m(-,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e., $i$ was not notified but notified their partner who is hidden}\\
+& \textit{\color{gray} (mixed standard-notifier branch evolution followed by sampling and notification)}
+\end{array}
+\label{eq:tipxx}
+\end{equation}
+
+\begin{equation}
+\scriptsize
+\begin{array}{ll}
 l^{(\not{n},n)}(i) &= p_n^{(i)}(t_j)\psi\rho
-\upsilon \textit{\color{gray} ~i.e. $i$ was not notified but notified their most recent patner (observed)}\\
-& \textit{\color{gray} (notifier branch evolution followed by sampling and notification)}\\
-&~~\\
-\\
+\upsilon \textit{\color{gray} ~i.e., $i$ was not notified but notified their most recent patner (observed)}\\
+& \textit{\color{gray} (notifier branch evolution followed by sampling and notification)}
+\end{array}
+\label{eq:tipxx}
+\end{equation}
+
+\begin{equation}
+\scriptsize
+\begin{array}{ll}
 l^{(n,\not{n})}(i,r) &= \begin{cases}
-%0 \textit{\color{gray} ~if $t_r < t_j$}\\
-%\textit{\color{gray} (not possible as once notified partners do not transmit)}
-%\\
-%\\
 p_{pa}^{(i)}(t_j)\phi(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r < t_j$ and did not notify}\\
-\textit{\color{gray} (notified partner branch evolution followed by notification-provoked sampling and no notification)}
+\textit{\color{gray} (notified partner branch evolution then notification-provoked sampling and no notification)}
 \\
-~~~+p_{m(pa,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r < t_j$, }\\
-\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
+~~~+p_{m(pa,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$}\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~at $t_r < t_j$, $i$  did not notify}\\
  \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
- ~~~+p_{m(pa,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ ~~~+p_{m(pa,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
  \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(pa,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r < t_j$, }\\
-\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
- \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
+~~~+p_{m(pa,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$}\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~at $t_r < t_j$, $i$ notified another hidden partner}\\
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution then sampling and notification)}
 \\
 \\
 p_{pb}^{(i)}(t_j)\psi\rho(1 - \upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and did not notify}\\
-\textit{\color{gray} (partner-before-notification branch evolution followed by standard sampling and no notification)}
+\textit{\color{gray} (partner-before-notification branch evolution then standard sampling and no notification)}
 \\
-~~~+p_{m(pb,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
-\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
+~~~+p_{m(pb,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$}\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~at $t_r > t_i$,  $i$  did not notify}\\
  \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
- ~~~+p_{m(pb,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ ~~~+p_{m(pb,n)}^{(i)}(t_j,t_i)\psi\rho\upsilon \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
  \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(pb,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
+~~~+p_{m(pb,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$ at $t_r > t_i$, }\\
 \textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
- \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution then sampling and notification)}
 \\
 \\
 p_{pb}^{(r)}(t_j) p_{pa}^{(i)}(t_r) \phi (1-\upsilon) \textit{\color{gray} ~if $i$ got notified at time $t_j \leq t_r \leq t_i$ and did not notify}\\
 \textit{\color{gray} (partner-before-notification branch evolution followed by} \\
 \textit{\color{gray}~notified partner branch evolution, notification-provoked sampling and no notification)}
 \\
-~~~+p_{m(p,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
-\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$  did not notify}\\
+~~~+p_{m(p,-)}^{(i)}(t_j,t_r)\psi\rho(1-\upsilon) \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$}\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~at $t_j \leq t_r \leq t_i$, $i$  did not notify}\\
  \textit{\color{gray} ~~~(mixed partner-standard branch evolution followed by sampling and no notification)}\\
- ~~~+p_{m(p,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
+ ~~~+p_{m(p,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified both by $r$ and $i$}\\
  \textit{\color{gray} ~~~(mixed partner-notifier branch evolution followed by sampling and notification)}
 \\
-~~~+p_{m(p,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e. branch $i$ contains a hidden partner notified by $r$ at $t_j \leq t_r \leq t_i$, }\\
-\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$i$ notified another hidden partner}\\
- \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution followed by sampling and notification)}
-\end{cases}\\
-\\
+~~~+p_{m(p,-,n)}^{(i)}(t_j,t_r)\psi\rho\upsilon  \textit{\color{gray} ~i.e., branch $i$ contains a hidden partner notified by $r$}\\
+\textit{\color{gray} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~at $t_j \leq t_r \leq t_i$, $i$ notified another hidden partner}\\
+ \textit{\color{gray} ~~~(mixed partner-standard-notifier branch evolution then sampling and notification)}
+\end{cases}
+\end{array}
+\label{eq:tipxx}
+\end{equation}
+
+\begin{equation}
+\scriptsize
+\begin{array}{ll}
 l^{(n,n)}(i,r) &= \begin{cases}
 p_b^{(i)}(t_j)\phi\upsilon \textit{\color{gray} ~if $i$ got notified at time $t_r < t_j$ and notified their most recent patner}\\
-\textit{\color{gray} (notified notifier branch evolution followed by notification-provoked sampling and  notification)}\\
+\textit{\color{gray} (notified notifier branch evolution then notification-provoked sampling and  notification)}\\
 \\
 p_n^{(i)}(t_j)\psi\rho\upsilon \textit{\color{gray} ~if $i$ got notified at time $t_r > t_i$ and notified their most recent patner}\\
 \textit{\color{gray} (notifier branch evolution followed by standard sampling and  notification)}\\
@@ -1054,7 +1081,7 @@ Let us now consider an internal node $i$ with two child nodes, $i_0$ and $i_1$.
 \subsubsection*{Case 2.1: $i$ is an unnotified internal node} 
 We will start with the configuration where the $i$'s branch corresponds to an unnotified individual. Hence the $i$'s branch evolution is represented by $p^{(i)}(t_j)$ with a transmission event at the end of it, where each of the child branches can correspond to the donor (probability density of $2\lambda$). We will consider three possibilities: (2.1.1) when both $i_0$ and $i_1$ are internal nodes; (2.1.2) when both $i_0$ and $i_1$ are tips; and (2.1.3) when one of them is an internal node and the other one is a tip.
 
-%Note that a notification will only be possible if the notifying branch is external as the notifier only notifies the most recent partner, i.e. the transmission corresponds to the notifier's parent node.
+%Note that a notification will only be possible if the notifying branch is external as the notifier only notifies the most recent partner, i.e., the transmission corresponds to the notifier's parent node.
 
 \subsubsection*{Case 2.1.1: $i$ is an unnotified internal node with internal-node children $i0$ and $i1$}
 
@@ -1200,9 +1227,14 @@ b \textit{~if $t_a > t_b$.}
 \label{eq:lp-tip-int}
 \end{equation}
 
-\bigskip 
-Note that $l^{(n)}(i, r)$, $l^{(n,n)}(i, r)$ and $l^{(n,\not{n})}(i, r)$ depends on the notifier $r$ and can only be calculated once the notification time $t_r$ is known, i.e. once we have climbed to an internal node corresponding to the transmission between the notifier $r$ (corresponding to one of its children, must be a tip) and the partner (the other child). The calculation is done recursively by descending into the subtree. The tree likelihood calculation hence can take $O(n^2)$ steps in the worst case (ladder tree), where $n$ is the number of tips in the tree. However, as all the unotified equation parts ($l^{(\not{n})}(i)$, $l^{(\not{n},n)}(i)$ and $l^{(\not{n},\not{n})}(i)$) only depend on the corresponding node $i$, they can be pre-calculated and reused to speed up the recursive steps.
+\subsubsection*{Tree likelihood calculation with a pruning algorithm} 
+Note that $l^{(n)}(i, r)$, $l^{(n,n)}(i, r)$ and $l^{(n,\not{n})}(i, r)$ depend on the notifier $r$ and the notification time $t_r$. Note that for a node $i$ any tip $r$ that is sister to any internal node on the path between $i$ and the tree root could be its potential notifier. During the tree likelihood calculation we first annotate each node $i$ with a set of potential notifiers $N_i$. For that we first add tips' to their parent nodes'  potential notifier sets. We then perform a preorder tree traversal, where for every visited internal node $i$ we add its potential notifiers to its child nodes $i0$ and $i1$: $N_{i0} := N_{i0} \cup N_i - \{i0\}$, $N_{i1} := N_{i1} \cup N_i - \{i1\}$ (removing the child itself, as if it is a tip it will be found among its parent's potential notifiers). This preprocessing is only performed once, takes time O(N) where N is the number of tips in the tree and is negligible with respect to the rest of the parameter inference procedure. 
 
+
+ Then we perform a postorder tree traversal, where for each node $i$ we calculate $l^{(\not{n}, \not{n})}(i)$, $l^{(\not{n}, n)}(i)$, $l^{(n, \not{n})}(i, r)$ and $l^{(n, n)}(i, r)$ $\forall r \in N_i$ if it is a tip, or $l^{(\not{n})}(i)$ and $l^{(n)}(i, r)$ $\forall r \in N_i$ if it is internal.
+This part takes O(R + N) time, where O(N) accounts for calculation of $l^{(\not{n})}(i)$ for all the $N - 1$ internal tree nodes and of $l^{(\not{n}, \not{n})}(i)$ and $l^{(\not{n}, n)}(i)$ for $N$ tips, while R is the sum of numbers of potential notifiers over all tree nodes and O(R) accounts for calculation of $l^{(n)}(i, r)$, $l^{(n, \not{n})}(i, r)$ and $l^{(n, n)}(i, r)$. 
+
+For the best case (a perfectly balanced tree, where each tip is in a cherry), the number of potential notifiers is one for the tips (i.e., the sister tip) and zero for the internal nodes. Hence $R_b = N$ and the likelihood calculation time is linear: O(N). The worst case  is represented by a caterpillar tree. Each internal node has $k$ potential notifiers (tips in its supertree), where $k$ is the node's depth in the tree, the root's depth being 0 and the deepest internal node's depth being $N-2$. Moreover each tip has as many notifiers as its parent node, apart from the two deepest tips who have $N-1$ notifier each instead of $N-2$ as they are in a cherry and hence could have notified each other). This hence sums up to $R_c = 2\big(1 + 2 + \ldots + (N-3)\big) + 2(N-1) = N^2 - 2N + 2$ and the time is hence quadratic: $O(N^2)$. On our BDPN simulated dataset of 100 trees with N=500-1\,000 tips each, $R \in [2N, 38N]$ with a median at $7N$, suggesting a likelihood calculation time close to the linear one.
 
 
 \paragraph*{S1 Table.}
@@ -1240,7 +1272,8 @@ rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]\\
 \end{table}
 
 \section*{Acknowledgments}
-The authors would like to thank Dr Jakub Voznica for fruitful discussions on partner notification mechanisms.
+The authors would like to thank Dr Mathieu Moslonka-Lefebvre who initiated this project by proposing to model partner notification. He worked on a different version of the PN model (which is not part of this manuscript) and on the initial version of the PN test. We would like to thank Dr Jakub Voznica for fruitful discussions on partner notification mechanisms.
+We would also like to thank the HPC cluster team in Institut Pasteur for their support with computer simulations.
 
 \nolinenumbers
 
