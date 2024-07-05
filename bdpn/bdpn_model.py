@@ -413,17 +413,31 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
                          'for identifiability')
 
     bounds = np.zeros((5, 2), dtype=np.float64)
+    lower_bounds, upper_bounds = np.array(lower_bounds), np.array(upper_bounds)
+    if not np.all(upper_bounds >= lower_bounds):
+        raise ValueError('Lower bounds cannot be greater than upper bounds')
+    if np.any(lower_bounds < 0):
+        raise ValueError('Bounds must be non-negative')
+    if upper_bounds[-2] > 1 or upper_bounds[-1] > 1:
+        raise ValueError('Probability bounds must be between 0 and 1')
+
     bounds[:, 0] = lower_bounds
     bounds[:, 1] = upper_bounds
+
     input_params = np.array([la, psi, phi, p, upsilon])
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
-                           lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
-    upsilon_estimated = upsilon is None or upsilon < 0 or upsilon > 1
-    bounds = bounds[input_params == None]
-    best_vs, best_lk = None, -np.inf
-    for i, ups in enumerate((0.1, 0.5) if upsilon_estimated else (upsilon,)):
+                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
+    vs_extended = np.array([*vs, np.random.uniform(bounds[2, 0], bounds[2, 1], 1)[0] if phi is None else phi, 0])
+    if upsilon == 0:
+        best_vs, best_lk = vs_extended, bd_model.loglikelihood(forest, *vs, T, threads)
+    else:
+        upsilon_estimated = upsilon is None or upsilon < 0 or upsilon > 1
+        if upsilon_estimated and phi is None and lower_bounds[-1] == 0:
+            best_vs, best_lk = vs_extended, bd_model.loglikelihood(forest, *vs, T, threads)
+        else:
+            best_vs, best_lk = None, -np.inf
         start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
-                                     vs[-1], ups])
+                                     vs[-1], 0.1 if upsilon_estimated else upsilon])
         print('Starting BDPN parameters:\t{}'
               .format(', '.join('{}={:g}{}'.format(_[0], _[1], '' if _[2] is None else ' (fixed)')
                                 for _ in zip(PARAMETER_NAMES, start_parameters, input_params))))
@@ -431,9 +445,8 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
                                             loglikelihood_function=loglikelihood, bounds=bounds,
                                             start_parameters=start_parameters, threads=threads)
         print(
-            'Estimated BDPN parameters{}:\t{};\tloglikelihood={}'
-            .format(' (round {})'.format(i) if upsilon_estimated else '',
-                    (', '.join('{}={:g}'.format(*_) for _ in zip(PARAMETER_NAMES, vs))), lk))
+            'Estimated BDPN parameters:\t{};\tloglikelihood={}'
+            .format((', '.join('{}={:g}'.format(*_) for _ in zip(PARAMETER_NAMES, vs))), lk))
 
         if lk > best_lk:
             best_lk = lk

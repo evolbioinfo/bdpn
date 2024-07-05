@@ -95,6 +95,14 @@ def infer(forest, T, la=None, psi=None, p=None,
     if la is None and psi is None and p is None:
         raise ValueError('At least one of the model parameters needs to be specified for identifiability')
     bounds = np.zeros((3, 2), dtype=np.float64)
+    lower_bounds, upper_bounds = np.array(lower_bounds), np.array(upper_bounds)
+    if not np.all(upper_bounds >= lower_bounds):
+        raise ValueError('Lower bounds cannot be greater than upper bounds')
+    if np.any(lower_bounds < 0):
+        raise ValueError('Bounds must be non-negative')
+    if upper_bounds[-1] > 1:
+        raise ValueError('Probability bounds must be between 0 and 1')
+
     bounds[:, 0] = lower_bounds
     bounds[:, 1] = upper_bounds
     start_parameters = get_start_parameters(forest, la, psi, p)
@@ -102,7 +110,6 @@ def infer(forest, T, la=None, psi=None, p=None,
     print('Starting BD parameters:\t{}'
           .format(', '.join('{}={:g}{}'.format(_[0], _[1], '' if _[2] is None else ' (fixed)')
                             for _ in zip(PARAMETER_NAMES, start_parameters, input_params))))
-    bounds = bounds[input_params == None]
     vs, lk = optimize_likelihood_params(forest, T, input_parameters=input_params,
                                         loglikelihood_function=loglikelihood, bounds=bounds,
                                         start_parameters=start_parameters)
