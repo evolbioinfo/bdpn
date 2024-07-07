@@ -426,8 +426,10 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
 
     input_params = np.array([la, psi, phi, p, upsilon])
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
-                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
-    vs_extended = np.array([*vs, np.random.uniform(bounds[2, 0], bounds[2, 1], 1)[0] if phi is None else phi, 0])
+                           lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False)
+    vs_extended = np.array([vs[0], vs[1],
+                            np.random.uniform(bounds[2, 0], bounds[2, 1], 1)[0] if phi is None else phi,
+                            vs[-1], 0])
     if upsilon == 0:
         best_vs, best_lk = vs_extended, bd_model.loglikelihood(forest, *vs, T, threads)
     else:
@@ -436,8 +438,12 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
             best_vs, best_lk = vs_extended, bd_model.loglikelihood(forest, *vs, T, threads)
         else:
             best_vs, best_lk = None, -np.inf
-        start_parameters = np.array([vs[0], vs[1], vs[1] * 10 if phi is None or phi < 0 else phi,
-                                     vs[-1], 0.1 if upsilon_estimated else upsilon])
+        start_la, start_psi, start_rho = vs
+        start_phi = min(max(start_psi * 1.25, lower_bounds[2]), upper_bounds[2]) \
+            if phi is None or phi < 0 else phi
+        start_ups = 0.1 if upsilon_estimated else upsilon
+        # for ups in (0.1, 0.5) if upsilon_estimated else (upsilon,):
+        start_parameters = np.array([start_la, start_psi, start_phi, start_rho, start_ups])
         print('Starting BDPN parameters:\t{}'
               .format(', '.join('{}={:g}{}'.format(_[0], _[1], '' if _[2] is None else ' (fixed)')
                                 for _ in zip(PARAMETER_NAMES, start_parameters, input_params))))
