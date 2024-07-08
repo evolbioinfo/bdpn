@@ -17,8 +17,66 @@ data_dir = os.path.abspath(config.get("data", '.'))
 rule all:
     input:
         expand(os.path.join(data_dir, 'Zurich.p={p}.est_{model}'), p=[0.25], model=['bd', 'bdpn']),
+        expand(os.path.join(data_dir, 'Zurich.p={p}.lk_{model}'), p=[0.25], model=['bd', 'bdpn']),
         os.path.join(data_dir, 'Zurich.cherry_test')
 
+
+
+rule likelihood_bd:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log = os.path.join(data_dir, '{tree}.p={p}.est_bd'),
+        nwk = os.path.join(data_dir, '{tree}.nwk')
+    output:
+        lk=os.path.join(data_dir, '{tree}.p={p}.lk_bd'),
+    params:
+        mem=2000,
+        name='lk_bd',
+        qos='fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+
+        bd_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p > {output.lk}
+        """
+
+
+rule likelihood_bdpn:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log = os.path.join(data_dir, '{tree}.p={p}.est_bdpn'),
+        nwk = os.path.join(data_dir, '{tree}.nwk')
+    output:
+        lk=os.path.join(data_dir, '{tree}.p={p}.lk_bdpn'),
+    params:
+        mem=2000,
+        name='lk_bdpn',
+        qos='fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        pn=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $5 }}'`
+        rt=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $6 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+
+        bdpn_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p --upsilon ${{pn}} --phi ${{phi}} > {output.lk}
+        """
 
 rule estimate_params_p_fixed_bdpn:
     '''
