@@ -101,6 +101,7 @@
 
 % color can be used to apply background shading to table cells only
 \usepackage[table]{xcolor}
+\usepackage{multirow}
 
 % array package and thick rules for tables
 \usepackage{array}
@@ -375,7 +376,7 @@ The test then compares $d_i$ to $d_{i'}$: $sign(d_{i'} - d_i) = 1$ if $d_{i'}$ i
 %The reason for which we are constructing a random cherry from the neighbouring instead of any cherries (in terms of root date), is that cherry branch lengths depend on the date of the cherry root. As tip sampling times are bounded from above by the end of the sampling period, the closer the cherry root is to the end of the sampling period, the shorter on average its branches will be (and less time difference they will be able to have in any case). 
 
 
-We implemented the PN-test in Python 3. It is available as a part of BDPN parameter estimator ($pn\_test$, see section~"\nameref{sec:sim}").
+We implemented the PN-test in Python 3. It is available as a part of BDPN parameter estimator ($pn\_test$, see section~"\nameref{sec:tool}").
 
  
 
@@ -636,7 +637,7 @@ u = f \frac{U_{hidden}(\Theta)}{1 - U_{hidden}(\Theta)}\label{eq:u}
 \end{equation}
 
 
-\subsection*{BD-PN parameter and CI estimator}\label{sec:sim}
+\subsection*{BD-PN parameter and CI estimator}\label{sec:tool}
 We implemented a parameter estimator for the BD-PN model (which we called bdpn). It estimates the BD-PN model parameters  $\Theta = (\lambda,\psi,\phi,\rho,\upsilon) \in \mathbb{R}^5$ for a forest $\mathscr{F}$ comprising $f \geq 1$ observed trees in the maximum-likelihood framework, where one of the BD parameters ($\lambda,\psi$ or $\rho$) is fixed (for identifiability reasons). We also implemented the classical BD model estimator, bd.
 
 Once the optimal parameter values are found, we calculate their confidence intervals (CIs) using Wilks' method~\cite{Wilks1938}.
@@ -664,10 +665,10 @@ of the total number of individuals living with HIV-B in the UK. We hence fixed t
 \section*{Results}
 
 
-\subsubsection*{PN test is highly specific and sensitive at detecting partner notification}~\label{sec:test:sim}
+\subsubsection*{PN test is highly specific and sensitive at detecting partner notification}~\label{sec:test}
 To illustrate the PN test performance, we applied it to the six 100-tree simulated datasets, corresponding to the three classical MTBD-family models: BD, BDEI (Birth-Death Exposed-Infectious~~\cite{Stadler2014}) and BDSS (Birth-Death with Super Spreading~\cite{Stadler2013a}), and to their -PN versions: BD-PN, BDEI-PN and BDSS-PN (see~"\nameref{sec:sim}" for dataset details).
 
-For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value was above $0.05$ (i.e., 98\%/97\%/95\% true negative and 2\%/3\%/5\% false positive results). For 95/95/96 out of 100 trees in the BD-PN/BDEI-PN/BDSS-PN dataset the PN test p-value was below $0.05$ (i.e., 95\%/95\%/96\% true positive and 5\%/5\%/4\% false negative results). These results are summarised in Table~\ref{tbl:pntest}. Our test therefore showed both high specificity and sensitivity.
+For 100/98/98 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value was above $0.05$ (i.e., 100\%/98\%/98\% true negative and 0\%/2\%/2\% false positive results). For 95/93/94 out of 100 trees in the BD-PN/BDEI-PN/BDSS-PN dataset the PN test p-value was below $0.05$ (i.e., 95\%/93\%/94\% true positive and 5\%/7\%/6\% false negative results). These results are summarised in Table~\ref{tbl:pntest}. Our test therefore showed both high specificity and sensitivity.
 
 \begin{table}[!h]\centering
 \small
@@ -675,14 +676,14 @@ For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value wa
 \begin{tabular}{l|r|r|c}
  & \textbf{p-value $<0.05$} & \textbf{p-value $\geq0.05$} & \textbf{mean p-value} \\
   \midrule
-\textbf{BD}& 2 & 98 & 0.479 \\
-\textbf{BD-PN}& 95 & 5 & 0.015 \\
+\textbf{BD}& 0 & 100 & 0.538 \\
+\textbf{BD-PN}& 95 & 5 & 0.007 \\
   \midrule
-\textbf{BDEI}& 3 & 97 & 0.531 \\
-\textbf{BDEI-PN}& 95 & 5 & 0.008 \\
+\textbf{BDEI}& 2 & 98 & 0.539 \\
+\textbf{BDEI-PN}& 93 & 7 & 0.027 \\
   \midrule
-\textbf{BDSS}& 5 & 95 & 0.505 \\
-\textbf{BDSS-PN}& 96 & 4 & 0.008 \\
+\textbf{BDSS}& 2 & 98 & 0.515 \\
+\textbf{BDSS-PN}& 94 & 6 & 0.022 \\
 \end{tabular}
 \label{tbl:pntest}
 \end{table}
@@ -691,12 +692,12 @@ For 98/97/95 out of 100 trees in the BD/BDEI/BDSS dataset the PN test p-value wa
 
 We assessed the performance of our maximum-likelihood estimator for the BD-PN model bdpn on the 100 trees from the the BD-PN simulated data set (see~"\nameref{sec:sim}" for dataset details).
 
-We applied bdpn to each of the trees fixing the sampling probability $\rho$ to its real value (for identifiability). %The results with the becoming-uninfectious rate $\psi$ fixed are similar and given in the Supplementary Material. 
-As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the real parameter values for all the trees in both settings.
+We applied bdpn to each of the trees fixing the sampling probability $\rho$ to its true value (for identifiability). %The results with the becoming-uninfectious rate $\psi$ fixed are similar and given in the Supplementary Material. 
+As expected with a maximum likelihood estimator, the tree likelihoods for the estimated parameter values were higher than or equal to the tree likelihoods for the true parameter values for all the trees in both settings.
 
 To highlight the importance of accounting for partner notification with the model, we also applied the classical BD model estimator bd to these trees. Additionally, we applied both bdpn and bd estimators to the dataset simulated under the BD model. The results are shown in  Fig.~\ref{fig:sim}.
 %We calculated the relative error (normalized distance between the estimated and the target values: $\frac{|estimated - target|}{target}$) and the relative bias ($\frac{estimated - target}{target}$) for each parameter on each tree. For $\rho$ and $\upsilon$ absolute values were calculated instead of normalized ones. 
-We compared the method accuracy by a paired z-test. On the BD data set, bd and bdpn estimators performed equally well in estimation $R_0$ and infectious time $\frac{1}{\psi}$, with an average relative error $\leq 6\%$, and average relative bias $\leq 2\%$. The partner notification probability $\upsilon$ estimated on these trees by bdpn was systematically low, with the maximum value of 0.018, and mean value of 0.003. Its CI's 2.5\% bound hit the lower bound $0.001$ for all the trees. On the BD-PN data set, bdpn accuracy was significantly better (p-value $\leq 0.01$), with errors and biases $\leq 10\%$ for all parameters (vs. $36-40\%$ for bd).
+We compared the method accuracy by a paired z-test. \textbf{On the BD data set}, bd and bdpn estimators performed equally well in estimation $R_0$ and infectious time $\frac{1}{\psi}$, with an average relative error $\leq 5\%$, and average relative bias $\leq 1\%$. The partner notification probability $\upsilon$ estimated on these trees by bdpn was systematically low, with the maximum value of 0.015, and mean value of 0.001. Moreover, its true value (zero) was within the CIs for all the trees. \textbf{On the BD-PN data set}, bdpn accuracy was significantly better (p-value $\leq 0.01$), with errors and biases $\leq 11\%$ for all the parameters (vs. $12-70\%$ for bd). bd estimator tends to significantly overestimate the removal rate (average relative bias of 70\%), which could be explained by the fact that the BD model has only one removal rate to accommodate a non-homogeneous population containing both standard cases and notified partners with a higher removal rate $\phi$.  However, bd also systematically overestimates the transmission rate (average relative bias of 11\%), while this parameter is homogeneous in the population.
 
 
 %Average relative errors were the lowest when $\psi$ or $\rho$ were fixed: $\leq 10\%$  for all the parameters. The worst performance was obtained with $\lambda$ being fixed: in this setting the estimator tends to underestimate $\psi$ and overestimate $\rho$.
@@ -705,39 +706,52 @@ We compared the method accuracy by a paired z-test. On the BD data set, bd and b
 
 %The hardest parameter to estimate in all the settings (relative errors $\approx 15\%$, with a tendency to underestimation). 
 
-The percentage of the trees for which real parameter values were with the CI estimates and relative CI widths ($\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$) are shown in Table~\ref{tbl:ci}. They suggest that the rate parameters are easier to estimate than the probability ones.
+The percentage of the trees for which true parameter values were within the CI estimates and relative CI widths ($\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{true parameter value}}$) are shown in Table~\ref{tbl:ci}. For the CIs as for the point estimates, bdpn and bd estimators performed equally well on the BD trees, while on the BD-PN trees the bd estimator performed significantly worse (only 44\% and 16\% of CIs included respectively the true transmission rate $\lambda$ and removal rate $\psi$ values versus 94\% and 81\% for bdpn).
 
 \begin{figure}[h!]
+\begin{adjustwidth}{-1in}{0in}
 \centering 
-\includegraphics[width=1\textwidth]{Fig_errors_p.png}
-\caption{\textbf{Comparison of inference accuracy of bdpn (yellow) and bd (blue) estimators} on a data set of 100 trees of 500--1\,000 tips generated under BD-PN model (top) and a data set of 100 trees of 500--1\,000 tips generated under BD model (bottom), with $\rho$ parameter being fixed to its real value.
-We show the swarmplots (coloured by estimator) of relative errors for each test tree and parameter, which are measured as the normalized distance between the estimate and the real value. Average relative error (and in parentheses average relative bias) are displayed for each parameter and method below their swarmplot. For $\rho$ and $\upsilon$ absolute values are shown instead of normalized ones. } 
+\includegraphics[width=1.2\textwidth]{Fig_errors_p.png}
+\end{adjustwidth}
+\caption{\textbf{Comparison of inference accuracy of bdpn (yellow) and bd (blue) estimators} on a data set of 100 trees of 500--1\,000 tips generated under BD-PN model (top) and a data set of 100 trees of 500--1\,000 tips generated under BD model (bottom), with $\rho$ parameter being fixed to its true value.
+We show the swarmplots (coloured by estimator) of errors for each test tree and parameter (epidemiological on the left, rates in the middle and probability on the right). For the epidemiological and rate parameters relative errors are shown (normalized distance between the estimate and the true value), for the partner notification probability $\upsilon$ the absolute errors are shown (distance between the estimate and the true value, where for the BD model the true value is zero). Average error and in parentheses average bias (absolute for probability, relative otherwise) are displayed for each parameter and method below their swarmplot.} 
 \label{fig:sim} 
 \end{figure}
  
  \begin{table}[!h]\centering
 \small
-\caption{Percentage of simulated BD-PN trees for which the real parameter values were withing the bdpn-estimated 95\% CIs, and the median CI width: $\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{real parameter value}}$  \smallskip}
-\begin{tabular}{c|cc}
-\textbf{parameter} & \% within CI & median CI width  \\
+\caption{Percentage of simulated BD-PN and BD trees for which the true parameter values were withing the bdpn- and bd-estimated 95\% CIs, and the median CI width: $\frac{CI_{97.5\%} - CI_{2.5\%}}{\textit{true parameter value}}$. (The sampling probability $\rho$ was fixed to its true value in all the settings.)  \smallskip}
+\begin{tabular}{c|c|cc|cc}
+& & \multicolumn{2}{c|}{\textbf{bdpn estimator}} &  \multicolumn{2}{c}{\textbf{bd estimator}} \\
+& \textbf{parameter} & \multicolumn{1}{c|}{\% within CI} & median CI width & \multicolumn{1}{c|}{\% within CI} & median CI width \\
 \toprule 
- $\lambda$ & 96\% & 11.6\%\\
- $\psi$ & 88\% & 28.9\% \\
- $\rho$ & fixed & -- \\
- $\phi$ & 95\% & 32.2\% \\
- $\upsilon$ & 70\% & 21.7\% \\
+& $\lambda$ & 94\% & 11.4\%& 44\% & 12.6\%\\
+BD-PN & $\psi$ & 81\% & 25.6\% & 16\% & 29.4\%\\
+%& $\rho$ & \textit{fixed} & -- & \textit{fixed} & 11.6\%\\
+model &  $\phi$ & 93\% & 35.0\% & -- & --\\
+& $\upsilon$ & 71\% & 24.5\% & -- & --\\
+\midrule
+BD & $\lambda$ & 97\% & 10.3\%& 97\% & 10.3\%\\
+model & $\psi$ & 95\% & 23.2\% & 95\% & 23.1\%\\
+%& $\rho$ & \textit{fixed} & -- & \textit{fixed} & --\\
+& $\upsilon(=0)$ & 100\% & 0.004* & -- & --\\
 \bottomrule
 \end{tabular}
+\begin{flushleft} *absolute width ($CI_{97.5\%} - CI_{2.5\%}$) is given instead of the relative one, as the true value is zero.
+\end{flushleft}
 \label{tbl:ci}
 \end{table}
 
 \subsubsection*{Application 1: Men-having-sex-with-men (MSM) HIV-1 B epidemic in Zurich}
 We applied our estimator to asses the partner notification for HIV-1 subtype B epidemic among men-having-sex-with-men (MSM) in Zurich.  We used the phylogenetic tree of 200 samples reconstructed by Rasmussen \textit{et al.}~\cite{Rasmussen2017} from the sequences collected as a part of the Swiss Cohort Study~\cite{swisshivcohortstudyCohortProfileSwiss2010a} between 1988 and 2014. This tree was also previously analyzed by Voznica~\textit{et al.}~\cite{Voznica2021} using a Birth-Death model with SuperSpreading (BDSS). 
 
-The PN test detected partner notification in this tree (p-value=0.046). Following Voznica~\textit{et al.}~\cite{Voznica2021}, we fixed the sampling probability for this tree at 25\%: $\rho=0.25$. Our bdpn estimator inferred the partner notification probability $\upsilon=0.07$ CI $[0.006-0.190]$,  
-$R_e = 1.4$ $[1.2-1.6]$, infectious time $\frac{1}{\psi} = 8$ $[6-10]$ years, and 3.4 months [5 days -- 15 months] between partner notification and their sampling. These results globally agree (CIs intersect) with the $R_e$ estimate using a coalescent model from Rasmussen \textit{et al.}~\cite{Rasmussen2017} (between 1.0 and 2.5), and the estimates using the BDSS model from Voznica~\textit{et al.}~\cite{Voznica2021}: $R_e$ of 1.6 and 1.7 and an infectious period of 10.2 and 9.8 years (depending on the tree representation used for the deep learner).
+The PN test detected partner notification in this tree (p-value=0.014). Following Voznica~\textit{et al.}~\cite{Voznica2021}, we fixed the sampling probability for this tree at 25\%: $\rho=0.25$. Our bdpn estimator inferred the partner notification probability $\upsilon=0.09$ CI $[0.008-0.226]$,  
+$R_e = 1.43$ $[1.26-1.66]$, infectious time $\frac{1}{\psi} = 8$ $[6-11]$ years, and 4.9 months [6 days -- 1.4 years] between partner notification and their sampling. These results globally agree (CIs intersect) with the $R_e$ estimate using a coalescent model from Rasmussen \textit{et al.}~\cite{Rasmussen2017} (between 1.0 and 2.5), and the estimates using the BDSS model from Voznica~\textit{et al.}~\cite{Voznica2021}: $R_e$ of 1.6 and 1.7 and an infectious period of 10.2 and 9.8 years (depending on the tree representation used for the deep learner).
 
 Note that this tree covers a long non-homogeneous time interval (between 1974, the root of the tree, and 2012), including times with no or limited access to treatment, when the infectious time corresponded to progression to AIDS ($\approx 10$ years), as well as later times, when antiretroviral treatment (ART) became available, and hence the infectious period would correspond to the time till ART start, as, when taken properly, it prevents transmission. Our estimate (8 years) represent a mix of these scenarios. This also holds for the other estimated parameters, whose values represent a somewhat averaged estimate over the time period. As this data set was already small, we did not cut it to obtain a more homogeneous treatment policy (as we did in Application 2).
+
+
+For comparison, parameter estimation on the same tree with the BD model gave slightly lower estimate of $R_e$ and a slightly shorter infectious time, though with intersecting CIs ($R_e = 1.32$ $[1.19-1.47]$, $\frac{1}{\psi} = 7$ $[6-9]$ years), which is in line with underestimation of $R_e$ and $\frac{1}{\psi}$ with bd on the BD-PN simulated data. The likelihood ratio test suggests the BDPN model: loglikelihood under the BD-PN-estimated parameters was $l_{BDPN} = -1\,140$ vs. $l_{BD}=-1\,146$ under the BD parameters, which gives the ratio $-2 (l_{BD} - l_{BDPN}) =	12 > 5.99 \approx \chi^2_2(0.95)$ (the value of chi-squared distribution with 2 degrees of freedom corresponding to the significance level of $0.95$). % unrealistic results: $R_e = 0.5$ (suggesting contained epidemic) and very short infectious time $\frac{1}{\psi} = 0.4$ years. These results were robust across the 10 forests, see \nameref{S1_Table}. As with the results on simulated data, this  highlights the importance of accounting for partner notification during parameter estimation.
 
 
 \subsubsection*{Application 2: HIV-1 B epidemic in the UK}
@@ -745,8 +759,8 @@ We also applied our estimator to asses the partner notification in HIV-infected 
 
 The sampling dates in the UK HIV Drug resistance database are month-specific, hence to avoid potentially creating simultaneous sampling dates for cases, which were sampled on different days of the month, we randomly selected a date within the specified month for each sample before time-scaling the tree. We repeated the time-scaling procedure 10 times, obtaining 10 trees with slightly different branch lengths and root dates between Oct 5 and Nov 11, 1962 (see~"\nameref{uk_tree}"). We cut this tree between 2012 and 2015, as this period featured a homogeneous ART start policy in the UK (CD4 cell count below 350 cells/mL~\cite{williamsBritishHIVAssociation2012}). We then applied the PN-test and estimated the BD-PN parameters on these 2012--2015 forests. 
 
-The PN-test values were below 0.05 for all the forests (values between $7 \cdot 10^{-18}$ and $5 \cdot 10^{-12}$), strongly suggesting the presence of partner notification. Using sampling probability $\rho=0.58$ (see~"\nameref{uk_tree}" for its estimation), we estimated the partner notification probability $\upsilon=0.006-0.008$, %the following parameter values: $\lambda=0.53$, $\psi=0.43$, $\phi=23-59$, $\upsilon=0.006-0.007$, which corresponds to 
-$R_e = 1.2$, infectious time $\frac{1}{\psi} = 2.3$ years, and 15--16 days between partner notification and their sampling. The results were consistent between 10 forests and shown in Table~\ref{tbl:uk}. %The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
+The PN-test values were below 0.05 for all the forests (values between $1 \cdot 10^{-18}$ and $2 \cdot 10^{-14}$), strongly suggesting the presence of partner notification. Using sampling probability $\rho=0.58$ (see~"\nameref{uk_tree}" for its estimation), we estimated the partner notification probability $\upsilon=0.006-0.008$, %the following parameter values: $\lambda=0.53$, $\psi=0.43$, $\phi=23-59$, $\upsilon=0.006-0.007$, which corresponds to 
+$R_e = 1.2-1.3$, infectious time $\frac{1}{\psi} = 2.3-2.4$ years, and 7--11 days between partner notification and their sampling. The results were consistent between 10 forests and shown in Table~\ref{tbl:uk}. %The results for $\rho=0.4$ and for $\rho=0.6$ were similar: $R_e$ of respectively $1.5$ and 
 %$1.3$, infectious time of $5.1$ and $5.6$ years, partner notification probability of $0.033$ in both cases and about 2 days between partner notification and their sampling.
  
 In the UK 95\% of infected population is on antiretroviral treatment, which, when taken properly, prevents transmission. Hence, the average infectious time represents the average time before starting treatment. Our estimate is approximately 2.3 years. 
@@ -763,16 +777,16 @@ In the UK 95\% of infected population is on antiretroviral treatment, which, whe
 fo-&num.&num.&&time&removal t.&\\
 rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]& $\frac{1}{\phi}$ [days]&$\upsilon$\\
 \toprule
-  $1$ & $11\,117$ & $8\,838$ & $1.24\;[1.22-1.29]$& $2.34\;[2.25-2.40]$& $15\;[3-17]$& $0.008\;[0.004-0.016]$ \\
- $2$ & $11\,109$ & $8\,833$ & $1.24\;[1.21-1.27]$& $2.33\;[2.26-2.39]$& $16\;[1-18]$& $0.006\;[0.002-0.014]$ \\
- $3$ & $11\,122$ & $8\,844$ & $1.24\;[1.21-1.29]$& $2.34\;[2.24-2.40]$& $15\;[3-17]$& $0.008\;[0.004-0.016]$ \\
- $4$ & $11\,119$ & $8\,838$ & $1.24\;[1.21-1.29]$& $2.34\;[2.24-2.40]$& $15\;[3-17]$& $0.008\;[0.004-0.016]$ \\
- $5$ & $11\,116$ & $8\,829$ & $1.24\;[1.22-1.27]$& $2.33\;[2.26-2.40]$& $16\;[3-18]$& $0.006\;[0.002-0.013]$ \\
- $6$ & $11\,111$ & $8\,827$ & $1.24\;[1.21-1.27]$& $2.34\;[2.25-2.40]$& $16\;[3-18]$& $0.007\;[0.002-0.014]$ \\
- $7$ & $11\,119$ & $8\,838$ & $1.24\;[1.21-1.27]$& $2.33\;[2.26-2.39]$& $15\;[2-18]$& $0.006\;[0.002-0.014]$ \\
- $8$ & $11\,111$ & $8\,830$ & $1.24\;[1.19-1.27]$& $2.33\;[2.25-2.39]$& $16\;[2-18]$& $0.006\;[0.002-0.014]$ \\
- $9$ & $11\,120$ & $8\,833$ & $1.24\;[1.21-1.27]$& $2.33\;[2.26-2.39]$& $16\;[2-18]$& $0.006\;[0.002-0.014]$ \\
- $10$ & $11\,112$ & $8\,827$ & $1.25\;[1.22-1.29]$& $2.34\;[2.25-2.40]$& $16\;[2-18]$& $0.007\;[0.002-0.015]$ \\
+  $1$ & $11\,117$ & $8\,838$ & $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.40]$& $8\;[5-12]$& $0.008\;[0.005-0.012]$ \\
+ $2$ & $11\,109$ & $8\,833$ & $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.40]$& $7\;[4-11]$& $0.007\;[0.003-0.011]$ \\
+ $3$ & $11\,122$ & $8\,844$ & $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.39]$& $8\;[5-11]$& $0.008\;[0.005-0.012]$ \\
+ $4$ & $11\,119$ & $8\,838$ & $1.30\;[1.26-1.32]$& $2.40\;[2.27-2.43]$& $11\;[3-13]$& $0.006\;[0.002-0.016]$ \\
+ $5$ & $11\,116$ & $8\,829$ & $1.24\;[1.22-1.27]$& $2.34\;[2.28-2.39]$& $9\;[6-13]$& $0.007\;[0.004-0.011]$ \\
+ $6$ & $11\,111$ & $8\,827$ & $1.25\;[1.22-1.27]$& $2.34\;[2.28-2.40]$& $8\;[5-12]$& $0.007\;[0.004-0.011]$ \\
+ $7$ & $11\,119$ & $8\,838$ & $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.39]$& $8\;[5-12]$& $0.007\;[0.004-0.011]$ \\
+ $8$ & $11\,111$ & $8\,830$ & $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.40]$& $7\;[4-11]$& $0.007\;[0.003-0.011]$ \\
+ $9$ & $11\,120$ & $8\,833$ & $1.24\;[1.21-1.27]$& $2.33\;[2.28-2.39]$& $8\;[4-12]$& $0.007\;[0.003-0.011]$ \\
+ $10$ & $11\,112$ & $8\,827$ & $1.25\;[1.22-1.28]$& $2.34\;[2.28-2.40]$& $8\;[5-11]$& $0.008\;[0.004-0.012]$ \\
  \bottomrule
  \end{tabular}
 %\begin{flushleft} We assumed that our data represents 58\% of infected cases: $\rho=0.58$.
@@ -782,7 +796,7 @@ rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]& $\frac{1}{\phi}$ [days]&$\upsilo
 \end{table}
 
 
-For comparison, parameter estimation on the same forests with the BD model (with $\rho$ fixed to $0.58$) gave unrealistic results: $R_e = 0.5$ (suggesting contained epidemic) and very short infectious time $\frac{1}{\psi} = 0.4$ years. These results were robust across the 10 forests, see \nameref{S1_Table}. As with the results on simulated data, this  highlights the importance of accounting for partner notification during parameter estimation.
+For comparison, parameter estimation on the same forests with the BD model gave similar results ($R_e = 1.2$, $\frac{1}{\psi} = 2.3$ years), however the likelihood ratio test suggests the BDPN model. For instance, on forest 1, loglikelihood under the BD-PN-estimated parameters was $l_{BDPN} = -28\,984$ vs. $l_{BD}=-29\,002$ under the BD parameters, which gives the ratio $-2 (l_{BD} - l_{BDPN}) =	36 > 5.99 \approx \chi^2_2(0.95)$. % unrealistic results: $R_e = 0.5$ (suggesting contained epidemic) and very short infectious time $\frac{1}{\psi} = 0.4$ years. These results were robust across the 10 forests, see \nameref{S1_Table}. As with the results on simulated data, this  highlights the importance of accounting for partner notification during parameter estimation.
 
 \bigskip
 
@@ -801,9 +815,9 @@ We developed a PN-test allowing to distinguish between trees generated under mod
 We developed a mathematical framework for calculation of the likelihood density of a transmission tree (approximated by a time-scaled phylogenetic tree) under the BD-PN model, and implemented a maximum-likelihood BD-PN parameter estimator bdpn based on this framework. %The advantage of the BD-PN model is that the differential equations describing it have closed-form solutions, which are quick to calculate and do not require numerical approximation (as is the case for more complex MTBD models). 
 Tests on simulated data show that our estimator robustly infers model parameter values and their CIs in the setting when the duration of the infectious period $\frac{1}{\psi}$ or the base sampling probability $\rho$ is fixed. Fixing one of the model parameters is needed for model identifiability. In practice, $\rho$ and $\frac{1}{\psi}$ may often be approximated from epidemiological data, e.g., as the proportion of sampled cases among the declared ones (for $\rho$), or estimated from observations of infected cases ($\frac{1}{\psi}$). 
 
-Importantly, our simulations show that in the presence of partner notification, the classical BD model estimator fails to accurately estimate epidemiological parameters (average relative errors $> 30\%$ for $R_0$ and infectious time $\frac{1}{\psi}$). On the contrary, in the absence of partner notification, the BD-PN model estimator correctly identifies $R_0$ and infectious time $\frac{1}{\psi}$ (as well as the BD model estimator), and estimates a very low partner notification probability $\upsilon$, whose confidence intervals hit the lower bound.
+Importantly, our simulations show that in the presence of partner notification, the classical BD model estimator fails to accurately estimate epidemiological parameters (average relative errors $> 25\%$ for $R_0$ and infectious time $\frac{1}{\psi}$). On the contrary, in the absence of partner notification, the BD-PN model estimator correctly identifies $R_0$ and infectious time $\frac{1}{\psi}$ (as well as the BD model estimator), and estimates a very low partner notification probability $\upsilon$, whose confidence intervals include zero.
 
-We applied the PN-test and our estimator to the HIV-1 B MSM cluster in Zurich and to the HIV-1 B epidemic in the UK between 2012 and 2015. The test detected presence of partner notification in both cases. The obtained estimates of epidemiological parameters are in agreement with what we now know about the HIV-1 B epidemic (e.g., $R_e$ between $1.2$ and $1.6$). We estimated a modest partner notification probability ($7\%$ in Zurich, $1\%$ in the UK), and rapid notified partner detection ($\approx 3.4$ months vs $\approx  8$ years for detection under the standard procedure in Zurich; and $\approx 16$ days vs $\approx 2.3$ years for detection under the standard procedure in the UK).
+We applied the PN-test and our estimator to the HIV-1 B MSM cluster in Zurich and to the HIV-1 B epidemic in the UK between 2012 and 2015. The test detected presence of partner notification in both cases. The obtained estimates of epidemiological parameters are in agreement with what we now know about the HIV-1 B epidemic (e.g., $R_e$ between $1.2$ and $1.7$). We estimated a modest partner notification probability ($9\%$ in Zurich, $1\%$ in the UK), and rapid notified partner detection ($\approx 5$ months vs $\approx  8$ years for detection under the standard procedure in Zurich; and $\approx 8$ days vs $\approx 2.3$ years for detection under the standard procedure in the UK).
 
 \bigskip 
 
@@ -1237,39 +1251,39 @@ This part takes O(R + N) time, where O(N) accounts for calculation of $l^{(\not{
 For the best case (a perfectly balanced tree, where each tip is in a cherry), the number of potential notifiers is one for the tips (i.e., the sister tip) and zero for the internal nodes. Hence $R_b = N$ and the likelihood calculation time is linear: O(N). The worst case  is represented by a caterpillar tree. Each internal node has $k$ potential notifiers (tips in its supertree), where $k$ is the node's depth in the tree, the root's depth being 0 and the deepest internal node's depth being $N-2$. Moreover each tip has as many notifiers as its parent node, apart from the two deepest tips who have $N-1$ notifier each instead of $N-2$ as they are in a cherry and hence could have notified each other). This hence sums up to $R_c = 2\big(1 + 2 + \ldots + (N-3)\big) + 2(N-1) = N^2 - 2N + 2$ and the time is hence quadratic: $O(N^2)$. On our BDPN simulated dataset of 100 trees with N=500-1\,000 tips each, $R \in [2N, 38N]$ with a median at $7N$, suggesting a likelihood calculation time close to the linear one.
 
 
-\paragraph*{S1 Table.}
-\label{S1_Table}
-{\bf BD model parameters estimated for UK HIV-1 B epidemic between 2012 and 2015}, assuming that our data represents 58\% of infected cases ($\rho=0.58$).
-
-
-\begin{table}[!ht]
-%\begin{adjustwidth}{-0.8in}{0in} % Comment out/remove adjustwidth environment if table fits in text column.
-\centering
-\caption{
-{\bf BD model parameters estimated for UK HIV-1 B epidemic between 2012 and 2015}, assuming that our data represents 58\% of infected cases ($\rho=0.58$).}
-
-\begin{tabular}{c|cc|cc}
-&&&&infectious\\
-fo-&num.&num.&&time\\
-rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]\\
-\toprule
- $1$ & $11\,117$ & $8\,838$ & $0.53\;[0.52-0.55]$& $0.37\;[0.36-0.37]$ \\
- $2$ & $11\,109$ & $8\,833$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $3$ & $11\,122$ & $8\,844$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $4$ & $11\,119$ & $8\,838$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $5$ & $11\,116$ & $8\,829$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $6$ & $11\,111$ & $8\,827$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $7$ & $11\,119$ & $8\,838$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $8$ & $11\,111$ & $8\,830$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $9$ & $11\,120$ & $8\,833$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- $10$ & $11\,112$ & $8\,827$ & $0.54\;[0.52-0.55]$& $0.37\;[0.36-0.38]$\\
- \bottomrule
- \end{tabular}
-%\begin{flushleft} We assumed that our data represents 58\% of infected cases: $\rho=0.58$.
-%\end{flushleft}
-\label{tbl:uk}
-%\end{adjustwidth}
-\end{table}
+%\paragraph*{S1 Table.}
+%\label{S1_Table}
+%{\bf BD model parameters estimated for UK HIV-1 B epidemic between 2012 and 2015}, assuming that our data represents 58\% of infected cases ($\rho=0.58$).
+%
+%
+%\begin{table}[!ht]
+%%\begin{adjustwidth}{-0.8in}{0in} % Comment out/remove adjustwidth environment if table fits in text column.
+%\centering
+%\caption{
+%{\bf BD model parameters estimated for UK HIV-1 B epidemic between 2012 and 2015}, assuming that our data represents 58\% of infected cases ($\rho=0.58$).}
+%
+%\begin{tabular}{c|cc|cc}
+%&&&&infectious\\
+%fo-&num.&num.&&time\\
+%rest&tips&trees&$R_e$&$\frac{1}{\psi}$ [years]\\
+%\toprule
+% $1$ & $11\,117$ & $8\,838$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $2$ & $11\,109$ & $8\,833$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $3$ & $11\,122$ & $8\,844$ & $1.23\;[1.21-1.26]$& $2.32\;[2.26-2.38]$\\
+% $4$ & $11\,119$ & $8\,838$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $5$ & $11\,116$ & $8\,829$ & $1.23\;[1.21-1.26]$& $2.32\;[2.26-2.38]$\\
+% $6$ & $11\,111$ & $8\,827$ & $1.24\;[1.21-1.26]$& $2.32\;[2.26-2.38]$\\
+% $7$ & $11\,119$ & $8\,838$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $8$ & $11\,111$ & $8\,830$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $9$ & $11\,120$ & $8\,833$ & $1.23\;[1.20-1.26]$& $2.32\;[2.26-2.38]$\\
+% $10$ & $11\,112$ & $8\,827$ & $1.24\;[1.21-1.26]$& $2.32\;[2.26-2.38]$\\
+% \bottomrule
+% \end{tabular}
+%%\begin{flushleft} We assumed that our data represents 58\% of infected cases: $\rho=0.58$.
+%%\end{flushleft}
+%\label{tbl:uk}
+%%\end{adjustwidth}
+%\end{table}
 
 \section*{Acknowledgments}
 The authors would like to thank Dr Mathieu Moslonka-Lefebvre who initiated this project by proposing to model partner notification. He worked on a different version of the PN model (which is not part of this manuscript) and on the initial version of the PN test. We would like to thank Dr Jakub Voznica for fruitful discussions on partner notification mechanisms.
