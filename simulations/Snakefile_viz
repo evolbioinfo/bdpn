@@ -42,7 +42,7 @@ rule likelihood_bdpn:
         name = 'lk_{i}_bdpn',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
@@ -71,7 +71,7 @@ rule likelihood_real_bdpn:
         name = 'lk_{i}_bdpn_real',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -100,7 +100,7 @@ rule likelihood_real_bd:
         name = 'lk_{i}_bd_real',
         qos = 'fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         R=`tail -n 1 {input.log} | awk -F',' '{{ print $1 }}'`
@@ -127,7 +127,7 @@ rule likelihood_bd:
         name='lk_{i}_bd',
         qos='fast',
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
@@ -153,7 +153,7 @@ rule likelihood_stats:
         name = 'likelihoods',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.10"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         python3 py/likelihood_stats.py --likelihoods_est {input.lk} --likelihoods_real {input.lk_real} --log {output.stats}
