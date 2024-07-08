@@ -18,8 +18,9 @@ REPETITIONS = list(range(n))
 
 rule all:
     input:
-        expand(os.path.join(data_dir, 'estimates_{model}.tab'), model=['bd']),
-        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015])
+        expand(os.path.join(data_dir, 'estimates_{model}.tab'), model=['bd', 'bdpn']),
+        expand(os.path.join(data_dir, 'forest.{min_date}_{max_date}.{i}.cherry_test'), i=REPETITIONS, min_date=[2012], max_date=[2015]),
+        expand(os.path.join(data_dir, 'likelihood_stats.{min_date}_{max_date}.p={p}.txt'), min_date=[2012], max_date=[2015], p=[0.58])
 
 
 rule estimate_params_p_fixed_bdpn:
@@ -33,9 +34,9 @@ rule estimate_params_p_fixed_bdpn:
     params:
         mem = 2000,
         name = 'est_p',
-        qos = 'normal'
+        qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         bdpn_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
@@ -54,10 +55,87 @@ rule estimate_params_p_fixed_bd:
         name = 'est_p',
         qos = 'fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         bd_infer --p {wildcards.p}  --nwk {input.nwk} --log {output.est} --ci
+        """
+
+
+rule likelihood_bd:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log = os.path.join(data_dir, '{forest}.p={p}.est_bd'),
+        nwk = os.path.join(data_dir, '{forest}.nwk')
+    output:
+        lk=os.path.join(data_dir, '{forest}.p={p}.lk_bd'),
+    params:
+        mem=2000,
+        name='lk_bd',
+        qos='fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+
+        bd_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p > {output.lk}
+        """
+
+
+rule likelihood_bdpn:
+    '''
+    Calculate likelihood value for estimated parameters.
+    '''
+    input:
+        log = os.path.join(data_dir, '{forest}.p={p}.est_bdpn'),
+        nwk = os.path.join(data_dir, '{forest}.nwk')
+    output:
+        lk=os.path.join(data_dir, '{forest}.p={p}.lk_bdpn'),
+    params:
+        mem=2000,
+        name='lk_bdpn',
+        qos='fast',
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        R=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $2 }}'`
+        it=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $3 }}'`
+        p=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $4 }}'`
+        pn=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $5 }}'`
+        rt=`head -n 2 {input.log} | tail -n 1 | awk -F',' '{{ print $6 }}'`
+        psi=`echo "print(1/${{it}})" | python3`
+        phi=`echo "print(1/${{rt}})" | python3`
+        la=`echo "print($R*${{psi}})" | python3`
+
+        bdpn_loglikelihood --nwk {input.nwk} --la ${{la}} --psi ${{psi}} --p $p --upsilon ${{pn}} --phi ${{phi}} > {output.lk}
+        """
+
+rule likelihood_stats:
+    '''
+    Calculate likelihood values for estimated parameters.
+    '''
+    input:
+        lk_bd = expand(os.path.join(data_dir, 'forest.{{min_date}}_{{max_date}}.{i}.p={{p}}.lk_bd'), i=REPETITIONS),
+        lk_bdpn = expand(os.path.join(data_dir, 'forest.{{min_date}}_{{max_date}}.{i}.p={{p}}.lk_bdpn'), i=REPETITIONS),
+    output:
+        stats = os.path.join(data_dir, 'likelihood_stats.{min_date}_{max_date}.p={p}.txt'),
+    params:
+        mem = 2000,
+        name = 'likelihoods',
+        qos = 'fast'
+    threads: 1
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        python3 py/likelihood_stats.py --likelihoods_bd {input.lk_bd} --likelihoods_bdpn {input.lk_bdpn} --log {output.stats}
         """
 
 
@@ -74,7 +152,7 @@ rule cherry_test:
         name='pn_test',
         qos='fast'
     threads: 1
-    singularity: "docker://evolbioinfo/bdpn:v0.1.9"
+    singularity: "docker://evolbioinfo/bdpn:v0.1.14"
     shell:
         """
         pn_test --nwk {input.nwk} --log {output.log}

@@ -3,8 +3,10 @@ import os
 import numpy as np
 import pandas as pd
 
+PROBS = ['p', 'upsilon']
+
 RATE_PARAMETERS = ['lambda', 'psi', 'phi']
-PARAMETERS = RATE_PARAMETERS + ['p', 'upsilon']
+PARAMETERS = RATE_PARAMETERS + PROBS
 
 
 if __name__ == "__main__":
@@ -43,3 +45,10 @@ if __name__ == "__main__":
                       .format(par, (df.loc[mask, '{}_CI_relative_width'.format(par)].median())))
                 f.write('{}:\t{:.1f}% median CI width\n'
                       .format(par, (df.loc[mask, '{}_CI_relative_width'.format(par)].median())))
+                if par in PROBS:
+                    df.loc[mask, '{}_CI_absolute_width'.format(par)] \
+                        = (df.loc[mask, '{}_max'.format(par)] - df.loc[mask, '{}_min'.format(par)])
+                    print('{}:\t{:.4f} median CI absolute width'
+                          .format(par, (df.loc[mask, '{}_CI_absolute_width'.format(par)].median())))
+                    f.write('{}:\t{:.4f} median CI absolute width\n'
+                          .format(par, (df.loc[mask, '{}_CI_absolute_width'.format(par)].median())))
