@@ -15,8 +15,12 @@ par2greek = {'lambda': u'\u03bb', 'psi': u'\u03c8', 'phi': u'\u03c6', 'p': '\u03
              'partner_removal_time': 'partner removal time 1' + u'\u002F\u03c6'}
 PARAMETERS = RATE_PARAMETERS + EPIDEMIOLOGIC_PARAMETERS
 
-PS_BDPN = EPIDEMIOLOGIC_PARAMETERS + ['p', 'upsilon']
-PS_BD = EPIDEMIOLOGIC_PARAMETERS[:-1] + ['p', 'upsilon']
+PS_BDPN_EPID = EPIDEMIOLOGIC_PARAMETERS
+PS_BD_EPID = EPIDEMIOLOGIC_PARAMETERS[:-1]
+PS_BDPN_RATES = ['lambda', 'psi', 'phi']
+PS_BD_RATES = ['lambda', 'psi']
+
+PROBS = ['p', 'upsilon']
 
 if __name__ == "__main__":
     import argparse
@@ -32,13 +36,14 @@ if __name__ == "__main__":
 
     plt.clf()
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 12))
+    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, figsize=(25, 9), gridspec_kw={'width_ratios': [4, 4, 1]})
     rc = {'font.size': 12, 'axes.labelsize': 10, 'legend.fontsize': 10, 'axes.titlesize': 10, 'xtick.labelsize': 10,
           'ytick.labelsize': 10}
     sns.set(style="whitegrid")
     sns.set(rc=rc)
 
-    for est, ax, pars in ((params.estimates_bdpn, ax1, PS_BDPN), (params.estimates_bd, ax2, PS_BD)):
+    for est, ax, pars in ((params.estimates_bdpn, ax1, PS_BDPN_EPID), (params.estimates_bdpn, ax2, PS_BDPN_RATES), (params.estimates_bdpn, ax3, PROBS),
+                          (params.estimates_bd, ax4, PS_BD_EPID), (params.estimates_bd, ax5, PS_BD_RATES), (params.estimates_bd, ax6, PROBS)):
         df = pd.read_csv(est, sep='\t', index_col=0)
 
         real_df = df.loc[df['type'] == 'real', :]
@@ -102,7 +107,7 @@ if __name__ == "__main__":
                         pval_abs = 1
                     par2types2pval[par][(type_1, type_2)] = pval_abs
 
-        ERROR_COL = 'relative error' if 'p' not in pars else 'relative or absolute (for {} and {}) error'.format(par2greek['p'], par2greek['upsilon'])
+        ERROR_COL = 'relative error' if pars != PROBS else 'absolute error' #.format(par2greek['p'], par2greek['upsilon'])
         plot_df = pd.DataFrame(data=data, columns=['parameter', ERROR_COL, 'config'])
 
         palette = sns.color_palette("colorblind")
@@ -110,13 +115,13 @@ if __name__ == "__main__":
                            dodge=True)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        min_error = min(min(df['{}_error'.format(_)]) for _ in pars)
-        max_error = max(max(df['{}_error'.format(_)]) for _ in pars)
+        min_error = min(min(df.loc[~pd.isna(df['{}_error'.format(_)]), '{}_error'.format(_)]) for _ in pars)
+        max_error = max(max(df.loc[~pd.isna(df['{}_error'.format(_)]), '{}_error'.format(_)]) for _ in pars)
         abs_error = max(max_error, abs(min_error))
-        ax.set_yticks(list(np.arange(0, min(1.1, abs_error + 0.1), step=0.2 if abs_error >= 1 else 0.1)))
+        ax.set_yticks(list(np.arange(0, min(1.1, abs_error + 0.01), step=0.2 if abs_error >= 1 else 0.1 if abs_error >= 0.3 else 0.05 if abs_error >= 0.1 else 0.01)))
         if abs_error >= 1:
             ax.set_yticklabels(['{:.1f}'.format(_) for _ in np.arange(0, 1.0, step=0.2)] + [u"\u22651"])
-        ax.set_ylim(0, min(1.1, abs_error + 0.1))
+        ax.set_ylim(0, min(1.1, abs_error + 0.01))
         ax.yaxis.grid()
 
         def get_xbox(par):
@@ -172,6 +177,6 @@ if __name__ == "__main__":
         #     leg.remove()
 
     plt.tight_layout()
-    fig.set_size_inches(12, 9)
+    fig.set_size_inches(16, 6)
     # plt.show()
     plt.savefig(params.pdf, dpi=300)
