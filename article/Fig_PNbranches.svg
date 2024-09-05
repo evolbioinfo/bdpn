@@ -29,8 +29,8 @@
      inkscape:zoom="1.7050926"
      inkscape:cx="460.09231"
      inkscape:cy="365.37605"
-     inkscape:window-width="1888"
-     inkscape:window-height="1149"
+     inkscape:window-width="3776"
+     inkscape:window-height="2123"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -1067,9 +1067,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7389"><tspan
+         id="tspan13237"><tspan
            style="font-weight:bold"
-           id="tspan7387">A</tspan></tspan></text>
+           id="tspan13235">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,74.61251,40.745856)"
@@ -1080,9 +1080,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7393"><tspan
+         id="tspan13241"><tspan
            style="font-weight:bold"
-           id="tspan7391">B</tspan></tspan></text>
+           id="tspan13239">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,73.554176,-1.0583306)"
@@ -1093,9 +1093,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7397"><tspan
+         id="tspan13245"><tspan
            style="font-weight:bold"
-           id="tspan7395">AB</tspan></tspan></text>
+           id="tspan13243">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 61.025257,142.92746 V 85.518783"
@@ -1138,9 +1138,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7401">t=t<tspan
+         id="tspan13249">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7399">A</tspan></tspan></text>
+   id="tspan13247">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,34.39584,32.808335)"
@@ -1151,9 +1151,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7405">t=t<tspan
+         id="tspan13253">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7403">B</tspan></tspan></text>
+   id="tspan13251">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,34.39584,41.804168)"
@@ -1164,7 +1164,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7407">t=T</tspan></text>
+         id="tspan13255">t=T</tspan></text>
     <rect
        style="fill:#ffffff;fill-opacity:0.753428;stroke-width:0.578931;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.578931, 0.578931;stroke-dashoffset:0"
        id="rect97399"
@@ -1187,21 +1187,21 @@
        inkscape:export-ydpi="200"><tspan
          x="156.96556"
          y="388.6152"
-         id="tspan7411"><tspan
+         id="tspan13259"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle;fill:#5e3c99"
-           id="tspan7409">notifier 
+           id="tspan13257">notifier 
 </tspan></tspan><tspan
          x="157.711"
          y="405.28183"
-         id="tspan7415"><tspan
+         id="tspan13263"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle;fill:#5e3c99"
-           id="tspan7413">branch 
+           id="tspan13261">branch 
 </tspan></tspan><tspan
          x="144.91807"
          y="421.94846"
-         id="tspan7419"><tspan
+         id="tspan13267"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle;fill:#5e3c99"
-           id="tspan7417">(no events)</tspan></tspan></text>
+           id="tspan13265">(no events)</tspan></tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#5e3c99;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
        d="m 67.541908,89.432609 c 6.154995,-0.26454 9.125891,3.334995 9.125891,3.334995"
@@ -1220,17 +1220,17 @@
        inkscape:export-filename="/home/azhukova/projects/bdpn/article/Fig_PNbranches.png"
        inkscape:export-xdpi="200"
        inkscape:export-ydpi="200"><tspan
-         x="122.99755"
+         x="158.26439"
          y="388.6152"
-         id="tspan7423"><tspan
+         id="tspan13271"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7421">oriented (partner)
+           id="tspan13269">partner
 </tspan></tspan><tspan
          x="152.25529"
          y="405.28183"
-         id="tspan7427"><tspan
+         id="tspan13275"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7425">branches</tspan></tspan></text>
+           id="tspan13273">branches</tspan></tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e66101;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
        d="m 105.42433,90.054984 c 0.64577,4.161775 -4.5078,8.039053 -4.5078,8.039053"
@@ -1259,21 +1259,21 @@
        inkscape:export-ydpi="200"><tspan
          x="136.04113"
          y="388.6152"
-         id="tspan7431"><tspan
+         id="tspan13279"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7429">hidden or not 
+           id="tspan13277">hidden or not 
 </tspan></tspan><tspan
          x="134.82369"
          y="405.28183"
-         id="tspan7435"><tspan
+         id="tspan13283"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7433">transmissions,
+           id="tspan13281">transmissions,
 </tspan></tspan><tspan
          x="136.45129"
          y="421.94846"
-         id="tspan7439"><tspan
+         id="tspan13287"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7437">B is the donor</tspan></tspan></text>
+           id="tspan13285">B is the donor</tspan></tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend-6)"
        d="m 109.30285,97.239318 c -6.155,-0.26454 -1.23766,5.369522 -1.23766,5.369522"
@@ -1317,18 +1317,18 @@
        inkscape:export-xdpi="200"
        inkscape:export-ydpi="200" />
     <rect
-       style="fill:#ffffff;fill-opacity:0.750048;stroke-width:0.595759;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.595759, 0.595759;stroke-dashoffset:0"
+       style="fill:#ffffff;fill-opacity:0.750048;stroke-width:0.477505;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.477505, 0.477505;stroke-dashoffset:0"
        id="rect206974"
-       width="15.31"
-       height="18.043741"
+       width="13.367314"
+       height="13.276178"
        x="96.183899"
-       y="123.12502"
+       y="125.19404"
        inkscape:export-filename="/home/azhukova/projects/bdpn/article/Fig_PNbranches.png"
        inkscape:export-xdpi="200"
        inkscape:export-ydpi="200" />
     <text
        xml:space="preserve"
-       transform="matrix(0.26458333,0,0,0.26458333,55.692653,23.274399)"
+       transform="matrix(0.26458333,0,0,0.26458333,55.163486,25.391067)"
        id="text181771"
        style="font-style:normal;font-weight:normal;font-size:13.3333px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect181775);fill:#9e1e04;fill-opacity:1;stroke:none"
        x="62.861168"
@@ -1338,27 +1338,21 @@
        inkscape:export-ydpi="200"><tspan
          x="155.47468"
          y="388.6152"
-         id="tspan7443"><tspan
+         id="tspan13291"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7441">notified 
+           id="tspan13289">notified 
 </tspan></tspan><tspan
          x="158.26439"
          y="405.28183"
-         id="tspan7447"><tspan
+         id="tspan13295"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7445">partner
+           id="tspan13293">partner
 </tspan></tspan><tspan
-         x="157.711"
+         x="159.83014"
          y="421.94846"
-         id="tspan7451"><tspan
+         id="tspan13299"><tspan
            style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7449">branch 
-</tspan></tspan><tspan
-         x="149.8562"
-         y="438.61508"
-         id="tspan7455"><tspan
-           style="font-style:italic;text-align:center;text-anchor:middle"
-           id="tspan7453">(oriented)</tspan></tspan></text>
+           id="tspan13297">branch</tspan></tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#9e1e04;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
        d="m 96.248545,130.70685 c -1.589674,-2.75487 -11.288103,-1.99072 -11.288103,-1.99072"
@@ -1549,9 +1543,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7459"><tspan
+         id="tspan13303"><tspan
            style="font-weight:bold"
-           id="tspan7457">A</tspan></tspan></text>
+           id="tspan13301">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,70.908328,111.6542)"
@@ -1562,9 +1556,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7463"><tspan
+         id="tspan13307"><tspan
            style="font-weight:bold"
-           id="tspan7461">B</tspan></tspan></text>
+           id="tspan13305">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,73.554185,67.733339)"
@@ -1575,9 +1569,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7467"><tspan
+         id="tspan13311"><tspan
            style="font-weight:bold"
-           id="tspan7465">AB</tspan></tspan></text>
+           id="tspan13309">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 61.025264,211.71917 V 154.31048"
@@ -1612,9 +1606,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7471">t=t<tspan
+         id="tspan13315">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7469">A</tspan></tspan></text>
+   id="tspan13313">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,32.808349,110.59584)"
@@ -1625,7 +1619,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7473">t=T</tspan></text>
+         id="tspan13317">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="M 71.834748,191.00051 H 83.205792"
@@ -1670,9 +1664,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7477"><tspan
+         id="tspan13321"><tspan
            style="font-weight:bold;fill:#5f5f5f"
-           id="tspan7475">C</tspan></tspan></text>
+           id="tspan13319">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="M 56.488907,184.65047 H 102.30865"
@@ -1691,9 +1685,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7481">t=t<tspan
+         id="tspan13325">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7479">C</tspan></tspan></text>
+   id="tspan13323">C</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,97.562143,79.566583)"
@@ -1704,9 +1698,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7485"><tspan
+         id="tspan13329"><tspan
            style="font-weight:bold"
-           id="tspan7483">BC</tspan></tspan></text>
+           id="tspan13327">BC</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="M 56.488907,178.8296 H 83.258662"
@@ -1725,9 +1719,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7489">t=t<tspan
+         id="tspan13333">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7487">BC</tspan></tspan></text>
+   id="tspan13331">BC</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 70.039342,223.52028 v 8.50383"
@@ -1834,9 +1828,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7493"><tspan
+         id="tspan13337"><tspan
            style="font-weight:bold"
-           id="tspan7491">A</tspan></tspan></text>
+           id="tspan13335">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,62.855992,180.57831)"
@@ -1847,9 +1841,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7497"><tspan
+         id="tspan13341"><tspan
            style="font-weight:bold"
-           id="tspan7495">B</tspan></tspan></text>
+           id="tspan13339">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,53.974961,131.76253)"
@@ -1860,9 +1854,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7501"><tspan
+         id="tspan13345"><tspan
            style="font-weight:bold"
-           id="tspan7499">AB</tspan></tspan></text>
+           id="tspan13343">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 61.025318,280.51088 V 223.10219"
@@ -1897,9 +1891,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7505">t=t<tspan
+         id="tspan13349">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7503">A</tspan></tspan></text>
+   id="tspan13347">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,34.925083,179.38755)"
@@ -1910,7 +1904,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7507">t=T</tspan></text>
+         id="tspan13351">t=T</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,156.55405,83.052806)"
@@ -1921,7 +1915,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7509">1a</tspan></text>
+         id="tspan13353">1a</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,156.73492,151.8445)"
@@ -1932,7 +1926,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7511">2a</tspan></text>
+         id="tspan13355">2a</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,156.72045,220.63621)"
@@ -1943,7 +1937,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7513">3a</tspan></text>
+         id="tspan13357">3a</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 175.87275,85.936866 v 8.503826"
@@ -2080,9 +2074,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7517"><tspan
+         id="tspan13361"><tspan
            style="font-weight:bold"
-           id="tspan7515">A</tspan></tspan></text>
+           id="tspan13359">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,165.62922,40.745856)"
@@ -2093,9 +2087,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7521"><tspan
+         id="tspan13365"><tspan
            style="font-weight:bold"
-           id="tspan7519">B</tspan></tspan></text>
+           id="tspan13363">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,164.57088,-1.0583306)"
@@ -2106,9 +2100,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7525"><tspan
+         id="tspan13369"><tspan
            style="font-weight:bold"
-           id="tspan7523">AB</tspan></tspan></text>
+           id="tspan13367">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 152.04196,142.92746 V 85.518783"
@@ -2151,9 +2145,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7529">t=t<tspan
+         id="tspan13373">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7527">A</tspan></tspan></text>
+   id="tspan13371">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,125.41252,32.808335)"
@@ -2164,9 +2158,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7533">t=t<tspan
+         id="tspan13377">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7531">B</tspan></tspan></text>
+   id="tspan13375">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,125.41252,41.804168)"
@@ -2177,7 +2171,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7535">t=T</tspan></text>
+         id="tspan13379">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="M 162.85145,122.2088 H 174.2225"
@@ -2232,9 +2226,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7539"><tspan
+         id="tspan13383"><tspan
            style="font-weight:bold"
-           id="tspan7537">C</tspan></tspan></text>
+           id="tspan13381">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="M 147.50559,115.85876 H 198.035"
@@ -2253,9 +2247,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7543">t=t<tspan
+         id="tspan13387">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7541">C</tspan></tspan></text>
+   id="tspan13385">C</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,247.57078,83.052806)"
@@ -2266,7 +2260,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7545">1b</tspan></text>
+         id="tspan13389">1b</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 259.48113,85.936866 v 8.503826"
@@ -2427,9 +2421,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7549"><tspan
+         id="tspan13393"><tspan
            style="font-weight:bold"
-           id="tspan7547">A</tspan></tspan></text>
+           id="tspan13391">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,248.17927,-1.0583306)"
@@ -2440,9 +2434,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7553"><tspan
+         id="tspan13397"><tspan
            style="font-weight:bold"
-           id="tspan7551">AB</tspan></tspan></text>
+           id="tspan13395">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 235.65034,142.92746 V 85.518783"
@@ -2485,9 +2479,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7557">t=t<tspan
+         id="tspan13401">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7555">A</tspan></tspan></text>
+   id="tspan13399">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,209.02091,13.229156)"
@@ -2498,9 +2492,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7561">t=t<tspan
+         id="tspan13405">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7559">B</tspan></tspan></text>
+   id="tspan13403">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,209.02091,41.804168)"
@@ -2511,7 +2505,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7563">t=T</tspan></text>
+         id="tspan13407">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="m 246.45983,122.2088 h -3.97478"
@@ -2540,7 +2534,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7565">1c</tspan></text>
+         id="tspan13409">1c</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 175.87276,154.72857 v 8.50383"
@@ -2659,9 +2653,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7569"><tspan
+         id="tspan13413"><tspan
            style="font-weight:bold"
-           id="tspan7567">A</tspan></tspan></text>
+           id="tspan13411">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,161.92504,111.6542)"
@@ -2672,9 +2666,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7573"><tspan
+         id="tspan13417"><tspan
            style="font-weight:bold"
-           id="tspan7571">B</tspan></tspan></text>
+           id="tspan13415">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,164.5709,67.733339)"
@@ -2685,9 +2679,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7577"><tspan
+         id="tspan13421"><tspan
            style="font-weight:bold"
-           id="tspan7575">AB</tspan></tspan></text>
+           id="tspan13419">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 152.04197,211.71917 V 154.31048"
@@ -2722,9 +2716,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7581">t=t<tspan
+         id="tspan13425">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7579">A</tspan></tspan></text>
+   id="tspan13423">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,123.82504,110.59584)"
@@ -2735,7 +2729,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7583">t=T</tspan></text>
+         id="tspan13427">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="m 162.85146,191.52968 h 11.37105"
@@ -2780,9 +2774,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7587"><tspan
+         id="tspan13431"><tspan
            style="font-weight:bold"
-           id="tspan7585">C</tspan></tspan></text>
+           id="tspan13429">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 147.50561,187.29632 h 45.81977"
@@ -2801,9 +2795,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7591">t=t<tspan
+         id="tspan13435">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7589">C</tspan></tspan></text>
+   id="tspan13433">C</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,188.57887,79.566583)"
@@ -2814,9 +2808,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7595"><tspan
+         id="tspan13439"><tspan
            style="font-weight:bold"
-           id="tspan7593">BC</tspan></tspan></text>
+           id="tspan13437">BC</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 147.50561,178.8296 h 26.76977"
@@ -2835,9 +2829,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7599">t=t<tspan
+         id="tspan13443">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7597">BC</tspan></tspan></text>
+   id="tspan13441">BC</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,247.75165,151.8445)"
@@ -2848,7 +2842,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7601">2b</tspan></text>
+         id="tspan13445">2b</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 259.48114,154.72857 v 8.50383"
@@ -2991,9 +2985,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7605"><tspan
+         id="tspan13449"><tspan
            style="font-weight:bold"
-           id="tspan7603">A</tspan></tspan></text>
+           id="tspan13447">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,249.23761,91.545857)"
@@ -3004,9 +2998,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7609"><tspan
+         id="tspan13453"><tspan
            style="font-weight:bold"
-           id="tspan7607">B</tspan></tspan></text>
+           id="tspan13451">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,248.17928,67.733339)"
@@ -3017,9 +3011,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7613"><tspan
+         id="tspan13457"><tspan
            style="font-weight:bold"
-           id="tspan7611">AB</tspan></tspan></text>
+           id="tspan13455">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 235.65035,211.71917 V 154.31048"
@@ -3054,9 +3048,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7617">t=t<tspan
+         id="tspan13461">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7615">A</tspan></tspan></text>
+   id="tspan13459">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,207.43342,110.59584)"
@@ -3067,7 +3061,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7619">t=T</tspan></text>
+         id="tspan13463">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:2.117;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 278.00206,183.83275 v -3.94473"
@@ -3096,9 +3090,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7623"><tspan
+         id="tspan13467"><tspan
            style="font-weight:bold;fill:#5f5f5f"
-           id="tspan7621">C</tspan></tspan></text>
+           id="tspan13465">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 231.11399,184.65047 h 45.81977"
@@ -3117,9 +3111,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7627">t=t<tspan
+         id="tspan13471">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7625">C</tspan></tspan></text>
+   id="tspan13469">C</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,272.18725,79.566583)"
@@ -3130,9 +3124,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7631"><tspan
+         id="tspan13475"><tspan
            style="font-weight:bold"
-           id="tspan7629">BC</tspan></tspan></text>
+           id="tspan13473">BC</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 231.11399,178.8296 h 26.76977"
@@ -3151,9 +3145,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7635">t=t<tspan
+         id="tspan13479">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7633">BC</tspan></tspan></text>
+   id="tspan13477">BC</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,331.36003,151.8445)"
@@ -3164,7 +3158,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7637">2c</tspan></text>
+         id="tspan13481">2c</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 231.11399,187.82549 h 26.76977"
@@ -3183,9 +3177,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7641">t=t<tspan
+         id="tspan13485">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7639">B</tspan></tspan></text>
+   id="tspan13483">B</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#e66101;stroke-width:2.11667;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.11667, 2.11667;stroke-dashoffset:0;stroke-opacity:1"
        d="m 161.83668,231.21723 h 6.03593"
@@ -3262,9 +3256,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7645"><tspan
+         id="tspan13489"><tspan
            style="font-weight:bold"
-           id="tspan7643">A</tspan></tspan></text>
+           id="tspan13487">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,144.46248,131.76253)"
@@ -3275,9 +3269,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7649"><tspan
+         id="tspan13493"><tspan
            style="font-weight:bold"
-           id="tspan7647">AB</tspan></tspan></text>
+           id="tspan13491">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 151.51285,280.51088 V 223.10219"
@@ -3312,9 +3306,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7653">t=t<tspan
+         id="tspan13497">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7651">A</tspan></tspan></text>
+   id="tspan13495">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,125.4126,179.38755)"
@@ -3325,7 +3319,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7655">t=T</tspan></text>
+         id="tspan13499">t=T</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,247.73718,220.63621)"
@@ -3336,7 +3330,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7657">3b</tspan></text>
+         id="tspan13501">3b</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 244.66448,223.52028 v 8.50383"
@@ -3453,9 +3447,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7661"><tspan
+         id="tspan13505"><tspan
            style="font-weight:bold"
-           id="tspan7659">A</tspan></tspan></text>
+           id="tspan13503">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,241.71447,148.29912)"
@@ -3466,9 +3460,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7665"><tspan
+         id="tspan13509"><tspan
            style="font-weight:bold"
-           id="tspan7663">B</tspan></tspan></text>
+           id="tspan13507">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,228.60009,131.76253)"
@@ -3479,9 +3473,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7669"><tspan
+         id="tspan13513"><tspan
            style="font-weight:bold"
-           id="tspan7667">AB</tspan></tspan></text>
+           id="tspan13511">AB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 235.65046,280.51088 V 223.10219"
@@ -3516,9 +3510,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7673">t=t<tspan
+         id="tspan13517">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7671">A</tspan></tspan></text>
+   id="tspan13515">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,209.55021,179.38755)"
@@ -3529,7 +3523,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7675">t=T</tspan></text>
+         id="tspan13519">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.319616;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.319616, 0.319616;stroke-dashoffset:0;stroke-opacity:1"
        d="m 231.1141,244.44629 h 19.36143"
@@ -3548,9 +3542,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7679">t=t<tspan
+         id="tspan13523">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7677">B</tspan></tspan></text>
+   id="tspan13521">B</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,331.34556,220.63621)"
@@ -3561,7 +3555,7 @@
        inkscape:export-ydpi="200"><tspan
          x="-410.80469"
          y="14.40628"
-         id="tspan7681">3c</tspan></text>
+         id="tspan13525">3c</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#9e1e04;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.117, 2.117;stroke-dashoffset:0;stroke-opacity:1"
        d="m 76.918477,259.73876 v 22.4206"
@@ -3606,9 +3600,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7685"><tspan
+         id="tspan13529"><tspan
            style="font-weight:bold"
-           id="tspan7683">C</tspan></tspan></text>
+           id="tspan13527">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="M 147.50559,238.62563 H 198.035"
@@ -3627,9 +3621,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7689">t=t<tspan
+         id="tspan13533">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7687">C</tspan></tspan></text>
+   id="tspan13531">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 179.72988,223.32774 v -2.88639"
@@ -3666,9 +3660,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7693"><tspan
+         id="tspan13537"><tspan
            style="font-weight:bold"
-           id="tspan7691">B</tspan></tspan></text>
+           id="tspan13535">B</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#9e1e04;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.117, 2.117;stroke-dashoffset:0;stroke-opacity:1"
        d="m 167.14146,238.57209 v 43.58727"
@@ -3705,9 +3699,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7697"><tspan
+         id="tspan13541"><tspan
            style="font-weight:bold"
-           id="tspan7695">BC</tspan></tspan></text>
+           id="tspan13539">BC</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#e66101;stroke-width:2.11667;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.11667, 2.11667;stroke-dashoffset:0;stroke-opacity:1"
        d="m 160.24922,334.93398 h 14.5026"
@@ -3784,9 +3778,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7701"><tspan
+         id="tspan13545"><tspan
            style="font-weight:bold"
-           id="tspan7699">A</tspan></tspan></text>
+           id="tspan13543">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,144.46248,235.47928)"
@@ -3797,9 +3791,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7705"><tspan
+         id="tspan13549"><tspan
            style="font-weight:bold"
-           id="tspan7703">DB</tspan></tspan></text>
+           id="tspan13547">DB</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Sstart)"
        d="M 151.51285,384.22763 V 326.81894"
@@ -3826,9 +3820,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7709">t=t<tspan
+         id="tspan13553">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7707">A</tspan></tspan></text>
+   id="tspan13551">A</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,125.4126,283.1043)"
@@ -3839,7 +3833,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7711">t=T</tspan></text>
+         id="tspan13555">t=T</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5e3c99;stroke-width:1.41111;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 159.67648,327.52577 h 41.00451"
@@ -3876,9 +3870,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7715"><tspan
+         id="tspan13559"><tspan
            style="font-weight:bold"
-           id="tspan7713">C</tspan></tspan></text>
+           id="tspan13557">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.352778, 0.352778;stroke-dashoffset:0;stroke-opacity:1"
        d="M 147.50559,342.34238 H 198.035"
@@ -3897,9 +3891,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7719">t=t<tspan
+         id="tspan13563">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7717">C</tspan></tspan></text>
+   id="tspan13561">C</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:1.41111;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 179.72988,327.04449 V 324.1581"
@@ -3936,9 +3930,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7723"><tspan
+         id="tspan13567"><tspan
            style="font-weight:bold"
-           id="tspan7721">B</tspan></tspan></text>
+           id="tspan13565">B</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#9e1e04;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.117, 2.117;stroke-dashoffset:0;stroke-opacity:1"
        d="m 174.02067,342.28884 v 43.58727"
@@ -3965,9 +3959,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7727"><tspan
+         id="tspan13571"><tspan
            style="font-weight:bold"
-           id="tspan7725">CD</tspan></tspan></text>
+           id="tspan13569">CD</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#e66101;stroke-width:2.11667;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:6;stroke-dasharray:2.11667, 2.11667;stroke-dashoffset:0;stroke-opacity:1"
        d="m 161.83668,350.27991 h 6.03593"
@@ -3994,9 +3988,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="380.59375"
-         id="tspan7731"><tspan
+         id="tspan13575"><tspan
            style="font-weight:bold"
-           id="tspan7729">AB</tspan></tspan></text>
+           id="tspan13573">AB</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,168.16249,284.40379)"
@@ -4007,9 +4001,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7735"><tspan
+         id="tspan13579"><tspan
            style="font-weight:bold"
-           id="tspan7733">D</tspan></tspan></text>
+           id="tspan13577">D</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.117;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 160.52687,335.70375 v 13.7955"
@@ -4036,9 +4030,9 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="390.97461"
-         id="tspan7739">t=t<tspan
+         id="tspan13583">t=t<tspan
    style="font-size:65%;baseline-shift:sub"
-   id="tspan7737">B</tspan></tspan></text>
+   id="tspan13581">B</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.705556, 0.705556;stroke-dashoffset:0;stroke-opacity:1"
        d="m 85.593078,125.38381 h 5.021166"
@@ -4091,7 +4085,7 @@
        inkscape:export-ydpi="200"><tspan
          x="48.832031"
          y="388.6152"
-         id="tspan7741">end of sampling period</tspan></text>
+         id="tspan13585">end of sampling period</tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.705556, 0.705556;stroke-dashoffset:0;stroke-opacity:1"
        d="m 176.60976,118.50464 h 10.31286"
@@ -4134,9 +4128,9 @@
        inkscape:export-ydpi="200"><tspan
          x="29.480469"
          y="382.95315"
-         id="tspan7745"><tspan
+         id="tspan13589"><tspan
            style="font-weight:bold"
-           id="tspan7743">B</tspan></tspan></text>
+           id="tspan13587">B</tspan></tspan></text>
     <path
        style="fill:#000000;fill-opacity:1;stroke:#5f5f5f;stroke-width:0.705556;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.705556, 0.705556;stroke-dashoffset:0;stroke-opacity:1"
        d="m 176.60981,196.82141 h 6.6087"
