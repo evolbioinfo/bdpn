@@ -2,10 +2,12 @@
 
 Estimator of BD-PN model parameters from phylogenetic trees and a non-parametric PN detection test. 
 
+## Preprint
 
+Anna ZHUKOVA, Olivier Gascuel. Accounting for partner notification in epidemiological birth-death-models. medRxiv 2024.09.09.24313296; doi:[10.1101/2024.09.09.24313296](https://doi.org/10.1101/2024.09.09.24313296)
 
-[//]: # ([![DOI:10.1093/sysbio/syad059]&#40;https://zenodo.org/badge/DOI/10.1093/sysbio/syad059.svg&#41;]&#40;https://doi.org/10.1093/sysbio/syad059&#41;)
 [//]: # ([![GitHub release]&#40;https://img.shields.io/github/v/release/evolbioinfo/bdpn.svg&#41;]&#40;https://github.com/evolbioinfo/bdpn/releases&#41;)
+[![DOI:10.1101/2024.09.09.24313296](https://zenodo.org/badge/DOI/10.1101/2024.09.09.24313296.svg)](https://doi.org/10.1101/2024.09.09.24313296)
 [![PyPI version](https://badge.fury.io/py/bdpn.svg)](https://pypi.org/project/bdpn/)
 [![PyPI downloads](https://shields.io/pypi/dm/bdpn)](https://pypi.org/project/bdpn/)
 [![Docker pulls](https://img.shields.io/docker/pulls/evolbioinfo/bdpn)](https://hub.docker.com/r/evolbioinfo/bdpn/tags)
