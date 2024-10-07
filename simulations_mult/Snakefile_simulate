@@ -1,0 +1,78 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_simulate --keep-going --cores 1 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+
+localrules: all
+
+folder = os.path.abspath(config.get("folder", '.'))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
+n = int(config.get("n", 100))
+REPETITIONS = list(range(n))
+
+# m, M = int(config.get('min', 500)), int(config.get('max', 1000))
+m, M = int(config.get('min', 50)), int(config.get('max', 100))
+
+rule all:
+    input:
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'), i=REPETITIONS, model=['BDMULT', 'BD'])
+    shell:
+        """
+        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+        snakemake --snakefile Snakefile_estimate --keep-going --cores 12 --config n={n} sf={sim_folder}
+        """
+
+
+
+
+rule simulate_bd_mult:
+    '''
+    Simulate a BD-mult tree.
+    '''
+    output:
+        log = os.path.join(sim_folder, 'BDMULT', 'tree.{i}.log'),
+        nwk = os.path.join(sim_folder, 'BDMULT', 'tree.{i}.nwk'),
+    params:
+        mem = 2000,
+        name = 'simulate_{i}',
+        qos = 'fast'
+    threads: 1
+    # singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
+    shell:
+        """
+        while [ ! -f {output.nwk} ]
+        do
+            timeout 60s python3 py/tree_generator.py --min_tips {m} --max_tips {M} --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+        done
+        """
+
+
+rule simulate_bd:
+    '''
+    Simulate a BD tree for the same parameters as the corresponding BD-MULT tree.
+    '''
+    input:
+        log=os.path.join(sim_folder, 'BDMULT', 'tree.{i}.log'),
+    output:
+        log=os.path.join(sim_folder, 'BD', 'tree.{i}.log'),
+        nwk=os.path.join(sim_folder, 'BD', 'tree.{i}.nwk')
+    params:
+        mem=2000,
+        name='simulate_{i}',
+        qos='fast'
+    threads: 1
+    # singularity: "docker://evolbioinfo/treesimulator:v0.1.19"
+    shell:
+        """
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        la=`tail -n 1 {input.log} | awk -F',' '{{ print $4 }}'`
+        psi=`tail -n 1 {input.log} | awk -F',' '{{ print $5 }}'`
+        cat {input.log}
+
+        while [ ! -f {output.nwk} ]
+        do
+            timeout 10m generate_bd --min_tips {m} --max_tips {M} --la $la --psi $psi --p $p --nwk {output.nwk} --log {output.log} || echo 'The tree took too long, restarting!'
+        done
+        """

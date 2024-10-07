@@ -1,0 +1,79 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_estimate --keep-going --cores 7 --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To run on bioevo (change shakemake activation below if you are not Anna ;) :
+# source ~/.bashrc && conda activate snakemake && module load apptainer && cd /pasteur/zeus/projets/p01/Evolbioinfo/users/azhukova/projects/bdpn/simulations
+# snakemake --snakefile Snakefile_estimate --keep-going --cores 1 --use-singularity --singularity-prefix $HOME/.singularity --singularity-args "-B /pasteur" --cluster "sbatch -c {threads} -o logs/{params.name}.log -e logs/{params.name}.log --mem {params.mem} -p common --qos={params.qos} -J {params.name}" --jobs 600
+
+
+localrules: all
+
+os.makedirs('logs', exist_ok=True)
+
+folder = os.path.abspath(config.get("folder", '.'))
+# sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'medium')))
+sim_folder = os.path.abspath(config.get("sf", os.path.join(folder, 'small')))
+n = int(config.get("n", 100))
+REPETITIONS = list(range(n))
+# ci = "--ci"
+ci = ""
+
+rule all:
+    input:
+        expand(os.path.join(sim_folder, '{model}', 'tree.{i}.{p}.est_{estimator}'), i=REPETITIONS, p=['p'],
+            model=['BDMULT', 'BD'], estimator=['bd', 'bdmult']),
+    shell:
+        """
+        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder} --unlock 2> /dev/null
+        snakemake --snakefile Snakefile_viz --keep-going --cores 2 --config n={n} sf={sim_folder}
+        """
+
+
+rule estimate_params_p_fixed:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+    output:
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.p.est_bdmult'),
+    params:
+        mem = 2000,
+        name = 'est_p_{i}',
+        qos = 'normal'
+    threads: 2
+    # singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        cat {input.log}
+
+        bdmult_infer --p $p  --nwk {input.nwk} --log {output.est} --threads {threads} {ci}
+        """
+
+
+rule estimate_params_p_fixed_bd:
+    '''
+    Estimate parameters.
+    '''
+    input:
+        nwk = os.path.join(sim_folder, '{model}', 'tree.{i}.nwk'),
+        log = os.path.join(sim_folder, '{model}', 'tree.{i}.log'),
+    output:
+        est = os.path.join(sim_folder, '{model}', 'tree.{i}.p.est_bd'),
+    params:
+        mem = 2000,
+        name = 'est_p_{i}',
+        qos = 'fast'
+    threads: 1
+    # singularity: "docker://evolbioinfo/bdpn:v0.1.14"
+    shell:
+        """
+        p=`tail -n 1 {input.log} | awk -F',' '{{ print $3 }}'`
+        cat {input.log}
+
+        bd_infer --p $p  --nwk {input.nwk} --log {output.est} {ci}
+        """
