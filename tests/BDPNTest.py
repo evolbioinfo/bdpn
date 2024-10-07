@@ -1,94 +1,85 @@
-import numpy as np
-from matplotlib import pyplot as plt
-from scipy.integrate import odeint
-from treesimulator.mtbd_models import BirthDeathModel
+import os
+import unittest
 
-from bdpn.bdpn import get_log_p_o, get_log_p_nh
-from bdpn.bd import get_log_p, get_u
-from bdpn.mtbd import compute_U
+from bdpn import bdpn_model
+from bdpn.tree_manager import get_T, read_forest
 
+NWK_BD = os.path.join(os.path.dirname(__file__), 'data', 'tree.bd.nwk')
+NWK = os.path.join(os.path.dirname(__file__), 'data', 'tree.bdpn.nwk')
 
-def plot_U(get_U, T, LA, PSI, RHO):
-    tt = np.linspace(0, T, 1001)
-    esol = [get_U(_)[0] for _ in tt]
+"""
+Expected output:
 
-    y = [get_u(t, LA[0], PSI[0], RHO[0], T) for t in tt]
-
-    plt.plot(tt, esol, 'b', label='U_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'r', label='U_formulas(t)', alpha=0.5)
-    plt.legend(loc='best')
-    plt.xlabel('t')
-    plt.grid()
-    plt.show()
+,R0,infectious time,sampling probability,notification probability,removal time after notification,transmission rate,removal rate,partner removal rate
+value,4.466445003743529,5.560549926866046,0.2987834524384259,0.4315092057945722,0.017576966436891443,0.8032380002854934,0.17983832771079983,56.8926386467433
+CI_min,4.279122707343025,4.775619549946329,0.2987834524384259,0.3918980091688985,0.015508534958986341,0.7695502717578799,0.15259342622360764,50.0138339495266
+CI_max,4.657197991936128,6.553362256475047,0.2987834524384259,0.4720363815533576,0.019994467950791153,0.8375426986878883,0.20939691479637204,64.48062325968161
+"""
 
 
-def plot_P(get_U, ti, t0, MU, LA, PSI, RHO, T):
-    tt = np.linspace(ti, t0, 1001)
+class BDPNTest(unittest.TestCase):
 
-    def pdf_P(P, t):
-        U = get_U(t)
-        return (MU.sum(axis=1) + LA.dot(1 - U) + PSI) * P - (MU + U * LA).dot(P)
+    def test_estimate_bdpn_la(self):
+        forest = read_forest(NWK)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.8032380002854934, la, places=3)
 
-    y0 = np.zeros(len(PSI), np.float64)
-    y0[0] = 1
-    sol = odeint(pdf_P, y0, tt)
+    def test_estimate_bdpn_psi(self):
+        forest = read_forest(NWK)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.17983832771079983, psi, places=3)
 
-    y = [np.exp(get_log_p(t, LA[0], PSI[0], RHO[0], T, ti)) for t in tt]
+    def test_estimate_bdpn_phi(self):
+        forest = read_forest(NWK)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(56.8926386467433, phi, places=3)
 
-    plt.plot(tt, sol[:, 0], 'b', label='P_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'r:', label='P_formulas(t)', alpha=0.5)
+    def test_estimate_bdpn_upsilon(self):
+        forest = read_forest(NWK)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.4315092057945722, upsilon, places=3)
 
-    def pdf_Po(P, t):
-        U = get_U(t)
-        return (MU.sum(axis=1) + LA.dot(1 - U) + PSI) * P - MU.dot(P)
+    def test_lk_bdpn(self):
+        forest = read_forest(NWK)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        vs, _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        lk_bdpn = bdpn_model.loglikelihood(forest, *vs, T=T)
+        self.assertAlmostEqual(-1282.398070332461, lk_bdpn, places=3)
 
-    y0 = np.zeros(len(PSI), np.float64)
-    y0[0] = 1
-    sol = odeint(pdf_Po, y0, tt)
-    y = [np.exp(get_log_p_o(t, LA[0], PSI[0], RHO[0], T, ti)) for t in tt]
+    def test_estimate_bd_la(self):
+        forest = read_forest(NWK_BD)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.76487852863638, la, places=2)
 
-    plt.plot(tt, sol[:, 0], 'g', label='Po_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'y:', label='Po_formulas(t)', alpha=0.5)
+    def test_estimate_bd_psi(self):
+        forest = read_forest(NWK_BD)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.1907806865643465, psi, places=2)
 
-    def pdf_Pnh(P, t):
-        return (MU.sum(axis=1) + LA.sum(axis=1) + PSI) * P - MU.dot(P)
+    def test_estimate_bd_upsilon(self):
+        forest = read_forest(NWK_BD)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, phi, _, upsilon], _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0, upsilon, places=2)
 
-    y0 = np.zeros(len(PSI), np.float64)
-    y0[0] = 1
-    sol = odeint(pdf_Pnh, y0, tt)
-
-    y = [np.exp(get_log_p_nh(t, LA[0], PSI[0], ti)) for t in tt]
-
-    plt.plot(tt, sol[:, 0], 'k', label='Pnh_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'm:', label='Pnh_formulas(t)', alpha=0.5)
-
-    plt.legend(loc='best')
-    plt.xlabel('t')
-    plt.grid()
-    plt.show()
-
-
-def random_bt_0_and_1():
-    return 1 - np.random.random(size=1)[0]
-
-
-if __name__ == '__main__':
-
-    p = random_bt_0_and_1()
-    pn = random_bt_0_and_1()
-    R0 = random_bt_0_and_1() * 5
-    real_psi = random_bt_0_and_1()
-    real_la = real_psi * R0
-    real_psi_n = real_psi * 100
-    T = 20
-    model = BirthDeathModel(la=real_la, psi=real_psi, p=p)
-
-    MU, LA, PSI, RHO = model.transition_rates, model.transmission_rates, model.removal_rates, model.ps
-    PI = model.state_frequencies
-    PSI_RHO = PSI * RHO
-    SIGMA = MU.sum(axis=1) + LA.sum(axis=1) + PSI
-    get_U = compute_U(T, MU=MU, LA=LA, PSI=PSI, RHO=RHO, SIGMA=SIGMA)
-
-    plot_U(get_U, T, LA, PSI, RHO)
-
-    plot_P(get_U, ti=10, t0=5, MU=MU, LA=LA, PSI=PSI, RHO=RHO, T=T)
+    def test_lk_bd(self):
+        forest = read_forest(NWK_BD)
+        bdpn_model.preprocess_forest(forest)
+        T = get_T(T=None, forest=forest)
+        vs, _ = bdpn_model.infer(forest, T, p=0.2987834524384259)
+        lk_bdpn = bdpn_model.loglikelihood(forest, *vs, T=T)
+        self.assertAlmostEqual(-1972.0450188910957, lk_bdpn, places=3)

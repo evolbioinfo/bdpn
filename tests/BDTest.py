@@ -1,66 +1,43 @@
-import numpy as np
-from matplotlib import pyplot as plt
-from scipy.integrate import odeint
-from treesimulator.mtbd_models import BirthDeathModel
+import os
+import unittest
 
-from bdpn.bd import get_log_p, get_u
-from bdpn.mtbd import compute_U
+from ete3 import Tree
 
+from bdpn import bd_model
+from bdpn.tree_manager import get_T, annotate_forest_with_time, read_tree, read_forest
 
-def plot_U(get_U, T, LA, PSI, RHO):
-    tt = np.linspace(0, T, 1001)
-    esol = [get_U(_)[0] for _ in tt]
+NWK = os.path.join(os.path.dirname(__file__), 'data', 'tree.bd.nwk')
 
-    y = [get_u(t, LA[0], PSI[0], RHO[0], T) for t in tt]
+"""
+Expected output:
 
-    plt.plot(tt, esol, 'b', label='U_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'r', label='U_formulas(t)', alpha=0.5)
-    plt.legend(loc='best')
-    plt.xlabel('t')
-    plt.grid()
-    plt.show()
+,R0,infectious time,sampling probability,transmission rate,removal rate
+value,4.009203145300569,5.2416207217218505,0.2987834524384259,0.76487852863638,0.1907806865643465
+CI_min,3.8488882795703616,4.578084522347929,0.2987834524384259,0.7342935484859,0.1655754391300192
+CI_max,4.174037339591709,6.039543094400272,0.2987834524384259,0.7963257093925245,0.21843196540354332
+"""
 
 
-def plot_P(get_U, ti, t0, MU, LA, PSI, RHO, T):
-    tt = np.linspace(ti, t0, 1001)
+class BDTest(unittest.TestCase):
 
-    def pdf_Pany_l(P, t):
-        U = get_U(t)
-        return (MU.sum(axis=1) + LA.dot(1 - U) + PSI) * P - (MU + U * LA).dot(P)
+    def test_estimate_bd_la(self):
+        forest = read_forest(NWK)
+        annotate_forest_with_time(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, _], _ = bd_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.76487852863638, la, places=5)
 
-    y0 = np.zeros(len(PSI), np.float64)
-    y0[0] = 1
-    sol = odeint(pdf_Pany_l, y0, tt)
+    def test_estimate_bd_psi(self):
+        forest = read_forest(NWK)
+        annotate_forest_with_time(forest)
+        T = get_T(T=None, forest=forest)
+        [la, psi, _], _ = bd_model.infer(forest, T, p=0.2987834524384259)
+        self.assertAlmostEqual(0.1907806865643465, psi, places=5)
 
-    y = [np.exp(get_log_p(t, LA[0], PSI[0], RHO[0], T, ti)) for t in tt]
-
-    plt.plot(tt, sol[:, 0], 'b', label='P_automatic(t)', alpha=0.5)
-    plt.plot(tt, y, 'r', label='P_formulas(t)', alpha=0.5)
-    plt.legend(loc='best')
-    plt.xlabel('t')
-    plt.grid()
-    plt.show()
-
-
-def random_bt_0_and_1():
-    return 1 - np.random.random(size=1)[0]
-
-
-if __name__ == '__main__':
-
-    p = random_bt_0_and_1()
-    R0 = random_bt_0_and_1() * 5
-    real_psi = random_bt_0_and_1()
-    real_la = real_psi * R0
-    T = 20
-    model = BirthDeathModel(la=real_la, psi=real_psi, p=p)
-
-    MU, LA, PSI, RHO = model.transition_rates, model.transmission_rates, model.removal_rates, model.ps
-    PI = model.state_frequencies
-    PSI_RHO = PSI * RHO
-    SIGMA = MU.sum(axis=1) + LA.sum(axis=1) + PSI
-    get_U = compute_U(T, MU=MU, LA=LA, PSI=PSI, RHO=RHO, SIGMA=SIGMA)
-
-    plot_U(get_U, T, LA, PSI, RHO)
-
-    plot_P(get_U, ti=10, t0=5, MU=MU, LA=LA, PSI=PSI, RHO=RHO, T=T)
+    def test_lk_bd(self):
+        forest = read_forest(NWK)
+        annotate_forest_with_time(forest)
+        T = get_T(T=None, forest=forest)
+        vs, _ = bd_model.infer(forest, T, p=0.2987834524384259)
+        lk_bd = bd_model.loglikelihood(forest, *vs, T=T)
+        self.assertAlmostEqual(-1972.0450188910957, lk_bd, places=5)
