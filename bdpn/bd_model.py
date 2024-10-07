@@ -4,7 +4,7 @@ import numpy as np
 
 from bdpn.formulas import get_c1, get_c2, get_E, get_log_p, get_u
 from bdpn.parameter_estimator import optimize_likelihood_params, estimate_cis
-from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
+from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T, resolve_forest
 
 DEFAULT_MIN_PROB = 1e-6
 DEFAULT_MAX_PROB = 1
@@ -48,15 +48,16 @@ def get_start_parameters(forest, la=None, psi=None, rho=None):
     return np.array([la_est, psi_est, rho_est], dtype=np.float64)
 
 
-def loglikelihood(forest, la, psi, rho, T, threads=1):
+def loglikelihood(forest, la, psi, rho, T, threads=1, u=-1):
     c1 = get_c1(la=la, psi=psi, rho=rho)
     c2 = get_c2(la=la, psi=psi, c1=c1)
 
     log_psi_rho = np.log(psi) + np.log(rho)
     log_two_la = np.log(2) + np.log(la)
 
-    u = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
-    res = len(forest) * u / (1 - u) * np.log(u)
+    hidden_lk = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=0, T=T))
+    u = len(forest) * hidden_lk / (1 - hidden_lk) if u is None or u < 0 else u
+    res = u * np.log(hidden_lk)
     for tree in forest:
         n = len(tree)
         res += n * log_psi_rho + (n - 1) * log_two_la
@@ -169,6 +170,7 @@ def main():
         raise ValueError('At least one of the model parameters needs to be specified for identifiability')
 
     forest = read_forest(params.nwk)
+    resolve_forest(forest)
     annotate_forest_with_time(forest)
     T = get_T(T=None, forest=forest)
     print('Read a forest of {} trees with {} tips in total, evolving over time {}'
@@ -191,9 +193,12 @@ def loglikelihood_main():
     parser.add_argument('--psi', required=True, type=float, help="removal rate")
     parser.add_argument('--p', required=True, type=float, help='sampling probability')
     parser.add_argument('--nwk', required=True, type=str, help="input tree file")
+    parser.add_argument('--u', required=False, type=int, default=-1,
+                        help="number of hidden trees (estimated by default)")
     params = parser.parse_args()
 
     forest = read_forest(params.nwk)
+    resolve_forest(forest)
     annotate_forest_with_time(forest)
     T = get_T(T=None, forest=forest)
     lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, T=T)

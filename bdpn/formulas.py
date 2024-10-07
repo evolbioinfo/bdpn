@@ -1,6 +1,6 @@
 import numpy as np
 
-from bdpn.parameter_estimator import rescale_log
+from bdpn.parameter_estimator import rescale_log, MIN_VALUE
 
 
 def get_c1(la, psi, rho):
@@ -148,4 +148,9 @@ def log_subtraction(log_minuend, log_subtrahend):
     """
     result = np.array([log_minuend, log_subtrahend], dtype=np.float64)
     factors = rescale_log(result)
-    return np.log(np.sum(np.exp(result) * [1, -1])) - factors
+    diff = np.sum(np.exp(result) * [1, -1])
+    if diff == 0 and log_minuend - log_subtrahend > 0:
+        if factors < 0:
+            factors = 0
+        return MIN_VALUE - factors
+    return np.log(diff) - factors

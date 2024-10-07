@@ -1,7 +1,9 @@
 import os
 import re
+from collections import Counter
 from datetime import datetime
 
+import numpy as np
 from Bio import Phylo
 from ete3 import Tree, TreeNode
 
@@ -64,6 +66,56 @@ def read_tree(tree_path):
     if not tree:
         raise ValueError('Could not read the tree {}. Is it a valid newick?'.format(tree_path))
     return tree
+
+
+def resolve_tree(tree, max_extra_brlen=0):
+    """
+    Resolves polytomies in the tree in a coalescent manner.
+    The newly created branch gets a length uniformly drawn
+    from ]0; min(max_extra_brlen, min(99% of coallessed child branch lengths)],
+    which is then removed from the corresponding child branch lengths.
+
+    :param tree: tree to resolve
+    :param max_extra_brlen: maximum branch length for newly created branches
+    :return:
+    """
+    polytomy_counter = Counter()
+    for n in tree.traverse('postorder'):
+        n_my = len(n.children)
+        if n_my > 2:
+            polytomy_counter[n_my] += 1
+            while len(n.children) > 2:
+                child1, child2 = np.random.choice(n.children, 2, replace=False)
+                n.remove_child(child1)
+                n.remove_child(child2)
+                dist = (1 - np.random.random(1)[0]) * min(max_extra_brlen, child1.dist * .99, child2.dist * .99) \
+                    if max_extra_brlen > 0 else 0
+                parent = n.add_child(dist=dist)
+                parent.add_child(child1, dist=child1.dist - dist)
+                parent.add_child(child2, dist=child2.dist - dist)
+    print('Resolved {} polytomies in a tree of {} tips: {}'
+          .format(sum(polytomy_counter.values()), len(tree),
+                  ', '.join('{} of {}'.format(v, k)
+                            for (k, v) in sorted(polytomy_counter.items(), key=lambda _: -_[0]))))
+
+
+def resolve_forest(forest, max_extra_brlen=None):
+    """
+    Resolves polytomies in the forest in a coalescent manner.
+    The newly created branch gets a length uniformly drawn
+    from ]0; min(max_extra_brlen, min(99% of coallessed child branch lengths)],
+    which is then removed from the corresponding child branch lengths.
+
+    :param forest: forest to resolve
+    :param max_extra_brlen: maximum branch length for newly created branches.
+    If not given (None), will be set to 1% of the length of the shortest non-zero branch in the tree.
+    :return:
+    """
+    if not max_extra_brlen:
+        max_extra_brlen = min(min(_.dist for _ in tree.traverse() if _.dist) for tree in forest) * 0.01
+
+    for tree in forest:
+        resolve_tree(tree, max_extra_brlen)
 
 
 def read_forest(tree_path):
