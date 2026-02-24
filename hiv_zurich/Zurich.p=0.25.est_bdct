@@ -1,0 +1,4 @@
+,R0,infectious time,sampling probability,contact tracing probability,removal time after notification,transmission rate,removal rate,notified sampling rate
+value,1.433,8.32131,0.25,0.0882943,0.411198,0.172208,0.120173,2.43192
+CI_min,1.17144,6.02612,0.25,0.000690792,0.00934065,0.140775,0.0736213,0.433058
+CI_max,1.75831,13.583,0.25,0.31444,2.30916,0.211302,0.165944,107.059
