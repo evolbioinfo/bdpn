@@ -19,7 +19,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     version='0.2.1',
-    description='Maximum likelihood estimation of BD, BD-CT(1) and BDSKY parameters from phylogenetic trees.',
+    description='Maximum likelihood estimation of BD, BD-CT(1), BD-MULT and BDSKY parameters from phylogenetic trees.',
     author='Anna Zhukova',
     author_email='anna.zhukova@pasteur.fr',
     url='https://github.com/evolbioinfo/bdct',
@@ -36,6 +36,10 @@ setup(
                 'bd_loglikelihood = bdct.bd_model:loglikelihood_main',
                 'bdsky_loglikelihood = bdct.bdsky_model:loglikelihood_main',
                 'ct_test = bdct.model_distinguisher:main',
+                'bdmult_infer = bdpn.bdmult_model:main',
+                'bdssmult_infer = bdpn.bdssmult_model:main',
+                'bdmult_loglikelihood = bdpn.bdmult_model:loglikelihood_main',
+                'bdssmult_loglikelihood = bdpn.bdssmult_model:loglikelihood_main',
             ]
     },
 )

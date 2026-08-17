@@ -2,22 +2,18 @@ import os
 
 import numpy as np
 
-from bdpn import bd_model
-from bdpn.formulas import get_c1, get_E, get_c2
-from bdpn.parameter_estimator import optimize_likelihood_params, estimate_cis
-from bdpn.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T, rescale_forest
+from bdct import bd_model
+from bdct.formulas import get_c1, get_E, get_c2
+from bdct.parameter_estimator import optimize_likelihood_params, estimate_cis
+from bdct.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T, rescale_forest
 
 LOG_SCALING_FACTOR_P = 5
 SCALING_FACTOR_P = np.exp(LOG_SCALING_FACTOR_P)
 
-DEFAULT_MIN_PROB = 1e-6
-DEFAULT_MAX_PROB = 1 - 1e-6
-DEFAULT_MIN_RATE = 1e-3
-DEFAULT_MAX_RATE = 1e2
 DEFAULT_MAX_PARTNERS = 50
 
-DEFAULT_LOWER_BOUNDS = [DEFAULT_MIN_RATE, DEFAULT_MIN_RATE, DEFAULT_MIN_PROB, 1]
-DEFAULT_UPPER_BOUNDS = [DEFAULT_MAX_RATE, DEFAULT_MAX_RATE, DEFAULT_MAX_PROB, DEFAULT_MAX_PARTNERS]
+DEFAULT_LOWER_BOUNDS = [bd_model.DEFAULT_MIN_RATE, bd_model.DEFAULT_MIN_RATE, bd_model.DEFAULT_MIN_PROB, 1]
+DEFAULT_UPPER_BOUNDS = [bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_RATE, bd_model.DEFAULT_MAX_PROB, DEFAULT_MAX_PARTNERS]
 
 PARAMETER_NAMES = np.array(['la', 'psi', 'rho', 'r'])
 EPI_PARAMETER_NAMES = np.array(['R0', 'd'])
@@ -171,7 +167,7 @@ def get_start_parameters(forest_stats, la=None, psi=None, rho=None, r=None):
     return np.array([la_est, psi_est, rho_est, r], dtype=np.float64)
 
 
-def loglikelihood(forest, la, psi, rho, r, T, threads=1, u=-1, as_log=True):
+def loglikelihood(forest, la, psi, rho, r, T, threads=1, u=-1, as_log=True, **kwargs):
 
     log_psi_rho = np.log(psi) + np.log(rho)
     log_la = np.log(la)

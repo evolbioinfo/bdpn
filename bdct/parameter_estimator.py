@@ -79,7 +79,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
         ps_real = get_real_params_from_optimised(ps)
         res = loglikelihood_function(forest, *ps_real, T=T, t_start=t_start, threads=threads)
         # if np.isnan(res) or res == -np.inf:
-        #     print(f"{formatter(ps_real)}\t-->\t{res}")
+        # print(f"{formatter(ps_real)}\t-->\t{res}")
         return -res
 
     x0 = get_optimised_params_from_real(start_parameters)
@@ -94,8 +94,8 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
             if num_attemps > 1:
                 print(f'Starting parameters: {formatter(get_real_params_from_optimised(vs))}')
 
-        # fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=optimised_bounds)
-        fres = minimize(get_v, x0=vs, method='SLSQP', bounds=optimised_bounds, options={'maxiter': 100000})
+        fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=optimised_bounds)
+        # fres = minimize(get_v, x0=vs, method='SLSQP', bounds=optimised_bounds, options={'maxiter': 100000})
         if fres.success and not np.any(np.isnan(fres.x)):
             successful_attempts += 1
             if -fres.fun >= best_log_lh:
@@ -106,7 +106,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
                 print(f'Attempt {i + 1} of trying to optimise the parameters:\t'
                       f'{formatter(get_real_params_from_optimised(fres.x))}\t->\t{-fres.fun}.')
         elif num_attemps > 1:
-            print(f'Attempt {i + 1} of trying to optimise the parameters failed, due to {fres.message}.')
+            print(f'Attempt {i + 1} of trying to optimise the parameters failed, due to {fres.message}')
         if successful_attempts >= num_attemps:
             break
     if not successful_attempts:
