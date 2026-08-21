@@ -1,8 +1,9 @@
+import logging
 import os
 from collections import Counter
 
 import numpy as np
-from bdct import bd_model
+from bdct import bd_model, set_up_logger
 
 from bdct.bd_model import DEFAULT_LOWER_BOUNDS, DEFAULT_UPPER_BOUNDS, PARAMETER_NAMES, EPI_PARAMETER_NAMES, \
     REPRODUCTIVE_NUMBER, INFECTIOUS_TIME, SAMPLING_PROBABILITY, TRANSMISSION_RATE, REMOVAL_RATE, get_start_parameters
@@ -179,6 +180,8 @@ def infer(forest, T, t_start=0, la=None, psi=None, p=None, skyline_times=None,
         In the case when CIs were not set to be calculated,
         their values would correspond exactly to the parameter values.
     """
+
+    logger = logging.getLogger('bdct')
     n_la, n_psi, n_p = 0, 0, 0
     if isinstance(la, list) or isinstance(la, np.ndarray):
         n_la = len(la)
@@ -263,7 +266,7 @@ def infer(forest, T, t_start=0, la=None, psi=None, p=None, skyline_times=None,
         p_i = p[start] if n_p else None
         input_params[start * 3: start * 3 + 3] = np.array([la_i, psi_i, p_i])
         if n_intervals > 1:
-            print(f'\nLooking for starting parameters for interval {start} with the BD estimator...')
+            logger.debug(f'\nLooking for starting parameters for interval {start} with the BD estimator...')
             # Sampling probability could be zero for some skyline intervals, but not for BD,
             # so let's make sure it is at least 10-6
             vs, _ = bd_model.infer(forest, T=T, la=la_i, psi=psi_i,
@@ -287,16 +290,16 @@ def infer(forest, T, t_start=0, la=None, psi=None, p=None, skyline_times=None,
     best_vs, best_lk = np.array(start_parameters), loglikelihood(forest, *start_parameters,
                                                                  T=T, t_start=t_start, threads=threads)
 
-    print('\nBDSKY parameter optimization...')
-    print(f'Lower bounds are set to:\t{format_parameters(*bounds[:, 0], epi=False, T=T, t_start=t_start)}')
-    print(f'Upper bounds are set to:\t{format_parameters(*bounds[:, 1], epi=False, T=T, t_start=t_start)}')
-    print(f'Starting parameters:\t{format_parameters(*start_parameters, fixed=input_params, T=T, t_start=t_start)}\tloglikelihood={best_lk}')
+    logger.debug('\nBDSKY parameter optimization...')
+    logger.debug(f'Lower bounds are set to:\t{format_parameters(*bounds[:, 0], epi=False, T=T, t_start=t_start)}')
+    logger.debug(f'Upper bounds are set to:\t{format_parameters(*bounds[:, 1], epi=False, T=T, t_start=t_start)}')
+    logger.debug(f'Starting parameters:\t{format_parameters(*start_parameters, fixed=input_params, T=T, t_start=t_start)}\tloglikelihood={best_lk}')
 
 
     vs, lk = optimize_current_setting(bounds, n_intervals, start_parameters, input_params, forest, T, t_start=t_start,
                                       n_times_to_optimize=n_intervals - 1 - n_t, threads=1)
 
-    print(f'Estimated BDSKY parameters:\t{format_parameters(*vs, T=T, t_start=t_start)};\tloglikelihood={lk}')
+    logger.info(f'Estimated BDSKY parameters:\t{format_parameters(*vs, T=T, t_start=t_start)};\tloglikelihood={lk}')
 
     if lk > best_lk:
         best_lk = lk
@@ -304,8 +307,8 @@ def infer(forest, T, t_start=0, la=None, psi=None, p=None, skyline_times=None,
     if ci:
         cis = estimate_cis(T, forest, input_parameters=input_params, loglikelihood_function=loglikelihood,
                            optimised_parameters=best_vs, bounds=bounds, threads=threads)
-        print(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:, 0], epi=False, T=T, t_start=t_start)}\n'
-              f'\tupper:\t{format_parameters(*cis[:, 1], epi=False, T=T, t_start=t_start)}')
+        logger.info(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:, 0], epi=False, T=T, t_start=t_start)}\n'
+                    f'\tupper:\t{format_parameters(*cis[:, 1], epi=False, T=T, t_start=t_start)}')
     else:
         cis = None
     return best_vs, cis
@@ -468,6 +471,13 @@ def main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
 
     parser.add_argument('--la', nargs='*', default=None, type=float,
                         help="List of transmission rates (one per skyline interval, if not provided, will be estimated).")
@@ -489,17 +499,22 @@ def main():
                         help="lower bounds for parameters  la psi p (all need to specified, even the fixed ones, "
                              "the same bounds are used for all the intervals)", default=DEFAULT_LOWER_BOUNDS)
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                           help="print information on the progress of the analysis (to console)")
+
     params = parser.parse_args()
 
     if params.la is None and params.psi is None and params.p is None:
         raise ValueError('At least one of the model parameters needs to be specified for identifiability')
 
+    logger = set_up_logger(verbose=params.verbose)
     forest = read_forest(params.nwk)
     # resolve_forest(forest)
     annotate_forest_with_time(forest, start_times=params.start_times)
     t_start = min(getattr(tree, TIME) - tree.dist for tree in forest)
-    T = get_T(T=None, forest=forest)
-    print('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
+    T = get_T(T=params.T, forest=forest)
+    del params.T
+    logger.debug('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
           .format(len(forest), sum(len(_) for _ in forest), t_start, T))
 
     vs, cis = infer(forest, T=T, t_start=t_start, **vars(params))
@@ -529,6 +544,13 @@ def loglikelihood_main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
 
     parser.add_argument('--la', nargs='+', type=float,
                         help="List of transmission rates (one per skyline interval).")
@@ -547,7 +569,7 @@ def loglikelihood_main():
     forest = read_forest(params.nwk)
     # resolve_forest(forest)
     annotate_forest_with_time(forest, start_times=params.start_times)
-    T = get_T(T=None, forest=forest)
+    T = get_T(T=params.T, forest=forest)
     t_start = min(getattr(tree, TIME) - tree.dist for tree in forest)
 
     n_la, n_psi, n_p = len(params.la), len(params.psi), len(params.p)

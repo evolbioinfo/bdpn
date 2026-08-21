@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import scipy
 
+from bdct.logger import set_up_logger
 from bdct.tree_manager import TIME, read_forest, annotate_forest_with_time
 
 DEFAULT_CHERRY_BLOCK_SIZE = 100
@@ -82,7 +83,7 @@ def ct_test(forest):
     all_cherries = sorted(all_cherries, key=lambda _: getattr(_.root, TIME))
 
     n_cherries = len(all_cherries)
-    logging.info(f'Picked {n_cherries} cherries.')
+    logging.getLogger('bdct').debug(f'Picked {n_cherries} cherries.')
 
     if n_cherries < 2:
         return 1, n_cherries
@@ -192,12 +193,20 @@ Finally, the test reports the sign test between the reshuffled and the real valu
 The test therefore reports a probability of partner notification being present in the tree.""")
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--nwk', required=True, type=str, help="input forest file in newick or nexus format")
+
+
+    parser.add_argument('-v', '--verbose', action='store_true',
+                           help="print information on the progress of the analysis (to console)")
+
     params = parser.parse_args()
+
+    logger = set_up_logger(verbose=params.verbose)
 
     forest = read_forest(params.nwk)
     pval, n_cherries = ct_test(forest)
 
-    logging.info(f"CT test {pval} on {n_cherries} cherries.")
+
+    logger.info(f"CT test {pval} on {n_cherries} cherries.")
 
     with open(params.log, 'w+') as f:
         f.write('CT-test p-value\tnumber of cherries\n')

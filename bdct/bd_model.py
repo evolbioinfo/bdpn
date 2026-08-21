@@ -1,8 +1,11 @@
+import logging
 import os
 from collections import Counter
 
 import numpy as np
 
+
+from bdct.logger import set_up_logger
 from bdct.formulas import get_c1, get_c2, get_E, get_log_p, get_u, log_factorial
 from bdct.parameter_estimator import optimize_likelihood_params, estimate_cis
 from bdct.tree_manager import TIME, read_forest, annotate_forest_with_time, get_T
@@ -100,6 +103,11 @@ def loglikelihood(forest, la, psi, rho, T, threads=1, u=-1, **kwargs):
             if hidden_lk:
                 res += count * hidden_lk / (1 - hidden_lk) * np.log(hidden_lk)
 
+    # for t_start, count in t_starts.items():
+    #     hidden_lk = get_u(la, psi, c1, E_t=get_E(c1=c1, c2=c2, t=t_start, T=T))
+    #     if hidden_lk:
+    #         res -= count * np.log(1 - hidden_lk)
+
     for tree in forest:
         n = len(tree)
         res += n * log_psi_rho
@@ -164,16 +172,17 @@ def infer(forest, T, la=None, psi=None, p=None,
     input_params = np.array([la, psi, p])
     best_vs, best_lk = np.array(start_parameters), loglikelihood(forest, *start_parameters, T, threads)
 
+    logger = logging.getLogger('bdct')
 
-    print(f'Lower bounds are set to:\t{format_parameters(*lower_bounds, epi=False)}')
-    print(f'Upper bounds are set to:\t{format_parameters(*upper_bounds, epi=False)}')
-    print(f'Starting BD parameters:\t{format_parameters(*start_parameters, fixed=input_params)}\tloglikelihood={best_lk}')
+    logger.debug(f'Lower bounds are set to:\t{format_parameters(*lower_bounds, epi=False)}')
+    logger.debug(f'Upper bounds are set to:\t{format_parameters(*upper_bounds, epi=False)}')
+    logger.debug(f'Starting BD parameters:\t{format_parameters(*start_parameters, fixed=input_params)}\tloglikelihood={best_lk}')
     vs, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
                                         loglikelihood_function=loglikelihood, bounds=bounds,
                                         start_parameters=start_parameters, threads=threads,
                                         formatter=lambda _: format_parameters(*_), num_attemps=num_attemps)
 
-    print(f'Estimated BD parameters:\t{format_parameters(*vs)};\tloglikelihood={lk}')
+    logger.info(f'Estimated BD parameters:\t{format_parameters(*vs)};\tloglikelihood={lk}')
 
     if lk > best_lk:
         best_lk = lk
@@ -181,8 +190,8 @@ def infer(forest, T, la=None, psi=None, p=None,
     if ci:
         cis = estimate_cis(T, forest, input_parameters=input_params, loglikelihood_function=loglikelihood,
                            optimised_parameters=best_vs, bounds=bounds, threads=threads)
-        print(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:, 0], epi=False)}\n'
-              f'\tupper:\t{format_parameters(*cis[:, 1], epi=False)}')
+        logger.info(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:, 0], epi=False)}\n'
+                    f'\tupper:\t{format_parameters(*cis[:, 1], epi=False)}')
     else:
         cis = None
     return best_vs, cis
@@ -246,6 +255,13 @@ def main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--upper_bounds', required=False, type=float, nargs=3,
                         help="upper bounds for BD parameters: la psi p (all need to specified, even the fixed ones)",
@@ -254,17 +270,24 @@ def main():
                         help="lower bounds for BD parameters: la psi p (all need to specified, even the fixed ones)",
                         default=DEFAULT_LOWER_BOUNDS)
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
+
+    parser.add_argument('-v', '--verbose', action='store_true',
+                           help="print information on the progress of the analysis (to console)")
+
     params = parser.parse_args()
 
     if params.la is None and params.psi is None and params.p is None:
         raise ValueError('At least one of the model parameters needs to be specified for identifiability')
 
+    logger = set_up_logger(verbose=params.verbose)
+
     forest = read_forest(params.nwk)
     # resolve_forest(forest)
     annotate_forest_with_time(forest, start_times=params.start_times)
     t_start = min(getattr(tree, TIME) - tree.dist for tree in forest)
-    T = get_T(T=None, forest=forest)
-    print('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
+    T = get_T(T=params.T, forest=forest)
+    del params.T
+    logger.debug('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
           .format(len(forest), sum(len(_) for _ in forest), t_start, T))
 
     vs, cis = infer(forest, T, **vars(params))
@@ -290,15 +313,22 @@ def loglikelihood_main():
                              "If multiple trees are provided, they are treated as having the same parameters.")
     parser.add_argument('--start_times', nargs='*', type=float,
                         help='If multiple trees are provided in the input file, their start times '
-                             '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
+                             '(i.e., times at the beginning of their root branches) are by default considered to be equal (t=0). '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
-    params = parser.parse_args()
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
 
+    params = parser.parse_args()
     forest = read_forest(params.nwk)
     # resolve_forest(forest)
     annotate_forest_with_time(forest, start_times=params.start_times)
-    T = get_T(T=None, forest=forest)
+    T = get_T(T=params.T, forest=forest)
     lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, T=T)
     print(lk)
 

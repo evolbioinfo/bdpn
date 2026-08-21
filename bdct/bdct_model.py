@@ -1,3 +1,4 @@
+import logging
 import os
 from collections import Counter
 from multiprocessing.pool import ThreadPool
@@ -5,6 +6,7 @@ from multiprocessing.pool import ThreadPool
 import numpy as np
 
 from bdct import bd_model
+from bdct.logger import set_up_logger
 from bdct.bd_model import LA, PSI, RHO, REPRODUCTIVE_NUMBER, INFECTIOUS_TIME, SAMPLING_PROBABILITY, TRANSMISSION_RATE, \
     REMOVAL_RATE
 from bdct.formulas import get_log_p, get_c1, get_c2, get_E, get_log_ppb, get_log_pn, get_log_ppb_from_p_pn, \
@@ -504,6 +506,13 @@ def main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--upper_bounds', required=False, type=float, nargs=3,
                         help="upper bounds for BD-CT(1) parameters: la, psi, phi, p, upsilon (all need to specified, even the fixed ones)",
@@ -514,17 +523,24 @@ def main():
     parser.add_argument('--ci', action="store_true", help="calculate the CIs")
     parser.add_argument('--threads', required=False, type=int, default=1,
                         help="number of threads for parallelization")
+
+
+    parser.add_argument('-v', '--verbose', action='store_true',
+                           help="print information on the progress of the analysis (to console)")
+
     params = parser.parse_args()
 
     if params.la is None and params.psi is None and params.p is None:
         raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
                          'for identifiability')
+    logger = set_up_logger(verbose=params.verbose)
 
     forest = read_forest(params.nwk)
     preprocess_forest(forest, start_times=params.start_times)
     t_start = min(getattr(tree, TIME) - tree.dist for tree in forest)
-    T = get_T(T=None, forest=forest)
-    print('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
+    T = get_T(T=params.T, forest=forest)
+    del params.T
+    logger.debug('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
           .format(len(forest), sum(len(_) for _ in forest), t_start, T))
     vs, cis = infer(forest, T, **vars(params))
 
@@ -559,6 +575,13 @@ def loglikelihood_main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
     parser.add_argument('--u', required=False, type=int, default=-1,
                         help="number of hidden trees (i.e., trees with no sampled tips). "
                              "By default this value is estimated based on the number of observed trees "
@@ -567,7 +590,7 @@ def loglikelihood_main():
 
     forest = read_forest(params.nwk)
     preprocess_forest(forest, start_times=params.start_times)
-    T = get_T(T=None, forest=forest)
+    T = get_T(T=params.T, forest=forest)
     lk = loglikelihood(forest, la=params.la, psi=params.psi, rho=params.p, phi=params.phi, upsilon=params.upsilon, T=T)
     print(lk)
 
@@ -607,6 +630,7 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
         raise ValueError('At least one of the BD model parameters (la, psi, p) needs to be specified '
                          'for identifiability')
 
+    logger = logging.getLogger('bdct')
     bounds = np.zeros((5, 2), dtype=np.float64)
     lower_bounds, upper_bounds = np.array(lower_bounds), np.array(upper_bounds)
     if not np.all(upper_bounds >= lower_bounds):
@@ -619,7 +643,7 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
     bounds[:, 0] = lower_bounds
     bounds[:, 1] = upper_bounds
 
-    print('Picking starting parameters with BD model...')
+    logger.debug('Picking starting parameters with BD model...')
     input_params = np.array([la, psi, phi, p, upsilon])
     vs, _ = bd_model.infer(forest, T=T, la=la, psi=psi, p=p,
                            lower_bounds=bounds[[0, 1, 3], 0], upper_bounds=bounds[[0, 1, 3], 1], ci=False, num_attemps=1)
@@ -638,16 +662,16 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
         start_parameters[-1] = min(max(0.1 if upsilon is None or upsilon < 0 or upsilon > 1 else upsilon, lower_bounds[-1]),
                                    upper_bounds[-1])
 
-        print('\nOptimizing BDCT(1) parameters...')
-        print(f'Lower bounds are set to:\t{format_parameters(*lower_bounds, epi=False)}')
-        print(f'Upper bounds are set to:\t{format_parameters(*upper_bounds, epi=False)}\n')
-        print(f'Starting BDCT(1) parameters:\t{format_parameters(*start_parameters, fixed=input_params)}\tloglikelihood={best_lk}')
+        logger.debug('\nOptimizing BDCT(1) parameters...')
+        logger.debug(f'Lower bounds are set to:\t{format_parameters(*lower_bounds, epi=False)}')
+        logger.debug(f'Upper bounds are set to:\t{format_parameters(*upper_bounds, epi=False)}\n')
+        logger.debug(f'Starting BDCT(1) parameters:\t{format_parameters(*start_parameters, fixed=input_params)}\tloglikelihood={best_lk}')
         vs, lk = optimize_likelihood_params(forest, T=T, input_parameters=input_params,
                                             loglikelihood_function=loglikelihood, bounds=bounds,
                                             start_parameters=start_parameters, threads=threads,
                                             formatter=lambda _: format_parameters(*_), num_attemps=1)
 
-        print(f'Estimated BDCT(1) parameters:\t{format_parameters(*vs)};\tloglikelihood={lk}')
+        logger.info(f'Estimated BDCT(1) parameters:\t{format_parameters(*vs)};\tloglikelihood={lk}')
 
         if lk > best_lk:
             best_lk = lk
@@ -656,8 +680,8 @@ def infer(forest, T, la=None, psi=None, phi=None, p=None, upsilon=None,
         cis = estimate_cis(T, forest, input_parameters=input_params, loglikelihood_function=loglikelihood,
                            optimised_parameters=best_vs, bounds=bounds, threads=threads)
                            # parameter_transformers=(rates2epi, epi2rates))
-        print(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:,0], epi=False)}\n'
-              f'\tupper:\t{format_parameters(*cis[:,1], epi=False)}')
+        logger.info(f'Estimated CIs:\n\tlower:\t{format_parameters(*cis[:,0], epi=False)}\n'
+                    f'\tupper:\t{format_parameters(*cis[:,1], epi=False)}')
     else:
         cis = None
     return best_vs, cis

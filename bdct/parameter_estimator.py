@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import chi2
@@ -47,6 +49,9 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
     :param forest: a list of ete3.Tree trees
     :return: tuple: (the values of optimized parameters, CIs)
     """
+
+    logger = logging.getLogger('bdct')
+
     optimised_parameter_mask = input_parameters == None
     if np.all(optimised_parameter_mask == False):
         return start_parameters, loglikelihood_function(forest, *start_parameters, T=T, t_start=t_start, threads=threads)
@@ -92,7 +97,7 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
         else:
             vs = np.random.uniform(optimised_bounds[:, 0], optimised_bounds[:, 1])
             if num_attemps > 1:
-                print(f'Starting parameters: {formatter(get_real_params_from_optimised(vs))}')
+                logger.debug(f'Starting parameters: {formatter(get_real_params_from_optimised(vs))}')
 
         # fres = minimize(get_v, x0=vs, method='L-BFGS-B', bounds=optimised_bounds)
         fres = minimize(get_v, x0=vs, method='SLSQP', bounds=optimised_bounds, options={'maxiter': 100000})
@@ -103,10 +108,10 @@ def optimize_likelihood_params(forest, T, input_parameters, loglikelihood_functi
                 best_log_lh = -fres.fun
                 # break
             if num_attemps > 1:
-                print(f'Attempt {i + 1} of trying to optimise the parameters:\t'
+                logger.debug(f'Attempt {i + 1} of trying to optimise the parameters:\t'
                       f'{formatter(get_real_params_from_optimised(fres.x))}\t->\t{-fres.fun}.')
         elif num_attemps > 1:
-            print(f'Attempt {i + 1} of trying to optimise the parameters failed, due to {fres.message}.')
+            logger.debug(f'Attempt {i + 1} of trying to optimise the parameters failed, due to {fres.message}.')
         if successful_attempts >= num_attemps:
             break
     if not successful_attempts:
@@ -126,7 +131,7 @@ def estimate_cis(T, forest, input_parameters, loglikelihood_function, optimised_
     optimised_cis[fixed_parameter_mask, 1] = input_parameters[fixed_parameter_mask]
 
     n_optimized_params = len(input_parameters[~fixed_parameter_mask])
-    print(f'Estimating CIs for {n_optimized_params} free parameters...')
+    logging.getLogger('bdct').debug(f'Estimating CIs for {n_optimized_params} free parameters...')
     lk_threshold = (loglikelihood_function(forest, *optimised_parameters, T=T, t_start=t_start, threads=threads)
                     - get_chi2_threshold(num_parameters=n_optimized_params))
 

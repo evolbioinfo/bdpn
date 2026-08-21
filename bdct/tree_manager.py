@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from collections import Counter
@@ -93,7 +94,7 @@ def resolve_tree(tree, max_extra_brlen=0):
                 parent = n.add_child(dist=dist)
                 parent.add_child(child1, dist=child1.dist - dist)
                 parent.add_child(child2, dist=child2.dist - dist)
-    print('Resolved {} polytomies in a tree of {} tips: {}'
+    logging.getLogger('bdct').debug('Resolved {} polytomies in a tree of {} tips: {}'
           .format(sum(polytomy_counter.values()), len(tree),
                   ', '.join('{} of {}'.format(v, k)
                             for (k, v) in sorted(polytomy_counter.items(), key=lambda _: -_[0]))))

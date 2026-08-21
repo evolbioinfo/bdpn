@@ -260,6 +260,13 @@ def main():
                              '(i.e., times at the beginning of their root branches) are by default considered to be equal. '
                              'If a different behaviour is needed, one should specify as many start times here '
                              'as there are trees in the input file.')
+    parser.add_argument('--T', type=float, default=None,
+                        help='End of the sampling time. Should be greater or equal to the time of the last sampled tip. '
+                             'If not given (default) will be calculated as the time of the last sampled tip.'
+                             'The time of the last sampled tip is calculated as the sum of lengths of branches '
+                             'on the path between this tip and the root plus the root branch '
+                             'plus the start time of this tree). '
+                             )
     parser.add_argument('--p_per_tree', required=False, action='store_true', help="If multiple trees are provided in the input file and there is sampling heterogeneity and p is not fixed, then it will estimate 1 sampling probability per tree in forest.")
     parser.add_argument('--log', required=True, type=str, help="output log file")
     parser.add_argument('--upper_bounds', required=False, type=float, nargs=3,
@@ -279,7 +286,8 @@ def main():
     # resolve_forest(forest)
     annotate_forest_with_time(forest, start_times=params.start_times)
     t_start = min(getattr(tree, TIME) - tree.dist for tree in forest)
-    T = get_T(T=None, forest=forest)
+    T = get_T(T=params.T, forest=forest)
+    del params.T
     print('Read a forest of {} trees with {} tips in total, evolving between times {} and {}.'
           .format(len(forest), sum(len(_) for _ in forest), t_start, T))
 
