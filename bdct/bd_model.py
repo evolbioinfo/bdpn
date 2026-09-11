@@ -67,11 +67,11 @@ def get_start_parameters(forest, la=None, psi=None, rho=None):
     internal_dists, external_dists = [], []
     for tree in forest:
         for n in tree.traverse():
-            if n.is_root() and not n.dist:
+            if not n.dist:
                 continue
             (internal_dists if not n.is_leaf() else external_dists).append(n.dist)
 
-    psi_est = psi if psi_is_fixed else 1 / np.median(external_dists)
+    psi_est = psi if psi_is_fixed else ((1 / np.median(external_dists)) if external_dists else 0.1)
     # if it is a corner case when we only have tips, let's use sampling times
     la_est = la if la_is_fixed else ((1 / np.median(internal_dists)) if internal_dists else 1.1 * psi_est)
     if la_est <= psi_est:
